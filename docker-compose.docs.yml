@@ -1,0 +1,17 @@
+services:
+  docs:
+    image: hr_management_system_local_docs
+    container_name: hr_management_system_local_docs
+    build:
+      context: .
+      dockerfile: ./compose/local/docs/Dockerfile
+    env_file:
+      - ./.envs/.local/.django
+    volumes:
+      - /app/.venv
+      - ./docs:/docs:z
+      - ./config:/app/config:z
+      - ./hr_management_system:/app/hr_management_system:z
+    ports:
+      - '9000:9000'
+    command: /start-docs
