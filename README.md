@@ -1,0 +1,1 @@
+A web-based Smart HR Management System developed using Cookiecutter Django to automate recruitment, employee management, performance monitoring, and HR operations with role-based access for Admin, HR, Employee, and Candidate.
