@@ -95,6 +95,10 @@ THIRD_PARTY_APPS = [
 
 LOCAL_APPS = [
     "hr_management_system.users",
+    "employees",
+    "candidates",
+    "hr",
+    "admin_module",
     # Your stuff: custom apps go here
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
