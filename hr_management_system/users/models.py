@@ -5,6 +5,7 @@ from django.contrib.auth.models import AbstractUser
 from django.db import models
 from django.db.models import CharField
 from django.db.models import EmailField
+from django.db.models import Q
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 
@@ -33,11 +34,9 @@ class User(AbstractUser):
     email = EmailField(_("email address"), unique=True)
     username = None  # type: ignore[assignment]
 
-    role = CharField(
-        _("Role"),
-        max_length=50,
+    role = models.CharField(
+        max_length=20,
         choices=RoleChoices.choices,
-        default=RoleChoices.ADMIN,
     )
     status = CharField(
         _("Status"),
@@ -55,6 +54,14 @@ class User(AbstractUser):
         db_table = "users"
         verbose_name = _("user")
         verbose_name_plural = _("users")
+
+        constraints = [
+            models.UniqueConstraint(
+                fields=["role"],
+                condition=Q(role="Admin"),
+                name="only_one_admin_user",
+            ),
+        ]
 
     @property
     def is_admin_role(self) -> bool:

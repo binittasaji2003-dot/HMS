@@ -1,0 +1,52 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}{{ page_title }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <h1 class="h3 mb-1 fw-bold text-white">{{ title }}</h1>
+    <p class="text-secondary mb-0 small">Manage HR manager details after initial creation.</p>
+  </div>
+  <a href="{% url back_url %}" class="btn btn-outline-secondary btn-sm">Back</a>
+</div>
+
+<div class="dark-card">
+  <div class="dark-card-body p-4">
+    <div class="mb-4 pb-3 border-bottom border-secondary-subtle">
+      <div class="d-flex align-items-center gap-3">
+        <div class="sidebar-user-avatar" style="width: 52px; height: 52px; font-size: 1.1rem;">
+          {{ manager.user.name|default:manager.user.email|slice:":1"|upper }}
+        </div>
+        <div>
+          <h2 class="h5 mb-1 text-white">{{ manager.user.name|default:manager.user.email }}</h2>
+          <div class="text-muted small">{{ manager.department.name|default:"Unassigned" }} · HR Manager</div>
+        </div>
+      </div>
+    </div>
+
+    <form method="post" novalidate>
+      {% csrf_token %}
+      {% if form.non_field_errors %}
+        <div class="alert alert-danger">{{ form.non_field_errors }}</div>
+      {% endif %}
+      <div class="row g-3">
+        {% for field in form %}
+          <div class="col-md-6">
+            <div class="mb-3">
+              <label for="{{ field.id_for_label }}" class="form-label text-light">{{ field.label }}</label>
+              {{ field }}
+              {% if field.help_text %}<small class="text-muted d-block mt-1">{{ field.help_text }}</small>{% endif %}
+              {% if field.errors %}
+                <div class="text-danger small mt-1">{{ field.errors|join:", " }}</div>
+              {% endif %}
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+      <div class="d-flex justify-content-end mt-3">
+        <button type="submit" class="btn btn-primary-admin">{{ submit_label }}</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

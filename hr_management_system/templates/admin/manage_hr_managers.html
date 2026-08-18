@@ -1,0 +1,70 @@
+{% extends "admin/base_admin.html" %}
+{% load static %}
+
+{% block title %}Manage HR Managers - Smart HRMS Admin{% endblock title %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+  <div>
+    <h1 class="h3 mb-1 fw-bold text-white">Manage HR Managers</h1>
+    <p class="text-secondary mb-0 small">Create and maintain HR management personnel records.</p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'hrms:hr_manager_create' %}" class="btn btn-primary-admin">
+      <i class="bi bi-person-badge-fill me-1"></i> Add HR Manager
+    </a>
+    <a href="{% url 'hrms:admin_dashboard' %}" class="btn btn-outline-secondary btn-sm">Back to Dashboard</a>
+  </div>
+</div>
+
+<div class="dark-card">
+  <div class="dark-card-header">
+    <h2 class="dark-card-title"><i class="bi bi-person-badge-fill text-info"></i> Existing HR Managers</h2>
+    <span class="badge-status badge-status-info small">{{ hr_managers|length }} records</span>
+  </div>
+  <div class="table-responsive">
+    <table class="dark-table align-middle">
+      <thead>
+        <tr>
+          <th>HR Manager</th>
+          <th>Department</th>
+          <th>Phone</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for manager in hr_managers %}
+          <tr>
+            <td>
+              <div class="fw-semibold text-light">{{ manager.user.name|default:manager.user.email }}</div>
+              <div class="text-muted small">{{ manager.user.email }}</div>
+            </td>
+            <td>{{ manager.department.name|default:"Unassigned" }}</td>
+            <td>{{ manager.phone|default:"—" }}</td>
+            <td>
+              {% if manager.user.status == 'Active' %}
+                <span class="badge-status badge-status-active small">Active</span>
+              {% else %}
+                <span class="badge-status badge-status-danger small">{{ manager.user.status }}</span>
+              {% endif %}
+            </td>
+            <td>
+              <div class="d-flex gap-2">
+                <a href="{% url 'hrms:hr_manager_detail' manager.pk %}" class="btn btn-sm btn-outline-primary">View</a>
+                <a href="{% url 'hrms:hr_manager_detail' manager.pk %}" class="btn btn-sm btn-outline-warning">Edit</a>
+              </div>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="5" class="text-center py-4 text-muted">
+              No HR managers have been created yet.
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock content %}

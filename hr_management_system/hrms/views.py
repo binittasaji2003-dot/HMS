@@ -9,6 +9,10 @@ from django.utils.translation import gettext_lazy as _
 from .decorators import admin_required
 from .forms import AdminLoginForm
 from .forms import AdminRegistrationForm
+from .forms import EmployeeCreateForm
+from .forms import EmployeeProfileForm
+from .forms import HRManagerCreateForm
+from .forms import HRManagerProfileForm
 from .models import (
     Announcement,
     Candidate,
@@ -24,20 +28,41 @@ User = get_user_model()
 
 
 def admin_register_view(request):
-    """Admin Registration View."""
-    if request.user.is_authenticated and getattr(request.user, "role", None) == User.RoleChoices.ADMIN:
+    """Register the single System Administrator."""
+
+    # Only one Admin account is allowed.
+    if User.objects.filter(
+        role=User.RoleChoices.ADMIN
+    ).exists():
+        messages.info(
+            request,
+            "The System Administrator account has already been created. "
+            "Please log in.",
+        )
+        return redirect("hrms:admin_login")
+
+    if request.user.is_authenticated:
         return redirect("hrms:admin_dashboard")
 
     if request.method == "POST":
         form = AdminRegistrationForm(request.POST)
+
         if form.is_valid():
             user = form.save()
+
             messages.success(
                 request,
-                f"Administrator account '{user.email}' created successfully! You can now log in.",
+                "Administrator account created successfully. "
+                "You can now log in.",
             )
+
             return redirect("hrms:admin_login")
-        messages.error(request, "Please correct the errors below to complete registration.")
+
+        messages.error(
+            request,
+            "Please correct the errors below to complete registration.",
+        )
+
     else:
         form = AdminRegistrationForm()
 
@@ -180,6 +205,146 @@ def admin_dashboard_view(request):
     }
 
     return render(request, "admin/dashboard.html", context)
+
+
+@admin_required
+def admin_employees_management_view(request):
+    """List and manage employees from the admin dashboard."""
+    employees = Employee.objects.select_related("user", "department").order_by("-created_at")
+    context = {
+        "page_title": "Manage Employees - Smart HRMS Admin",
+        "current_page": "employees",
+        "employees": employees,
+        "show_add_button": True,
+    }
+    return render(request, "admin/manage_employees.html", context)
+
+
+@admin_required
+def admin_employee_create_view(request):
+    """Create a new Employee user and Employee profile record."""
+    if request.method == "POST":
+        form = EmployeeCreateForm(request.POST)
+        if form.is_valid():
+            user = form.save(admin_user=request.user)
+            messages.success(request, f"Employee '{user.name or user.email}' was created successfully.")
+            return redirect("hrms:employees_list")
+        messages.error(request, "Please correct the errors below before creating the employee record.")
+    else:
+        form = EmployeeCreateForm()
+
+    return render(
+        request,
+        "admin/employee_form.html",
+        {
+            "page_title": "Add Employee - Smart HRMS Admin",
+            "current_page": "employees",
+            "form": form,
+            "title": "Add Employee",
+            "submit_label": "Create Employee",
+            "back_url": "hrms:employees_list",
+        },
+    )
+
+
+@admin_required
+def admin_employee_profile_view(request, employee_id):
+    """View and edit employee profile details after the initial creation."""
+    employee = Employee.objects.select_related("user", "department").get(pk=employee_id)
+
+    if request.method == "POST":
+        form = EmployeeProfileForm(request.POST, employee=employee)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"Employee profile for '{employee.user.name or employee.user.email}' was updated.")
+            return redirect("hrms:employees_list")
+        messages.error(request, "Please correct the profile information below.")
+    else:
+        form = EmployeeProfileForm(employee=employee)
+
+    return render(
+        request,
+        "admin/employee_profile.html",
+        {
+            "page_title": f"Profile: {employee.user.name or employee.user.email}",
+            "current_page": "employees",
+            "employee": employee,
+            "form": form,
+            "title": "Employee Profile",
+            "submit_label": "Save Changes",
+            "back_url": "hrms:employees_list",
+        },
+    )
+
+
+@admin_required
+def admin_hr_managers_management_view(request):
+    """List and manage HR manager records in the admin dashboard."""
+    hr_managers = HRManager.objects.select_related("user", "department").order_by("-created_at")
+    context = {
+        "page_title": "Manage HR Managers - Smart HRMS Admin",
+        "current_page": "hr_managers",
+        "hr_managers": hr_managers,
+        "show_add_button": True,
+    }
+    return render(request, "admin/manage_hr_managers.html", context)
+
+
+@admin_required
+def admin_hr_manager_create_view(request):
+    """Create a new HR Manager user and HRManager profile record."""
+    if request.method == "POST":
+        form = HRManagerCreateForm(request.POST)
+        if form.is_valid():
+            user = form.save(admin_user=request.user)
+            messages.success(request, f"HR Manager '{user.name or user.email}' was created successfully.")
+            return redirect("hrms:hr_managers_list")
+        messages.error(request, "Please correct the errors below before creating the HR manager record.")
+    else:
+        form = HRManagerCreateForm()
+
+    return render(
+        request,
+        "admin/hr_manager_form.html",
+        {
+            "page_title": "Add HR Manager - Smart HRMS Admin",
+            "current_page": "hr_managers",
+            "form": form,
+            "title": "Add HR Manager",
+            "submit_label": "Create HR Manager",
+            "back_url": "hrms:hr_managers_list",
+        },
+    )
+
+
+@admin_required
+def admin_hr_manager_profile_view(request, manager_id):
+    """View and edit HR manager details after creation."""
+    manager = HRManager.objects.select_related("user", "department").get(pk=manager_id)
+
+    if request.method == "POST":
+        form = HRManagerProfileForm(request.POST, manager=manager)
+        if form.is_valid():
+            form.save()
+            messages.success(request, f"HR Manager profile for '{manager.user.name or manager.user.email}' was updated.")
+            return redirect("hrms:hr_managers_list")
+        messages.error(request, "Please correct the profile information below.")
+    else:
+        form = HRManagerProfileForm(manager=manager)
+
+    return render(
+        request,
+        "admin/hr_manager_profile.html",
+        {
+            "page_title": f"HR Manager: {manager.user.name or manager.user.email}",
+            "current_page": "hr_managers",
+            "manager": manager,
+            "form": form,
+            "title": "HR Manager Profile",
+            "submit_label": "Save Changes",
+            "back_url": "hrms:hr_managers_list",
+        },
+    )
 
 
 # Modular placeholder views for future admin features

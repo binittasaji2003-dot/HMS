@@ -33,7 +33,7 @@ class HRManager(models.Model):
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name="hr_profile",
+        related_name="hrms_hr_profile",
     )
     department = models.ForeignKey(
         Department,
@@ -160,7 +160,7 @@ class Employee(models.Model):
     user = models.OneToOneField(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
-        related_name="employee_profile",
+        related_name="hrms_employee_profile",
     )
     department = models.ForeignKey(
         Department,
