@@ -101,8 +101,11 @@ THIRD_PARTY_APPS = [
 ]
 
 LOCAL_APPS = [
-    "hr_management_system.users",
-    "hr_management_system.hrms",
+"hr_management_system.hrms",
+"employees",
+"candidates",
+"hr",
+"admin_module",
 ]
 # https://docs.djangoproject.com/en/dev/ref/settings/#installed-apps
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS

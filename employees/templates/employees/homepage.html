@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Employee Database</title>
+</head>
+
+<body>
+
+    <h1>Employee Module</h1>
+
+    <h2>Employees from Database</h2>
+
+    {% if employees %}
+
+        <table border="1" cellpadding="10">
+            <thead>
+    <tr>
+        <th>ID</th>
+        <th>Employee Name</th>
+        <th>Employee Code</th>
+        <th>Designation</th>
+        <th>Department</th>
+        <th>Joining Date</th>
+        <th>Status</th>
+    </tr>
+</thead>
+
+            <tbody>
+    {% for employee in employees %}
+    <tr>
+        <td>{{ employee.employee_id }}</td>
+        <td>{{ employee.user.name }}</td>
+        <td>{{ employee.employee_code }}</td>
+        <td>{{ employee.designation }}</td>
+        <td>{{ employee.department.name }}</td>
+        <td>{{ employee.joining_date }}</td>
+        <td>{{ employee.employment_status }}</td>
+    </tr>
+    {% endfor %}
+</tbody>
+        </table>
+
+    {% else %}
+
+        <p>No employees found in the database.</p>
+
+    {% endif %}
+
+</body>
+</html>
