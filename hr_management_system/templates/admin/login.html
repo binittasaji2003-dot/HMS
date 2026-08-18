@@ -1,0 +1,138 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="x-ua-compatible" content="ie=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{ page_title|default:"Admin Login - Smart HRMS" }}</title>
+
+  <!-- Favicon -->
+  <link rel="icon" href="{% static 'images/favicons/favicon.ico' %}" />
+
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Bootstrap 5 CSS -->
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css"
+        integrity="sha512-jnSuA4Ss2PkkupMQBQtgASvhzBIzBRbRNftzKPtxkJ5H7VMKRmWflEV22EUbxyNCL1CWBHz6f5T6J5PYhxOiqw=="
+        crossorigin="anonymous"
+        referrerpolicy="no-referrer" />
+
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+  <!-- Custom Dark Enterprise HRMS CSS -->
+  <link href="{% static 'css/admin_theme.css' %}" rel="stylesheet" />
+</head>
+<body class="admin-body">
+  <div class="auth-page-wrapper">
+    <div class="auth-card">
+      <!-- HRMS Brand / Logo -->
+      <div class="auth-brand">
+        <div class="auth-brand-logo">
+          <i class="bi bi-shield-lock-fill"></i>
+        </div>
+        <h1 class="auth-title">Admin Sign In</h1>
+        <p class="auth-subtitle">Smart HR Management System Portal</p>
+      </div>
+
+      <!-- Messages / Feedback -->
+      {% if messages %}
+        <div class="mb-3">
+          {% for message in messages %}
+            <div class="alert alert-dark-dismissible alert-{{ message.tags|default:'info' }} alert-dismissible fade show d-flex align-items-center justify-content-between p-2 px-3" role="alert">
+              <span class="small">{{ message }}</span>
+              <button type="button" class="btn-close btn-close-white small" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <!-- Non-field Errors -->
+      {% if form.non_field_errors %}
+        <div class="alert alert-dark-dismissible alert-danger mb-3 p-2 px-3 small">
+          {% for error in form.non_field_errors %}
+            <div class="d-flex align-items-center gap-2">
+              <i class="bi bi-exclamation-circle-fill"></i>
+              <span>{{ error }}</span>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <!-- Login Form -->
+      <form method="post" action="{% url 'hrms:admin_login' %}">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ next }}" />
+
+        <!-- Email Field -->
+        <div class="mb-3">
+          <label for="{{ form.email.id_for_label }}" class="form-label">
+            <i class="bi bi-envelope-at me-1 text-secondary"></i> Admin Email
+          </label>
+          {{ form.email }}
+          {% if form.email.errors %}
+            <div class="text-danger small mt-1">
+              {{ form.email.errors.0 }}
+            </div>
+          {% endif %}
+        </div>
+
+        <!-- Password Field -->
+        <div class="mb-3">
+          <div class="d-flex justify-content-between align-items-center">
+            <label for="{{ form.password.id_for_label }}" class="form-label">
+              <i class="bi bi-key me-1 text-secondary"></i> Password
+            </label>
+          </div>
+          {{ form.password }}
+          {% if form.password.errors %}
+            <div class="text-danger small mt-1">
+              {{ form.password.errors.0 }}
+            </div>
+          {% endif %}
+        </div>
+
+        <!-- Remember Me Checkbox -->
+        <div class="form-check mb-4">
+          {{ form.remember_me }}
+          <label class="form-check-label text-secondary small" for="{{ form.remember_me.id_for_label }}">
+            Remember this session
+          </label>
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" class="btn btn-primary-admin mb-3" id="admin-login-btn">
+          <i class="bi bi-box-arrow-in-right me-2"></i> Log In to Admin Portal
+        </button>
+      </form>
+
+      <!-- Link to Registration -->
+      <div class="text-center mt-3 pt-3 border-top" style="border-color: var(--border-color) !important;">
+        <span class="text-secondary small">Need to setup a new Administrator account?</span><br>
+        <a href="{% url 'hrms:admin_register' %}" class="small fw-semibold text-decoration-none">
+          <i class="bi bi-person-plus me-1"></i> Register New Admin
+        </a>
+      </div>
+
+      <!-- Public Site Link -->
+      <div class="text-center mt-3">
+        <a href="{% url 'home' %}" class="text-muted small text-decoration-none">
+          <i class="bi bi-arrow-left me-1"></i> Back to Main Portal
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"
+          integrity="sha512-7Pi/otdlbbCR+LnW+RMwiJMnPmCAWmVoj9VNzS5PX920PxfcxCgk122wc6SuP6ULypz01PUeyCBthQRvg=="
+          crossorigin="anonymous"
+          referrerpolicy="no-referrer"></script>
+</body>
+</html>

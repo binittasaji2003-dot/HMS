@@ -1,0 +1,498 @@
+{% extends "admin/base_admin.html" %}
+{% load static %}
+
+{% block title %}Admin Dashboard - Smart HRMS{% endblock title %}
+
+{% block content %}
+<!-- Dashboard Welcome Banner -->
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+  <div>
+    <h1 class="h3 mb-1 fw-bold text-white">System Executive Dashboard</h1>
+    <p class="text-secondary mb-0 small">
+      Real-time overview of organization workforce, talent pipeline, departments, and system operations.
+    </p>
+  </div>
+  <div class="d-flex align-items-center gap-2">
+    <span class="badge-status badge-status-info">
+      <i class="bi bi-calendar3 me-1"></i> {% now "F d, Y" %}
+    </span>
+  </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- 8 Real Database Statistics KPI Cards -->
+<!-- ========================================================================= -->
+<div class="row g-3 mb-4">
+  <!-- 1. Total Users -->
+  <div class="col-12 col-sm-6 col-xl-3">
+    <div class="metric-card">
+      <div class="metric-header">
+        <div>
+          <div class="metric-title">Total Users</div>
+          <div class="metric-value">{{ total_users_count }}</div>
+        </div>
+        <div class="metric-icon-box metric-icon-indigo">
+          <i class="bi bi-people-fill"></i>
+        </div>
+      </div>
+      <div class="metric-footer">
+        <i class="bi bi-database me-1 text-primary"></i>
+        <span>Table: <strong class="text-light">users</strong></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. HR Managers -->
+  <div class="col-12 col-sm-6 col-xl-3">
+    <div class="metric-card">
+      <div class="metric-header">
+        <div>
+          <div class="metric-title">HR Managers</div>
+          <div class="metric-value">{{ hr_managers_count }}</div>
+        </div>
+        <div class="metric-icon-box metric-icon-blue">
+          <i class="bi bi-person-badge-fill"></i>
+        </div>
+      </div>
+      <div class="metric-footer">
+        <i class="bi bi-database me-1 text-primary"></i>
+        <span>Table: <strong class="text-light">hr_managers</strong></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Departments -->
+  <div class="col-12 col-sm-6 col-xl-3">
+    <div class="metric-card">
+      <div class="metric-header">
+        <div>
+          <div class="metric-title">Departments</div>
+          <div class="metric-value">{{ departments_count }}</div>
+        </div>
+        <div class="metric-icon-box metric-icon-cyan">
+          <i class="bi bi-diagram-3-fill"></i>
+        </div>
+      </div>
+      <div class="metric-footer">
+        <i class="bi bi-database me-1 text-info"></i>
+        <span>Table: <strong class="text-light">departments</strong></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 4. Open Vacancies -->
+  <div class="col-12 col-sm-6 col-xl-3">
+    <div class="metric-card">
+      <div class="metric-header">
+        <div>
+          <div class="metric-title">Open Vacancies</div>
+          <div class="metric-value">{{ open_vacancies_count }}</div>
+        </div>
+        <div class="metric-icon-box metric-icon-emerald">
+          <i class="bi bi-briefcase-fill"></i>
+        </div>
+      </div>
+      <div class="metric-footer">
+        <i class="bi bi-database me-1 text-success"></i>
+        <span>Table: <strong class="text-light">job_vacancies</strong></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 5. Candidates -->
+  <div class="col-12 col-sm-6 col-xl-3">
+    <div class="metric-card">
+      <div class="metric-header">
+        <div>
+          <div class="metric-title">Candidates</div>
+          <div class="metric-value">{{ candidates_count }}</div>
+        </div>
+        <div class="metric-icon-box metric-icon-purple">
+          <i class="bi bi-person-lines-fill"></i>
+        </div>
+      </div>
+      <div class="metric-footer">
+        <i class="bi bi-database me-1 text-purple"></i>
+        <span>Table: <strong class="text-light">candidates</strong></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 6. Employees -->
+  <div class="col-12 col-sm-6 col-xl-3">
+    <div class="metric-card">
+      <div class="metric-header">
+        <div>
+          <div class="metric-title">Employees</div>
+          <div class="metric-value">{{ employees_count }}</div>
+        </div>
+        <div class="metric-icon-box metric-icon-teal">
+          <i class="bi bi-person-workspace"></i>
+        </div>
+      </div>
+      <div class="metric-footer">
+        <i class="bi bi-database me-1 text-info"></i>
+        <span>Table: <strong class="text-light">employees</strong></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 7. Pending Employee Approvals -->
+  <div class="col-12 col-sm-6 col-xl-3">
+    <div class="metric-card">
+      <div class="metric-header">
+        <div>
+          <div class="metric-title">Pending Approvals</div>
+          <div class="metric-value text-warning">{{ pending_approvals_count }}</div>
+        </div>
+        <div class="metric-icon-box metric-icon-amber">
+          <i class="bi bi-hourglass-split"></i>
+        </div>
+      </div>
+      <div class="metric-footer">
+        <i class="bi bi-exclamation-circle me-1 text-warning"></i>
+        <span>Action required by Admin/HR</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 8. Pending Performance Warnings -->
+  <div class="col-12 col-sm-6 col-xl-3">
+    <div class="metric-card">
+      <div class="metric-header">
+        <div>
+          <div class="metric-title">Pending Warnings</div>
+          <div class="metric-value {% if pending_warnings_count > 0 %}text-danger{% else %}text-light{% endif %}">
+            {{ pending_warnings_count }}
+          </div>
+        </div>
+        <div class="metric-icon-box metric-icon-rose">
+          <i class="bi bi-exclamation-triangle-fill"></i>
+        </div>
+      </div>
+      <div class="metric-footer">
+        <i class="bi bi-database me-1 text-danger"></i>
+        <span>Table: <strong class="text-light">performance_warnings</strong></span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- Main Sections: Data Tables & Operational Feeds -->
+<!-- ========================================================================= -->
+<div class="row g-4 mb-4">
+  <!-- Section 1: Recent Users -->
+  <div class="col-12 col-xl-7">
+    <div class="dark-card h-100">
+      <div class="dark-card-header">
+        <h2 class="dark-card-title">
+          <i class="bi bi-people text-primary"></i> Recent Users
+        </h2>
+        <span class="badge-status badge-status-info small">Live Database</span>
+      </div>
+      <div class="p-0">
+        <div class="table-responsive">
+          <table class="dark-table align-middle">
+            <thead>
+              <tr>
+                <th>User Details</th>
+                <th>Role</th>
+                <th>Status</th>
+                <th>Date Joined</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for u in recent_users %}
+                <tr>
+                  <td>
+                    <div class="d-flex align-items-center gap-2">
+                      <div class="sidebar-user-avatar" style="width: 32px; height: 32px; font-size: 0.8rem;">
+                        {% if u.name %}{{ u.name|slice:":1"|upper }}{% else %}{{ u.email|slice:":1"|upper }}{% endif %}
+                      </div>
+                      <div>
+                        <div class="fw-semibold text-light">{{ u.name|default:"Unnamed User" }}</div>
+                        <div class="text-muted small">{{ u.email }}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    {% if u.role == 'Admin' %}
+                      <span class="badge-status badge-status-info">Admin</span>
+                    {% elif u.role == 'HR' %}
+                      <span class="badge-status badge-status-active">HR Manager</span>
+                    {% elif u.role == 'Employee' %}
+                      <span class="badge-status badge-status-neutral">Employee</span>
+                    {% else %}
+                      <span class="badge-status badge-status-neutral">Candidate</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    {% if u.status == 'Active' %}
+                      <span class="badge-status badge-status-active">Active</span>
+                    {% elif u.status == 'Pending' %}
+                      <span class="badge-status badge-status-pending">Pending</span>
+                    {% else %}
+                      <span class="badge-status badge-status-danger">Inactive</span>
+                    {% endif %}
+                  </td>
+                  <td class="text-muted small">
+                    {{ u.date_joined|date:"M d, Y" }}
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="4" class="text-center py-4 text-muted">
+                    No user accounts recorded in database yet.
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 2: Recent Job Vacancies -->
+  <div class="col-12 col-xl-5">
+    <div class="dark-card h-100">
+      <div class="dark-card-header">
+        <h2 class="dark-card-title">
+          <i class="bi bi-briefcase text-success"></i> Recent Job Vacancies
+        </h2>
+        <span class="badge-status badge-status-active small">{{ open_vacancies_count }} Active</span>
+      </div>
+      <div class="dark-card-body p-3">
+        {% for vacancy in recent_vacancies %}
+          <div class="feed-item">
+            <div class="feed-icon-box metric-icon-emerald">
+              <i class="bi bi-briefcase"></i>
+            </div>
+            <div class="flex-grow-1">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <div class="fw-semibold text-light">{{ vacancy.title }}</div>
+                {% if vacancy.status == 'Open' %}
+                  <span class="badge-status badge-status-active small">Open</span>
+                {% elif vacancy.status == 'Closed' %}
+                  <span class="badge-status badge-status-danger small">Closed</span>
+                {% else %}
+                  <span class="badge-status badge-status-pending small">{{ vacancy.status }}</span>
+                {% endif %}
+              </div>
+              <div class="text-muted small d-flex align-items-center gap-3">
+                <span><i class="bi bi-building me-1"></i>{{ vacancy.department.name }}</span>
+                <span><i class="bi bi-person-plus me-1"></i>{{ vacancy.openings_count }} Openings</span>
+              </div>
+            </div>
+          </div>
+        {% empty %}
+          <div class="text-center py-4 text-muted small">
+            No job vacancies created yet.
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- Section 3 & 4: Pending Approvals & Recent Candidates -->
+<!-- ========================================================================= -->
+<div class="row g-4 mb-4">
+  <!-- Section 3: Pending Employee Approvals -->
+  <div class="col-12 col-xl-6">
+    <div class="dark-card h-100">
+      <div class="dark-card-header">
+        <h2 class="dark-card-title">
+          <i class="bi bi-hourglass-top text-warning"></i> Pending Employee Approvals
+        </h2>
+        <span class="badge-status badge-status-pending small">{{ pending_approvals_count }} Awaiting</span>
+      </div>
+      <div class="p-0">
+        <div class="table-responsive">
+          <table class="dark-table align-middle">
+            <thead>
+              <tr>
+                <th>Employee</th>
+                <th>Department</th>
+                <th>Designation</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for emp in pending_approvals_list %}
+                <tr>
+                  <td>
+                    <div class="fw-semibold text-light">{{ emp.user.name|default:emp.user.email }}</div>
+                    <div class="text-muted small">{{ emp.user.email }}</div>
+                  </td>
+                  <td>
+                    <span class="text-secondary small">{{ emp.department.name|default:"General" }}</span>
+                  </td>
+                  <td>
+                    <span class="text-light small">{{ emp.designation }}</span>
+                  </td>
+                  <td>
+                    <span class="badge-status badge-status-pending small">
+                      <i class="bi bi-clock me-1"></i> Pending
+                    </span>
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="4" class="text-center py-4 text-muted small">
+                    <i class="bi bi-check2-circle text-success fs-4 d-block mb-1"></i>
+                    No pending employee approvals in queue.
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Section 4: Recent Candidates -->
+  <div class="col-12 col-xl-6">
+    <div class="dark-card h-100">
+      <div class="dark-card-header">
+        <h2 class="dark-card-title">
+          <i class="bi bi-person-lines-fill text-purple"></i> Recent Candidates
+        </h2>
+        <span class="badge-status badge-status-neutral small">Applicants</span>
+      </div>
+      <div class="p-0">
+        <div class="table-responsive">
+          <table class="dark-table align-middle">
+            <thead>
+              <tr>
+                <th>Candidate</th>
+                <th>Target Vacancy</th>
+                <th>Status</th>
+                <th>Applied</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for candidate in recent_candidates %}
+                <tr>
+                  <td>
+                    <div class="fw-semibold text-light">{{ candidate.full_name }}</div>
+                    <div class="text-muted small">{{ candidate.email }}</div>
+                  </td>
+                  <td>
+                    <div class="text-light small">{{ candidate.job_vacancy.title }}</div>
+                    <div class="text-muted small">{{ candidate.job_vacancy.department.name }}</div>
+                  </td>
+                  <td>
+                    {% if candidate.status == 'Hired' or candidate.status == 'Selected' %}
+                      <span class="badge-status badge-status-active small">{{ candidate.status }}</span>
+                    {% elif candidate.status == 'Rejected' %}
+                      <span class="badge-status badge-status-danger small">Rejected</span>
+                    {% elif candidate.status == 'Interviewing' %}
+                      <span class="badge-status badge-status-info small">Interviewing</span>
+                    {% else %}
+                      <span class="badge-status badge-status-pending small">{{ candidate.status }}</span>
+                    {% endif %}
+                  </td>
+                  <td class="text-muted small">
+                    {{ candidate.applied_at|date:"M d" }}
+                  </td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="4" class="text-center py-4 text-muted small">
+                    No candidate applications received yet.
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- Section 5: Recent Announcements & System Notices -->
+<!-- ========================================================================= -->
+<div class="row g-4">
+  <div class="col-12 col-xl-8">
+    <div class="dark-card">
+      <div class="dark-card-header">
+        <h2 class="dark-card-title">
+          <i class="bi bi-megaphone text-info"></i> Recent Announcements
+        </h2>
+        <span class="badge-status badge-status-info small">{{ total_announcements_count }} Broadcasts</span>
+      </div>
+      <div class="dark-card-body p-3">
+        <div class="row g-3">
+          {% for note in recent_announcements %}
+            <div class="col-12 col-md-6">
+              <div class="p-3 rounded-3 h-100" style="background-color: rgba(26, 37, 58, 0.4); border: 1px solid var(--border-color);">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <span class="badge-status badge-status-info small">
+                    <i class="bi bi-people me-1"></i>{{ note.target_audience }}
+                  </span>
+                  <span class="text-muted small">{{ note.created_at|date:"M d, Y" }}</span>
+                </div>
+                <h3 class="h6 fw-semibold text-light mb-1">{{ note.title }}</h3>
+                <p class="text-secondary small mb-2 text-truncate" style="max-height: 40px;">
+                  {{ note.content|truncatechars:120 }}
+                </p>
+                <div class="text-muted small" style="font-size: 0.75rem;">
+                  <i class="bi bi-person-check me-1"></i> Posted by: {{ note.created_by.name|default:note.created_by.email|default:"System Admin" }}
+                </div>
+              </div>
+            </div>
+          {% empty %}
+            <div class="col-12 text-center py-4 text-muted small">
+              No organization announcements posted yet.
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Performance Warnings Summary Card -->
+  <div class="col-12 col-xl-4">
+    <div class="dark-card h-100">
+      <div class="dark-card-header">
+        <h2 class="dark-card-title">
+          <i class="bi bi-shield-exclamation text-danger"></i> Performance Warnings
+        </h2>
+        <span class="badge-status badge-status-danger small">{{ pending_warnings_count }} Pending</span>
+      </div>
+      <div class="dark-card-body p-3">
+        {% for warn in recent_warnings %}
+          <div class="feed-item">
+            <div class="feed-icon-box metric-icon-rose">
+              <i class="bi bi-exclamation-triangle"></i>
+            </div>
+            <div class="flex-grow-1">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="fw-semibold text-light small">{{ warn.title }}</span>
+                <span class="badge-status {% if warn.severity == 'Critical' or warn.severity == 'High' %}badge-status-danger{% else %}badge-status-pending{% endif %} small">
+                  {{ warn.severity }}
+                </span>
+              </div>
+              <div class="text-muted small mb-1">{{ warn.employee.user.name|default:warn.employee.user.email }} ({{ warn.employee.designation }})</div>
+              <div class="text-secondary small" style="font-size: 0.75rem;">
+                <i class="bi bi-info-circle me-1"></i> Status: {{ warn.status }}
+              </div>
+            </div>
+          </div>
+        {% empty %}
+          <div class="text-center py-4 text-muted small">
+            <i class="bi bi-shield-check text-success fs-4 d-block mb-1"></i>
+            No active performance warnings.
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}

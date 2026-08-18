@@ -1,0 +1,233 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta http-equiv="x-ua-compatible" content="ie=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}{{ page_title|default:"Smart HRMS - Admin Portal" }}{% endblock title %}</title>
+  
+  <!-- Favicon -->
+  <link rel="icon" href="{% static 'images/favicons/favicon.ico' %}" />
+
+  <!-- Google Fonts: Inter -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Bootstrap 5 CSS -->
+  <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css"
+        integrity="sha512-jnSuA4Ss2PkkupMQBQtgASvhzBIzBRbRNftzKPtxkJ5H7VMKRmWflEV22EUbxyNCL1CWBHz6f5T6J5PYhxOiqw=="
+        crossorigin="anonymous"
+        referrerpolicy="no-referrer" />
+
+  <!-- Bootstrap Icons -->
+  <link rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+  <!-- Custom Dark Enterprise HRMS CSS -->
+  <link href="{% static 'css/admin_theme.css' %}" rel="stylesheet" />
+
+  {% block extra_css %}{% endblock extra_css %}
+</head>
+<body class="admin-body">
+  <div class="admin-layout">
+    <!-- Sidebar -->
+    <aside class="admin-sidebar" id="adminSidebar">
+      <!-- Sidebar Brand Header -->
+      <div class="sidebar-brand">
+        <div class="sidebar-brand-icon">
+          <i class="bi bi-shield-lock-fill"></i>
+        </div>
+        <div class="d-flex flex-column">
+          <span class="sidebar-brand-text">Smart HRMS</span>
+          <span class="sidebar-brand-badge">Admin Workspace</span>
+        </div>
+      </div>
+
+      <!-- Navigation Links -->
+      <nav class="sidebar-nav">
+        <div class="nav-section-title">Core Navigation</div>
+        
+        <!-- 1. Dashboard -->
+        <a href="{% url 'hrms:admin_dashboard' %}" class="sidebar-nav-link {% if current_page == 'dashboard' %}active{% endif %}" id="nav-dashboard">
+          <i class="bi bi-grid-1x2-fill"></i>
+          <span>Dashboard</span>
+        </a>
+
+        <!-- 2. Users -->
+        <a href="{% url 'hrms:users_list' %}" class="sidebar-nav-link {% if current_page == 'users' %}active{% endif %}" id="nav-users">
+          <i class="bi bi-people-fill"></i>
+          <span>Users</span>
+        </a>
+
+        <!-- 3. Departments -->
+        <a href="{% url 'hrms:departments_list' %}" class="sidebar-nav-link {% if current_page == 'departments' %}active{% endif %}" id="nav-departments">
+          <i class="bi bi-diagram-3-fill"></i>
+          <span>Departments</span>
+        </a>
+
+        <!-- 4. HR Managers -->
+        <a href="{% url 'hrms:hr_managers_list' %}" class="sidebar-nav-link {% if current_page == 'hr_managers' %}active{% endif %}" id="nav-hrmanagers">
+          <i class="bi bi-person-badge-fill"></i>
+          <span>HR Managers</span>
+        </a>
+
+        <div class="nav-section-title">Recruitment & Talent</div>
+
+        <!-- 5. Job Vacancies -->
+        <a href="{% url 'hrms:job_vacancies_list' %}" class="sidebar-nav-link {% if current_page == 'job_vacancies' %}active{% endif %}" id="nav-jobvacancies">
+          <i class="bi bi-briefcase-fill"></i>
+          <span>Job Vacancies</span>
+        </a>
+
+        <!-- 6. Candidates -->
+        <a href="{% url 'hrms:candidates_list' %}" class="sidebar-nav-link {% if current_page == 'candidates' %}active{% endif %}" id="nav-candidates">
+          <i class="bi bi-person-lines-fill"></i>
+          <span>Candidates</span>
+        </a>
+
+        <div class="nav-section-title">Workforce & Operations</div>
+
+        <!-- 7. Employees -->
+        <a href="{% url 'hrms:employees_list' %}" class="sidebar-nav-link {% if current_page == 'employees' %}active{% endif %}" id="nav-employees">
+          <i class="bi bi-person-workspace"></i>
+          <span>Employees</span>
+        </a>
+
+        <!-- 8. Performance -->
+        <a href="{% url 'hrms:performance_list' %}" class="sidebar-nav-link {% if current_page == 'performance' %}active{% endif %}" id="nav-performance">
+          <i class="bi bi-graph-up-arrow"></i>
+          <span>Performance</span>
+        </a>
+
+        <!-- 9. Warnings -->
+        <a href="{% url 'hrms:warnings_list' %}" class="sidebar-nav-link {% if current_page == 'warnings' %}active{% endif %}" id="nav-warnings">
+          <i class="bi bi-exclamation-triangle-fill"></i>
+          <span>Warnings</span>
+        </a>
+
+        <!-- 10. Announcements -->
+        <a href="{% url 'hrms:announcements_list' %}" class="sidebar-nav-link {% if current_page == 'announcements' %}active{% endif %}" id="nav-announcements">
+          <i class="bi bi-megaphone-fill"></i>
+          <span>Announcements</span>
+        </a>
+
+        <div class="nav-section-title mt-3">Account Session</div>
+
+        <!-- 11. Logout -->
+        <a href="{% url 'hrms:admin_logout' %}" class="sidebar-nav-link nav-logout" id="nav-logout">
+          <i class="bi bi-box-arrow-right"></i>
+          <span>Logout</span>
+        </a>
+      </nav>
+
+      <!-- Sidebar User Footer -->
+      <div class="sidebar-footer">
+        <div class="sidebar-user-pill">
+          <div class="sidebar-user-avatar">
+            {% if request.user.name %}{{ request.user.name|slice:":1"|upper }}{% else %}{{ request.user.email|slice:":1"|upper }}{% endif %}
+          </div>
+          <div class="sidebar-user-info">
+            <div class="sidebar-user-name" title="{{ request.user.email }}">
+              {{ request.user.name|default:request.user.email }}
+            </div>
+            <div class="sidebar-user-role">
+              <i class="bi bi-patch-check-fill me-1"></i>Administrator
+            </div>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <div class="admin-main-wrapper">
+      <!-- Topbar Header -->
+      <header class="admin-topbar">
+        <div class="d-flex align-items-center gap-3">
+          <!-- Mobile Sidebar Toggle -->
+          <button class="btn btn-outline-secondary d-lg-none p-1 px-2 text-white border-0" id="sidebarToggle" type="button" aria-label="Toggle Sidebar">
+            <i class="bi bi-list fs-4"></i>
+          </button>
+          
+          <!-- Search Bar -->
+          <div class="topbar-search d-none d-md-block">
+            <i class="bi bi-search"></i>
+            <input type="text" placeholder="Search employees, vacancies, records..." aria-label="Global Search">
+          </div>
+        </div>
+
+        <!-- Right Side Badges & Status -->
+        <div class="topbar-actions">
+          <div class="d-none d-sm-flex align-items-center gap-2">
+            <span class="badge-status badge-status-active">
+              <span class="spinner-grow spinner-grow-sm" style="width: 8px; height: 8px; animation-duration: 2s;" role="status"></span>
+              System Live
+            </span>
+          </div>
+
+          <a href="{% url 'home' %}" class="topbar-badge-btn" title="View Public Portal">
+            <i class="bi bi-globe"></i>
+            <span class="d-none d-md-inline">Public Site</span>
+          </a>
+
+          <a href="{% url 'hrms:admin_logout' %}" class="topbar-badge-btn text-danger border-danger-subtle" title="Sign out">
+            <i class="bi bi-box-arrow-right"></i>
+            <span class="d-none d-md-inline">Logout</span>
+          </a>
+        </div>
+      </header>
+
+      <!-- Content Container -->
+      <main class="admin-content">
+        <!-- Notification Messages -->
+        {% if messages %}
+          <div class="mb-4">
+            {% for message in messages %}
+              <div class="alert alert-dark-dismissible alert-{{ message.tags|default:'info' }} alert-dismissible fade show d-flex align-items-center justify-content-between" role="alert">
+                <div class="d-flex align-items-center gap-2">
+                  {% if message.tags == 'error' or message.tags == 'danger' %}
+                    <i class="bi bi-exclamation-octagon-fill text-danger fs-5"></i>
+                  {% elif message.tags == 'success' %}
+                    <i class="bi bi-check-circle-fill text-success fs-5"></i>
+                  {% elif message.tags == 'warning' %}
+                    <i class="bi bi-exclamation-triangle-fill text-warning fs-5"></i>
+                  {% else %}
+                    <i class="bi bi-info-circle-fill text-info fs-5"></i>
+                  {% endif %}
+                  <span>{{ message }}</span>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+
+        {% block content %}{% endblock content %}
+      </main>
+    </div>
+  </div>
+
+  <!-- Bootstrap 5 JS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"
+          integrity="sha512-7Pi/otdlbbCR+LnW+RMwiJMnPmCAWmVoj9VNzS5PX920PxfcxCgk122wc6SuP6ULypz01PUeyCBthQRvg=="
+          crossorigin="anonymous"
+          referrerpolicy="no-referrer"></script>
+
+  <!-- Sidebar Toggle Script -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const sidebar = document.getElementById('adminSidebar');
+      const toggleBtn = document.getElementById('sidebarToggle');
+      if (toggleBtn && sidebar) {
+        toggleBtn.addEventListener('click', function () {
+          sidebar.classList.toggle('show');
+        });
+      }
+    });
+  </script>
+
+  {% block extra_js %}{% endblock extra_js %}
+</body>
+</html>

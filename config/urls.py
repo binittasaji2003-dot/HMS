@@ -15,11 +15,11 @@ urlpatterns = [
     ),
     # Django Admin, use {% url 'admin:index' %}
     path(settings.ADMIN_URL, admin.site.urls),
+    # Smart HRMS Admin Portal
+    path("admin-portal/", include("hr_management_system.hrms.urls", namespace="hrms")),
     # User management
     path("users/", include("hr_management_system.users.urls", namespace="users")),
     path("accounts/", include("allauth.urls")),
-    # Your stuff: custom urls includes go here
-    # ...
     # Media files
     *static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT),
 ]

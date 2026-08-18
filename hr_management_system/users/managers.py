@@ -26,11 +26,15 @@ class UserManager(DjangoUserManager["User"]):
     def create_user(self, email: str, password: str | None = None, **extra_fields):  # type: ignore[override]
         extra_fields.setdefault("is_staff", False)
         extra_fields.setdefault("is_superuser", False)
+        extra_fields.setdefault("role", "Admin")
+        extra_fields.setdefault("status", "Active")
         return self._create_user(email, password, **extra_fields)
 
     def create_superuser(self, email: str, password: str | None = None, **extra_fields):  # type: ignore[override]
         extra_fields.setdefault("is_staff", True)
         extra_fields.setdefault("is_superuser", True)
+        extra_fields.setdefault("role", "Admin")
+        extra_fields.setdefault("status", "Active")
 
         if extra_fields.get("is_staff") is not True:
             msg = "Superuser must have is_staff=True."

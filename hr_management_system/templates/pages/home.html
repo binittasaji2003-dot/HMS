@@ -1,3 +1,33 @@
 {% extends "base.html" %}
+{% load static %}
 
+{% block title %}Smart HR Management System{% endblock title %}
 
+{% block content %}
+<div class="row justify-content-center align-items-center min-vh-75 py-5 text-center">
+  <div class="col-lg-8">
+    <div class="p-5 rounded-4 shadow-sm border" style="background: #111827; border-color: #1f2937 !important; color: #f9fafb;">
+      <div class="mb-4">
+        <span class="badge px-3 py-2 rounded-pill" style="background: rgba(99, 102, 241, 0.2); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.4);">
+          Enterprise HRMS v1.0
+        </span>
+      </div>
+      <h1 class="display-5 fw-bold mb-3" style="color: #ffffff;">Smart HR Management System</h1>
+      <p class="lead mb-4" style="color: #9ca3af;">
+        Comprehensive role-based enterprise solution for managing recruitment, employee lifecycle, performance reviews, and administrative operations.
+      </p>
+      <div class="d-flex justify-content-center gap-3 flex-wrap">
+        <a href="{% url 'hrms:admin_dashboard' %}" class="btn btn-primary btn-lg px-4 py-2" style="background: #4f46e5; border-color: #4f46e5;">
+          <i class="bi bi-speedometer2 me-2"></i> Go to Admin Dashboard
+        </a>
+        <a href="{% url 'hrms:admin_login' %}" class="btn btn-outline-light btn-lg px-4 py-2" style="border-color: #374151;">
+          <i class="bi bi-box-arrow-in-right me-2"></i> Admin Login
+        </a>
+        <a href="{% url 'hrms:admin_register' %}" class="btn btn-outline-secondary btn-lg px-4 py-2" style="color: #9ca3af; border-color: #374151;">
+          <i class="bi bi-person-plus me-2"></i> Admin Registration
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}
