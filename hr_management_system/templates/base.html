@@ -78,6 +78,11 @@
               <a class="nav-link" href="{% url 'about' %}">About</a>
             </li>
             {% if request.user.is_authenticated %}
+              {% if request.user.employee_profile %}
+              <li class="nav-item">
+                <a class="nav-link" href="{% url 'employees:dashboard' %}">{% translate "Dashboard" %}</a>
+              </li>
+              {% endif %}
               <li class="nav-item">
                 <a class="nav-link"
                    href="{% url 'users:detail' request.user.pk %}">{% translate "My Profile" %}</a>

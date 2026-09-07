@@ -1,0 +1,134 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notifications - HRMS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <script>
+        tailwind.config = { theme: { extend: { colors: { hrms: { blue: '#1677ff', hover: '#0958d9' } } } } }
+    </script>
+</head>
+<body class="bg-slate-50 font-sans antialiased text-slate-800 min-h-screen flex">
+
+    <!-- Left Sidebar -->
+    <aside class="w-64 bg-white border-r border-slate-200/80 flex flex-col justify-between hidden md:flex shrink-0 min-h-screen">
+        <div>
+            <div class="h-20 flex items-center px-6 border-b border-slate-100">
+                <a href="{% url 'employees:dashboard' %}" class="flex items-center gap-3 text-hrms-blue">
+                    <div class="w-9 h-9 bg-hrms-blue text-white rounded-xl flex items-center justify-center text-lg shadow-sm">
+                        <i class="bi bi-people-fill"></i>
+                    </div>
+                    <span class="text-xl font-extrabold tracking-tight text-slate-900">HRMS</span>
+                </a>
+            </div>
+            <nav class="p-4 space-y-1.5">
+                <a href="{% url 'employees:dashboard' %}" class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-600 hover:text-hrms-blue hover:bg-blue-50/60 rounded-xl">
+                    <i class="bi bi-grid text-base"></i><span>Dashboard</span>
+                </a>
+                <a href="{% url 'employees:notifications' %}" class="flex items-center gap-3 px-4 py-3 text-sm font-bold text-white bg-hrms-blue rounded-xl shadow-md shadow-blue-500/20">
+                    <i class="bi bi-bell-fill text-base"></i><span>Notifications</span>
+                </a>
+            </nav>
+        </div>
+        <div class="p-4 border-t border-slate-100">
+            <a href="{% url 'employees:logout' %}" class="flex items-center gap-3 px-4 py-3 text-sm font-bold text-slate-700 hover:text-red-600 hover:bg-red-50 rounded-xl">
+                <i class="bi bi-box-arrow-right text-base"></i><span>Logout</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="flex-1 flex flex-col min-w-0">
+        <header class="h-20 bg-white border-b border-slate-200/80 px-6 lg:px-10 flex items-center justify-between">
+            <h1 class="text-xl font-extrabold text-slate-900">Notifications</h1>
+            <a href="{% url 'employees:dashboard' %}" class="text-xs font-bold text-hrms-blue hover:underline">← Back to Dashboard</a>
+        </header>
+
+        <main class="p-6 lg:p-10 space-y-4 max-w-4xl mx-auto w-full">
+            {% if notifications %}
+                {% for n in notifications %}
+                    <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex items-start justify-between gap-4 {% if not n.is_read %}bg-blue-50/30 border-blue-100{% endif %}">
+                        <div class="flex items-start gap-4">
+                            <div class="w-10 h-10 rounded-xl bg-blue-50 text-hrms-blue flex items-center justify-center text-lg shrink-0 mt-0.5">
+                                <i class="bi bi-bell"></i>
+                            </div>
+                            <div class="space-y-1">
+                                <div class="text-sm font-bold text-slate-900">{{ n.title }}</div>
+                                <p class="text-xs text-slate-600">{{ n.message }}</p>
+                                <span class="text-[10px] text-slate-400 font-medium block pt-1">{{ n.created_at|date:"d M Y, h:i A" }}</span>
+                            </div>
+                        </div>
+
+                        {% if not n.is_read %}
+                            <a href="{% url 'employees:mark_notification_read' n.notification_id %}" class="px-3 py-1 bg-blue-100 text-hrms-blue text-[11px] font-bold rounded-lg hover:bg-blue-200 shrink-0">
+                                Mark Read
+                            </a>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            {% else %}
+                <!-- Default Samples matching request -->
+                <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex items-start gap-4">
+                    <div class="w-10 h-10 rounded-xl bg-blue-50 text-hrms-blue flex items-center justify-center text-lg shrink-0">
+                        <i class="bi bi-calendar-event"></i>
+                    </div>
+                    <div class="space-y-1">
+                        <div class="text-sm font-bold text-slate-900">Weekly Report Reminder</div>
+                        <p class="text-xs text-slate-600">Please submit your weekly work report before Friday 5 PM.</p>
+                        <span class="text-[10px] text-slate-400">2 hours ago</span>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex items-start gap-4">
+                    <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg shrink-0">
+                        <i class="bi bi-chat-text"></i>
+                    </div>
+                    <div class="space-y-1">
+                        <div class="text-sm font-bold text-slate-900">HR Feedback</div>
+                        <p class="text-xs text-slate-600">Your work report has been reviewed by HR Manager.</p>
+                        <span class="text-[10px] text-slate-400">1 day ago</span>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex items-start gap-4">
+                    <div class="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center text-lg shrink-0">
+                        <i class="bi bi-exclamation-triangle"></i>
+                    </div>
+                    <div class="space-y-1">
+                        <div class="text-sm font-bold text-slate-900">Performance Warning</div>
+                        <p class="text-xs text-slate-600">Performance review updated. Please maintain attendance standards.</p>
+                        <span class="text-[10px] text-slate-400">2 days ago</span>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex items-start gap-4">
+                    <div class="w-10 h-10 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-lg shrink-0">
+                        <i class="bi bi-megaphone"></i>
+                    </div>
+                    <div class="space-y-1">
+                        <div class="text-sm font-bold text-slate-900">Company Announcement</div>
+                        <p class="text-xs text-slate-600">New company policy guidelines have been published.</p>
+                        <span class="text-[10px] text-slate-400">3 days ago</span>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex items-start gap-4">
+                    <div class="w-10 h-10 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center text-lg shrink-0">
+                        <i class="bi bi-person-check"></i>
+                    </div>
+                    <div class="space-y-1">
+                        <div class="text-sm font-bold text-slate-900">Profile Update</div>
+                        <p class="text-xs text-slate-600">Your profile information was updated successfully.</p>
+                        <span class="text-[10px] text-slate-400">1 week ago</span>
+                    </div>
+                </div>
+            {% endif %}
+        </main>
+    </div>
+
+</body>
+</html>
+

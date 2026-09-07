@@ -1,0 +1,214 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile - HRMS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        hrms: { blue: '#1677ff', hover: '#0958d9' }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-slate-50 font-sans antialiased text-slate-800 min-h-screen flex">
+
+    <!-- Left Sidebar -->
+    <aside class="w-64 bg-white border-r border-slate-200/80 flex flex-col justify-between hidden md:flex shrink-0 min-h-screen">
+        <div>
+            <div class="h-20 flex items-center px-6 border-b border-slate-100">
+                <a href="{% url 'employees:dashboard' %}" class="flex items-center gap-3 text-hrms-blue">
+                    <div class="w-9 h-9 bg-hrms-blue text-white rounded-xl flex items-center justify-center text-lg shadow-sm">
+                        <i class="bi bi-people-fill"></i>
+                    </div>
+                    <span class="text-xl font-extrabold tracking-tight text-slate-900">HRMS</span>
+                </a>
+            </div>
+            <nav class="p-4 space-y-1.5">
+                <a href="{% url 'employees:dashboard' %}" class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-600 hover:text-hrms-blue hover:bg-blue-50/60 rounded-xl">
+                    <i class="bi bi-grid text-base"></i><span>Dashboard</span>
+                </a>
+                <a href="{% url 'employees:profile' %}" class="flex items-center gap-3 px-4 py-3 text-sm font-bold text-white bg-hrms-blue rounded-xl shadow-md shadow-blue-500/20">
+                    <i class="bi bi-person-fill text-base"></i><span>My Profile</span>
+                </a>
+                <a href="{% url 'employees:reports_list' %}" class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-600 hover:text-hrms-blue hover:bg-blue-50/60 rounded-xl">
+                    <i class="bi bi-file-earmark-text text-base"></i><span>Reports</span>
+                </a>
+                <a href="{% url 'employees:performance' %}" class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-600 hover:text-hrms-blue hover:bg-blue-50/60 rounded-xl">
+                    <i class="bi bi-bar-chart-line text-base"></i><span>Performance</span>
+                </a>
+                <a href="{% url 'employees:announcements' %}" class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-600 hover:text-hrms-blue hover:bg-blue-50/60 rounded-xl">
+                    <i class="bi bi-megaphone text-base"></i><span>Announcements</span>
+                </a>
+                <a href="{% url 'employees:notifications' %}" class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-600 hover:text-hrms-blue hover:bg-blue-50/60 rounded-xl">
+                    <i class="bi bi-bell text-base"></i><span>Notifications</span>
+                </a>
+            </nav>
+        </div>
+        <div class="p-4 border-t border-slate-100">
+            <a href="{% url 'employees:logout' %}" class="flex items-center gap-3 px-4 py-3 text-sm font-bold text-slate-700 hover:text-red-600 hover:bg-red-50 rounded-xl">
+                <i class="bi bi-box-arrow-right text-base"></i><span>Logout</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="flex-1 flex flex-col min-w-0">
+        <header class="h-20 bg-white border-b border-slate-200/80 px-6 lg:px-10 flex items-center justify-between">
+            <h1 class="text-xl font-extrabold text-slate-900">My Profile</h1>
+            <a href="{% url 'employees:dashboard' %}" class="text-xs font-bold text-hrms-blue hover:underline">← Back to Dashboard</a>
+        </header>
+
+        <main class="p-6 lg:p-10 space-y-8 max-w-5xl mx-auto w-full">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="p-4 text-xs font-semibold rounded-xl bg-blue-50 text-blue-800 border border-blue-200">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <!-- Header Profile Card -->
+            <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm flex flex-col sm:flex-row items-center gap-6">
+                {% if employee.profile_photo %}
+                    <img src="{{ employee.profile_photo.url }}" alt="Profile Photo" class="w-24 h-24 rounded-full object-cover border-2 border-hrms-blue">
+                {% else %}
+                    <div class="w-24 h-24 rounded-full bg-blue-100 text-hrms-blue font-extrabold text-3xl flex items-center justify-center border-2 border-hrms-blue">
+                        {{ employee.user.get_full_name|default:employee.user.email|slice:":1"|upper }}
+                    </div>
+                {% endif %}
+                <div class="space-y-1 text-center sm:text-left flex-1">
+                    <h2 class="text-2xl font-extrabold text-slate-900">{{ employee.user.name|default:employee.user.email }}</h2>
+                    <div class="text-sm font-semibold text-hrms-blue">{{ employee.designation }} &bull; {{ employee.department.name }}</div>
+                    <div class="text-xs text-slate-500">Employee Code: <span class="font-bold text-slate-700">{{ employee.employee_code }}</span> | Joined: <span class="font-bold text-slate-700">{{ employee.joining_date|date:"d M Y" }}</span></div>
+                </div>
+            </div>
+
+            <!-- Profile Tabs Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                
+                <!-- Edit Personal Information & Photo -->
+                <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm space-y-5">
+                    <h3 class="text-base font-bold text-slate-900 border-b pb-3">Edit Personal Information</h3>
+                    
+                    <form method="POST" enctype="multipart/form-data" class="space-y-4">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="update_profile">
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Full Name</label>
+                            {{ profile_form.name }}
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Email Address</label>
+                            {{ profile_form.email }}
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold text-slate-700 mb-1">Upload/Update Profile Photo</label>
+                            {{ profile_form.profile_photo }}
+                        </div>
+
+                        <button type="submit" class="px-5 py-2.5 bg-hrms-blue text-white text-xs font-bold rounded-xl hover:bg-hrms-hover shadow-sm">
+                            Save Profile Changes
+                        </button>
+                    </form>
+                </div>
+
+                <!-- Change Password -->
+                <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm space-y-5">
+                    <h3 class="text-base font-bold text-slate-900 border-b pb-3">Change Password</h3>
+
+                    <form method="POST" class="space-y-4">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="change_password">
+
+                        {% for field in pwd_form %}
+                            <div>
+                                <label class="block text-xs font-bold text-slate-700 mb-1">{{ field.label }}</label>
+                                <input type="{{ field.field.widget.input_type }}" name="{{ field.name }}" class="w-full h-10 px-3 text-xs bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-hrms-blue" required>
+                                {% if field.errors %}
+                                    <div class="text-[11px] text-red-600 mt-1">{{ field.errors.0 }}</div>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+
+                        <button type="submit" class="px-5 py-2.5 bg-slate-800 text-white text-xs font-bold rounded-xl hover:bg-slate-900 shadow-sm">
+                            Update Password
+                        </button>
+                    </form>
+                </div>
+
+            </div>
+
+            <!-- Uploaded Documents Section -->
+            <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm space-y-6">
+                <div class="flex items-center justify-between border-b pb-4">
+                    <h3 class="text-base font-bold text-slate-900">Uploaded Documents</h3>
+                </div>
+
+                <!-- Upload Form -->
+                <form method="POST" enctype="multipart/form-data" class="flex flex-col sm:flex-row items-center gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200/80">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="upload_document">
+                    <div class="flex-1 w-full">
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Document Type</label>
+                        {{ doc_form.document_type }}
+                    </div>
+                    <div class="flex-1 w-full">
+                        <label class="block text-xs font-bold text-slate-700 mb-1">Select File</label>
+                        {{ doc_form.document }}
+                    </div>
+                    <button type="submit" class="w-full sm:w-auto px-5 py-2.5 bg-hrms-blue text-white text-xs font-bold rounded-xl hover:bg-hrms-hover shrink-0 mt-3 sm:mt-5">
+                        Upload Document
+                    </button>
+                </form>
+
+                <!-- Documents List -->
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left text-xs">
+                        <thead>
+                            <tr class="border-b text-slate-400 font-bold uppercase">
+                                <th class="pb-3">Document Type</th>
+                                <th class="pb-3">Uploaded Date</th>
+                                <th class="pb-3 text-right">Download</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y text-slate-700">
+                            {% if documents %}
+                                {% for doc in documents %}
+                                    <tr>
+                                        <td class="py-3 font-bold text-slate-900">{{ doc.get_document_type_display }}</td>
+                                        <td class="py-3 text-slate-500">{{ doc.uploaded_at|date:"d M Y" }}</td>
+                                        <td class="py-3 text-right">
+                                            <a href="{{ doc.document.url }}" target="_blank" class="text-hrms-blue font-bold hover:underline">
+                                                <i class="bi bi-download me-1"></i> Download
+                                            </a>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="3" class="py-4 text-center text-slate-400">No documents uploaded yet.</td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+</body>
+</html>
+

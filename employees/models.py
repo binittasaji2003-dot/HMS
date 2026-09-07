@@ -35,7 +35,13 @@ class Employee(models.Model):
         unique=True,
     )
 
-    # These are company/employment details
+    profile_photo = models.ImageField(
+        upload_to="employees/profile_photos/",
+        null=True,
+        blank=True,
+    )
+
+    # Employment details
     department = models.ForeignKey(
         "admin_module.Department",
         on_delete=models.PROTECT,
@@ -137,6 +143,11 @@ class EmployeeReport(models.Model):
         related_name="reports",
     )
 
+    title = models.CharField(
+        max_length=200,
+        default="Weekly Work Report",
+    )
+
     week_start_date = models.DateField()
 
     week_end_date = models.DateField()
@@ -183,7 +194,7 @@ class EmployeeReport(models.Model):
     def __str__(self):
         return (
             f"{self.employee.employee_code} - "
-            f"{self.week_start_date}"
+            f"{self.title} ({self.week_start_date})"
         )
 
 
@@ -214,6 +225,12 @@ class EmployeePerformance(models.Model):
 
     review_period = models.CharField(
         max_length=50,
+    )
+
+    score = models.DecimalField(
+        max_digits=3,
+        decimal_places=1,
+        default=4.3,
     )
 
     rating = models.CharField(
@@ -316,3 +333,46 @@ class PerformanceWarning(models.Model):
 
     def __str__(self):
         return f"Warning - {self.employee.employee_code}"
+
+
+class Notification(models.Model):
+    NOTIFICATION_TYPES = [
+        ("REPORT_REMINDER", "Weekly Report Reminder"),
+        ("HR_FEEDBACK", "HR Feedback"),
+        ("WARNING", "Performance Warning"),
+        ("ANNOUNCEMENT", "Company Announcement"),
+        ("PROFILE_UPDATE", "Profile Update"),
+    ]
+
+    notification_id = models.AutoField(
+        primary_key=True,
+    )
+
+    employee = models.ForeignKey(
+        Employee,
+        on_delete=models.CASCADE,
+        related_name="notifications",
+    )
+
+    title = models.CharField(
+        max_length=200,
+    )
+
+    message = models.TextField()
+
+    notification_type = models.CharField(
+        max_length=30,
+        choices=NOTIFICATION_TYPES,
+        default="REPORT_REMINDER",
+    )
+
+    is_read = models.BooleanField(
+        default=False,
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+    )
+
+    def __str__(self):
+        return f"{self.employee.employee_code} - {self.title}"
