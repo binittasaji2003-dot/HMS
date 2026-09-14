@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}{{ job.title }}{% endblock title %}
+{% block content %}
+<div class="py-4">
+  <p><a href="{% url 'candidates:job_list' %}">Back to vacancies</a></p>
+  <h1>{{ job.title }}</h1>
+  <p>{{ job.department }} · {{ job.location }}</p>
+  <h2 class="h4">Description</h2><p>{{ job.description|linebreaks }}</p>
+  <h2 class="h4">Responsibilities</h2><p>{{ job.responsibilities|linebreaks }}</p>
+  <h2 class="h4">Qualifications</h2><p>{{ job.qualifications|linebreaks }}</p>
+  {% if request.user.is_authenticated %}
+    {% if applied %}<p class="alert alert-info">You have already applied for this vacancy.</p>
+    {% else %}<a class="btn btn-primary" href="{% url 'candidates:apply' job.vacancy_id %}">Apply now</a>{% endif %}
+  {% else %}<a class="btn btn-primary" href="{% url 'account_login' %}?next={{ request.path|urlencode }}">Sign in to apply</a>{% endif %}
+</div>
+{% endblock content %}

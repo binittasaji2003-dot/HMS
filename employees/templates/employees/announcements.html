@@ -1,0 +1,100 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Company Announcements - HRMS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <script>
+        tailwind.config = { theme: { extend: { colors: { hrms: { blue: '#1677ff', hover: '#0958d9' } } } } }
+    </script>
+</head>
+<body class="bg-slate-50 font-sans antialiased text-slate-800 min-h-screen flex">
+
+    <!-- Left Sidebar -->
+    <aside class="w-64 bg-white border-r border-slate-200/80 flex flex-col justify-between hidden md:flex shrink-0 min-h-screen">
+        <div>
+            <div class="h-20 flex items-center px-6 border-b border-slate-100">
+                <a href="{% url 'employees:dashboard' %}" class="flex items-center gap-3 text-hrms-blue">
+                    <div class="w-9 h-9 bg-hrms-blue text-white rounded-xl flex items-center justify-center text-lg shadow-sm">
+                        <i class="bi bi-people-fill"></i>
+                    </div>
+                    <span class="text-xl font-extrabold tracking-tight text-slate-900">HRMS</span>
+                </a>
+            </div>
+            <nav class="p-4 space-y-1.5">
+                <a href="{% url 'employees:dashboard' %}" class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-600 hover:text-hrms-blue hover:bg-blue-50/60 rounded-xl">
+                    <i class="bi bi-grid text-base"></i><span>Dashboard</span>
+                </a>
+                <a href="{% url 'employees:announcements' %}" class="flex items-center gap-3 px-4 py-3 text-sm font-bold text-white bg-hrms-blue rounded-xl shadow-md shadow-blue-500/20">
+                    <i class="bi bi-megaphone-fill text-base"></i><span>Announcements</span>
+                </a>
+            </nav>
+        </div>
+        <div class="p-4 border-t border-slate-100">
+            <a href="{% url 'employees:logout' %}" class="flex items-center gap-3 px-4 py-3 text-sm font-bold text-slate-700 hover:text-red-600 hover:bg-red-50 rounded-xl">
+                <i class="bi bi-box-arrow-right text-base"></i><span>Logout</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content -->
+    <div class="flex-1 flex flex-col min-w-0">
+        <header class="h-20 bg-white border-b border-slate-200/80 px-6 lg:px-10 flex items-center justify-between">
+            <h1 class="text-xl font-extrabold text-slate-900">Company & HR Announcements</h1>
+            <a href="{% url 'employees:dashboard' %}" class="text-xs font-bold text-hrms-blue hover:underline">← Back to Dashboard</a>
+        </header>
+
+        <main class="p-6 lg:p-10 space-y-6 max-w-4xl mx-auto w-full">
+            <div class="space-y-4">
+                {% if announcements %}
+                    {% for anc in announcements %}
+                        <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm space-y-2">
+                            <div class="flex items-center justify-between">
+                                <span class="px-2.5 py-1 text-[11px] font-bold text-hrms-blue bg-blue-50 rounded-full uppercase tracking-wider">
+                                    {{ anc.get_announcement_type_display }}
+                                </span>
+                                <span class="text-xs text-slate-400 font-medium"><i class="bi bi-clock me-1"></i>{{ anc.created_at|date:"d M Y" }}</span>
+                            </div>
+                            <h2 class="text-lg font-bold text-slate-900 pt-1">{{ anc.title }}</h2>
+                            <p class="text-xs text-slate-600 leading-relaxed">{{ anc.content }}</p>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <!-- Sample Announcements -->
+                    <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="px-2.5 py-1 text-[11px] font-bold text-purple-700 bg-purple-50 rounded-full">General</span>
+                            <span class="text-xs text-slate-400 font-medium">01 May 2025</span>
+                        </div>
+                        <h2 class="text-base font-bold text-slate-900">Annual Day Celebration</h2>
+                        <p class="text-xs text-slate-600">All employees are cordially invited to the Annual Day Celebration at Main Hall from 5:00 PM onwards.</p>
+                    </div>
+
+                    <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="px-2.5 py-1 text-[11px] font-bold text-blue-700 bg-blue-50 rounded-full">HR Notice</span>
+                            <span class="text-xs text-slate-400 font-medium">28 Apr 2025</span>
+                        </div>
+                        <h2 class="text-base font-bold text-slate-900">New Leave Policy Updates</h2>
+                        <p class="text-xs text-slate-600">Please review the updated leave policy document uploaded under your employee profile portal.</p>
+                    </div>
+
+                    <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm space-y-2">
+                        <div class="flex items-center justify-between">
+                            <span class="px-2.5 py-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 rounded-full">Holiday Notice</span>
+                            <span class="text-xs text-slate-400 font-medium">26 Apr 2025</span>
+                        </div>
+                        <h2 class="text-base font-bold text-slate-900">Office Holiday - May Day</h2>
+                        <p class="text-xs text-slate-600">The office will remain closed on 1st May 2025 in observance of May Day.</p>
+                    </div>
+                {% endif %}
+            </div>
+        </main>
+    </div>
+
+</body>
+</html>
+

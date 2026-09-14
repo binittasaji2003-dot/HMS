@@ -20,7 +20,9 @@ urlpatterns = [
     path("accounts/", include("allauth.urls")),
     # Your stuff: custom urls includes go here
     path("employees/", include("employees.urls")),
+
     path("hr/", include("hr.urls", namespace="hr")),
+
     # ...
     # Media files
     *static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT),
