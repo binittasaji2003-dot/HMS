@@ -1,0 +1,319 @@
+{% extends "admin_module/base_admin.html" %}
+{% load static %}
+
+{% block title %}Manage Announcements - Smart HRMS Admin{% endblock title %}
+
+{% block extra_css %}
+<style>
+  .announcement-card-item {
+    background-color: #FFFFFF;
+    border: 1px solid var(--border-color);
+    border-left: 4px solid var(--primary);
+    border-radius: var(--card-radius);
+    transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+    overflow: hidden;
+    box-shadow: var(--shadow-card);
+  }
+  .announcement-card-item:hover {
+    border-color: #CBD5E1;
+    box-shadow: var(--shadow-md);
+  }
+  .announcement-actions-bar {
+    background-color: var(--bg-main);
+    border-top: 1px solid var(--border-color);
+    padding: 0.9rem 1.25rem;
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+  }
+  .btn-action-edit-spacious {
+    background-color: #FFFFFF;
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    font-weight: 500;
+    padding: 0.45rem 1rem;
+    border-radius: var(--border-radius-sm);
+    text-decoration: none;
+    transition: all 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+  }
+  .btn-action-edit-spacious:hover {
+    background-color: var(--bg-subtle);
+    color: var(--primary);
+  }
+  .btn-action-delete-spacious {
+    background-color: var(--danger-soft);
+    border: 1px solid var(--danger-border);
+    color: #B91C1C;
+    font-weight: 500;
+    padding: 0.45rem 1rem;
+    border-radius: var(--border-radius-sm);
+    text-decoration: none;
+    transition: all 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+  }
+  .btn-action-delete-spacious:hover {
+    background-color: var(--danger);
+    color: #FFFFFF;
+  }
+  .btn-action-view-spacious {
+    background-color: #FFFFFF;
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    font-weight: 500;
+    padding: 0.45rem 1rem;
+    border-radius: var(--border-radius-sm);
+    text-decoration: none;
+    transition: all 0.15s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.85rem;
+  }
+  .btn-action-view-spacious:hover {
+    background-color: var(--bg-subtle);
+    color: var(--text-primary);
+  }
+</style>
+{% endblock extra_css %}
+
+{% block content %}
+<!-- Page Header with Prominent Action Controls -->
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+  <div>
+    <h1 class="h3 mb-1 fw-bold">Announcement Management</h1>
+    <p class="text-secondary mb-0 small">
+      Admin console to compose, broadcast, and manage organization-wide notices. All announcements are published live immediately.
+    </p>
+  </div>
+  <div class="d-flex align-items-center gap-2">
+    {% if show_add_button %}
+      <a href="{% url 'admin_module:announcement_create' %}" class="btn-primary-admin" id="btnAddAnnouncement">
+        <i class="bi bi-plus-circle-fill"></i> Add Announcement
+      </a>
+    {% endif %}
+    <a href="{% url 'admin_module:admin_dashboard' %}" class="btn-secondary-admin">
+      <i class="bi bi-arrow-left"></i> Dashboard
+    </a>
+  </div>
+</div>
+
+<!-- Overview Status Bar -->
+<div class="row g-3 mb-4">
+  <!-- 1. All Announcements Card -->
+  <div class="col-12 col-md-4">
+    <a href="{% url 'admin_module:announcements_list' %}" class="text-decoration-none">
+      <div class="saas-card p-3 h-100 {% if not audience_filter and not selected_type %}border-primary border-2{% endif %}">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <div class="text-secondary small fw-semibold text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.05em;">Total Broadcasts</div>
+            <div class="fs-3 fw-bold text-dark mt-1">{{ total_count|default:announcements|length }}</div>
+            <div class="text-muted small mt-1">Active published notices</div>
+          </div>
+          <div class="kpi-icon-circle icon-circle-blue" style="width: 48px; height: 48px; font-size: 1.3rem;">
+            <i class="bi bi-megaphone-fill"></i>
+          </div>
+        </div>
+      </div>
+    </a>
+  </div>
+
+  <!-- 2. Company-Wide Notices Card -->
+  <div class="col-12 col-md-4">
+    <a href="{% url 'admin_module:announcements_list' %}?audience=All" class="text-decoration-none">
+      <div class="saas-card p-3 h-100 {% if audience_filter == 'All' %}border-success border-2{% endif %}">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <div class="text-secondary small fw-semibold text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.05em;">Company-Wide</div>
+            <div class="fs-3 fw-bold text-success mt-1">{{ company_wide_count|default:"0" }}</div>
+            <div class="text-success small mt-1"><i class="bi bi-broadcast-pin me-1"></i>Broadcast to all staff</div>
+          </div>
+          <div class="kpi-icon-circle icon-circle-emerald" style="width: 48px; height: 48px; font-size: 1.3rem;">
+            <i class="bi bi-globe2"></i>
+          </div>
+        </div>
+      </div>
+    </a>
+  </div>
+
+  <!-- 3. Targeted Notices Card -->
+  <div class="col-12 col-md-4">
+    <div class="saas-card p-3 h-100">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <div class="text-secondary small fw-semibold text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.05em;">Role-Targeted</div>
+          <div class="fs-3 fw-bold text-purple mt-1" style="color: #8B5CF6;">{{ targeted_count|default:"0" }}</div>
+          <div class="text-muted small mt-1"><i class="bi bi-people-fill me-1"></i>Employees, HR, or Candidates</div>
+        </div>
+        <div class="kpi-icon-circle icon-circle-purple" style="width: 48px; height: 48px; font-size: 1.3rem;">
+          <i class="bi bi-person-badge-fill"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Search & Audience Filter Controls Bar -->
+<div class="saas-card mb-4 p-3">
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+    <!-- Search Bar -->
+    <div class="d-flex align-items-center gap-2 flex-grow-1" style="max-width: 460px;">
+      <div class="topbar-search-box w-100">
+        <i class="bi bi-search"></i>
+        <input type="text" id="announcementLiveFilter" placeholder="Search by title, keywords, or content...">
+      </div>
+    </div>
+
+    <!-- Audience Filter Pills & Clear -->
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+      <span class="text-secondary small fw-medium">Audience:</span>
+      <div class="d-flex gap-1 flex-wrap">
+        <a href="{% url 'admin_module:announcements_list' %}" class="btn-pill-action {% if not audience_filter %}active{% endif %}">
+          All
+        </a>
+        <a href="{% url 'admin_module:announcements_list' %}?audience=All" class="btn-pill-action {% if audience_filter == 'All' %}active{% endif %}">
+          Company Wide
+        </a>
+        <a href="{% url 'admin_module:announcements_list' %}?audience=Employees" class="btn-pill-action {% if audience_filter == 'Employees' %}active{% endif %}">
+          Employees
+        </a>
+        <a href="{% url 'admin_module:announcements_list' %}?audience=HR" class="btn-pill-action {% if audience_filter == 'HR' %}active{% endif %}">
+          HR Managers
+        </a>
+        <a href="{% url 'admin_module:announcements_list' %}?audience=Candidates" class="btn-pill-action {% if audience_filter == 'Candidates' %}active{% endif %}">
+          Candidates
+        </a>
+      </div>
+
+      {% if audience_filter or selected_type %}
+        <a href="{% url 'admin_module:announcements_list' %}" class="btn btn-sm btn-secondary-admin ms-2" style="font-size: 0.75rem;">
+          <i class="bi bi-x-circle me-1"></i> Reset Filters
+        </a>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Announcements Showcase -->
+{% if announcements %}
+  <div class="row g-4" id="announcementsContainer">
+    {% for announcement in announcements %}
+      <div class="col-12 announcement-card-wrapper" data-search-text="{{ announcement.title|lower }} {{ announcement.content|lower }} {{ announcement.announcement_type|lower }} {{ announcement.target_audience|lower }}">
+        <div class="announcement-card-item">
+          
+          <!-- Card Header & Metadata Bar -->
+          <div class="p-4 pb-3">
+            <div class="d-flex justify-content-between align-items-start flex-wrap gap-3 mb-2">
+              <div class="flex-grow-1">
+                <!-- Status, Type & Audience Badges -->
+                <div class="d-flex align-items-center gap-2 flex-wrap mb-2">
+                  <span class="badge-status badge-status-active">
+                    <i class="bi bi-broadcast-pin me-1"></i> Published
+                  </span>
+
+                  <span class="badge-status badge-status-info">
+                    <i class="bi bi-tag-fill me-1"></i> {{ announcement.get_announcement_type_display|default:announcement.announcement_type }}
+                  </span>
+
+                  <span class="badge bg-light text-dark border px-3 py-1 rounded-pill" style="font-size: 0.75rem;">
+                    <i class="bi bi-people-fill me-1 text-secondary"></i> Target: {{ announcement.get_target_audience_display|default:announcement.target_audience }}
+                  </span>
+                </div>
+
+                <!-- Title -->
+                <h2 class="h4 text-dark fw-bold mb-1">
+                  <a href="{% url 'admin_module:announcement_detail' announcement.announcement_id %}" class="text-dark text-decoration-none">
+                    {{ announcement.title }}
+                  </a>
+                </h2>
+              </div>
+
+              <!-- Author and Date Info -->
+              <div class="text-md-end text-secondary small">
+                <div><i class="bi bi-person-fill text-primary me-1"></i> By {{ announcement.created_by.name|default:announcement.created_by.email|default:"System Admin" }}</div>
+                <div><i class="bi bi-calendar3 text-muted me-1"></i> Published {{ announcement.published_at|default:announcement.created_at|date:"M d, Y" }}</div>
+              </div>
+            </div>
+
+            <!-- Content Preview -->
+            <div class="mt-3 p-3 rounded-3" style="background-color: var(--bg-main); border: 1px solid var(--border-color); font-size: 0.95rem; line-height: 1.6; color: var(--text-primary); white-space: pre-wrap;">{{ announcement.content }}</div>
+          </div>
+
+          <!-- Action Controls Bar -->
+          <div class="announcement-actions-bar">
+            <a href="{% url 'admin_module:announcement_detail' announcement.announcement_id %}" class="btn-action-view-spacious" title="View formatted announcement preview">
+              <i class="bi bi-eye"></i>
+              <span>View Notice</span>
+            </a>
+
+            <a href="{% url 'admin_module:announcement_edit' announcement.announcement_id %}" class="btn-action-edit-spacious" title="Modify announcement details">
+              <i class="bi bi-pencil-square"></i>
+              <span>Edit Announcement</span>
+            </a>
+
+            <a href="{% url 'admin_module:announcement_delete' announcement.announcement_id %}" class="btn-action-delete-spacious ms-auto" title="Permanently remove this announcement">
+              <i class="bi bi-trash-fill"></i>
+              <span>Delete Announcement</span>
+            </a>
+          </div>
+
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+{% else %}
+  <div class="saas-card p-5 text-center">
+    <div class="mx-auto mb-3" style="width: 72px; height: 72px; border-radius: 50%; background-color: var(--primary-soft); display: flex; align-items: center; justify-content: center; color: var(--primary); font-size: 2.2rem; border: 1px solid var(--primary-border);">
+      <i class="bi bi-megaphone"></i>
+    </div>
+    <h3 class="h4 text-dark fw-bold mb-2">No Announcements Found</h3>
+    <p class="text-secondary small mb-4" style="max-width: 480px; margin: 0 auto;">
+      {% if audience_filter or selected_type %}
+        No announcements match the active filter criteria. Try selecting another audience or clear the filters.
+      {% else %}
+        There are no announcements currently registered. Use the button below to compose and publish your first notice.
+      {% endif %}
+    </p>
+    <div>
+      {% if show_add_button %}
+        <a href="{% url 'admin_module:announcement_create' %}" class="btn-primary-admin px-4 py-2 fs-6">
+          <i class="bi bi-plus-circle-fill"></i> Add Announcement
+        </a>
+      {% endif %}
+      {% if audience_filter or selected_type %}
+        <a href="{% url 'admin_module:announcements_list' %}" class="btn-secondary-admin ms-2 px-3 py-2">
+          Clear Filters
+        </a>
+      {% endif %}
+    </div>
+  </div>
+{% endif %}
+
+<!-- Client-side Instant Filter Script -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const filterInput = document.getElementById('announcementLiveFilter');
+  const items = document.querySelectorAll('.announcement-card-wrapper');
+  if (!filterInput || !items.length) return;
+
+  filterInput.addEventListener('input', function () {
+    const query = this.value.toLowerCase().trim();
+    items.forEach(function (card) {
+      const text = card.getAttribute('data-search-text') || '';
+      if (!query || text.includes(query)) {
+        card.style.display = '';
+      } else {
+        card.style.display = 'none';
+      }
+    });
+  });
+});
+</script>
+{% endblock content %}

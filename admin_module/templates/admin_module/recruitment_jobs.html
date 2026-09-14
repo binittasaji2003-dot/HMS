@@ -1,0 +1,187 @@
+{% extends "admin_module/base_admin.html" %}
+
+{% block title %}Job Postings - Recruitment Monitoring{% endblock title %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+  <div>
+    <h1 class="h3 mb-1 fw-bold">Job Postings <span class="badge-status badge-status-info align-middle ms-1" style="font-size: 0.7rem;"><i class="bi bi-eye me-1"></i>Read-only</span></h1>
+    <p class="text-secondary mb-0 small">
+      Monitor all job postings managed by HR. Applicant counts and statuses are calculated live from candidate applications.
+    </p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'admin_module:recruitment_approvals' %}" class="btn-secondary-admin">
+      <i class="bi bi-clipboard-check-fill"></i> Employee Approvals
+    </a>
+    <a href="{% url 'admin_module:admin_dashboard' %}" class="btn-secondary-admin">
+      <i class="bi bi-arrow-left"></i> Dashboard
+    </a>
+  </div>
+</div>
+
+<!-- Summary KPI Cards -->
+<div class="kpi-grid-5 mb-4">
+  <a href="{% url 'admin_module:recruitment_jobs' %}" class="text-decoration-none">
+    <div class="kpi-card kpi-card-compact kpi-card-link">
+      <div class="kpi-header">
+        <span class="kpi-title">Job Postings</span>
+        <div class="kpi-icon-circle icon-circle-blue"><i class="bi bi-briefcase-fill"></i></div>
+      </div>
+      <div class="kpi-value">{{ total_jobs|default:"0" }}</div>
+      <div class="kpi-trend trend-subtext"><span>Total positions</span></div>
+    </div>
+  </a>
+  <a href="{% url 'admin_module:recruitment_jobs' %}?status=Open" class="text-decoration-none">
+    <div class="kpi-card kpi-card-compact kpi-card-link">
+      <div class="kpi-header">
+        <span class="kpi-title">Open Roles</span>
+        <div class="kpi-icon-circle icon-circle-emerald"><i class="bi bi-bullseye"></i></div>
+      </div>
+      <div class="kpi-value">{{ open_jobs|default:"0" }}</div>
+      <div class="kpi-trend trend-positive"><i class="bi bi-bullseye"></i><span>Currently hiring</span></div>
+    </div>
+  </a>
+  <a href="{% url 'admin_module:recruitment_status' %}" class="text-decoration-none">
+    <div class="kpi-card kpi-card-compact kpi-card-link">
+      <div class="kpi-header">
+        <span class="kpi-title">Applications</span>
+        <div class="kpi-icon-circle icon-circle-purple"><i class="bi bi-person-lines-fill"></i></div>
+      </div>
+      <div class="kpi-value">{{ total_applications|default:"0" }}</div>
+      <div class="kpi-trend trend-subtext"><span>Across all jobs</span></div>
+    </div>
+  </a>
+  <a href="{% url 'admin_module:recruitment_selected' %}" class="text-decoration-none">
+    <div class="kpi-card kpi-card-compact kpi-card-link">
+      <div class="kpi-header">
+        <span class="kpi-title">Selected / Hired</span>
+        <div class="kpi-icon-circle icon-circle-amber"><i class="bi bi-person-check-fill"></i></div>
+      </div>
+      <div class="kpi-value">{{ selections_count|default:"0" }}</div>
+      <div class="kpi-trend trend-positive"><i class="bi bi-person-check"></i><span>Successful hires</span></div>
+    </div>
+  </a>
+  <a href="{% url 'admin_module:recruitment_approvals' %}" class="text-decoration-none">
+    <div class="kpi-card kpi-card-compact kpi-card-link">
+      <div class="kpi-header">
+        <span class="kpi-title">Pending Approvals</span>
+        <div class="kpi-icon-circle icon-circle-rose"><i class="bi bi-clipboard-check-fill"></i></div>
+      </div>
+      <div class="kpi-value">{{ approvals_pending_count|default:"0" }}</div>
+      <div class="kpi-trend trend-subtext"><span>New employee records</span></div>
+    </div>
+  </a>
+</div>
+
+<!-- Job Postings Card -->
+<div class="saas-card">
+  <div class="card-header flex-wrap gap-3">
+    <div class="d-flex align-items-center gap-2">
+      <h2 class="card-title">
+        <i class="bi bi-briefcase-fill text-primary"></i> All Job Postings
+      </h2>
+      <span class="btn-pill-action">{{ job_rows|length }} Posting{{ job_rows|length|pluralize }}</span>
+    </div>
+
+    <!-- Server-side filters -->
+    <form method="get" class="d-flex align-items-center gap-2 flex-wrap">
+      <div class="topbar-search-box" style="width: 240px;">
+        <i class="bi bi-search"></i>
+        <input type="text" name="q" value="{{ search }}" placeholder="Search title or department...">
+      </div>
+      <select name="status" class="form-select form-select-sm" style="width: 150px; min-height: 36px;">
+        <option value="">All Statuses</option>
+        {% for value, label in job_statuses %}
+          <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit" class="btn-pill-action"><i class="bi bi-funnel me-1"></i>Filter</button>
+      {% if search or status_filter %}
+        <a href="{% url 'admin_module:recruitment_jobs' %}" class="btn-pill-action"><i class="bi bi-x-lg me-1"></i>Clear</a>
+      {% endif %}
+    </form>
+  </div>
+
+  {% if job_rows %}
+    <div class="table-responsive">
+      <table class="table-saas" id="jobsTable">
+        <caption class="visually-hidden">Job postings directory</caption>
+        <thead>
+          <tr>
+            <th scope="col" style="width: 30%;">Position</th>
+            <th scope="col" style="width: 16%;">Department</th>
+            <th scope="col" style="width: 18%;">HR Manager / Posted By</th>
+            <th scope="col" style="width: 10%;">Applicants</th>
+            <th scope="col" style="width: 10%;">Status</th>
+            <th scope="col" style="width: 10%;">Dates</th>
+            <th scope="col" style="width: 6%; text-align: right;">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in job_rows %}
+            <tr>
+              <td>
+                <div class="d-flex align-items-center gap-2">
+                  <div class="kpi-icon-circle icon-circle-amber" style="width: 34px; height: 34px; border-radius: 9px; font-size: 0.9rem;">
+                    <i class="bi bi-briefcase"></i>
+                  </div>
+                  <div>
+                    <span class="fw-bold text-dark">{{ row.vacancy.title }}</span>
+                    {% if row.vacancy.openings_count > 1 %}
+                      <div class="text-secondary" style="font-size: 0.72rem;">{{ row.vacancy.openings_count }} openings</div>
+                    {% endif %}
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span class="btn-pill-action"><i class="bi bi-building me-1"></i>{{ row.vacancy.department.name|default:"Unassigned" }}</span>
+              </td>
+              <td>
+                <div>
+                  <div class="text-dark fw-semibold" style="font-size: 0.85rem;">{{ row.owner_name }}</div>
+                  <div class="text-muted small">{{ row.owner_role }}</div>
+                </div>
+              </td>
+              <td>
+                <span class="btn-pill-action">
+                  <i class="bi bi-people me-1"></i>{{ row.applicants_count }} application{{ row.applicants_count|pluralize }}
+                </span>
+              </td>
+              <td>
+                {% if row.vacancy.status == "Open" %}
+                  <span class="badge-status badge-status-active"><i class="bi bi-check-circle-fill me-1"></i>Open</span>
+                {% elif row.vacancy.status == "Closed" %}
+                  <span class="badge-status badge-status-danger"><i class="bi bi-x-circle-fill me-1"></i>Closed</span>
+                {% elif row.vacancy.status == "On Hold" %}
+                  <span class="badge-status badge-status-pending"><i class="bi bi-pause-circle-fill me-1"></i>On Hold</span>
+                {% else %}
+                  <span class="badge-status badge-status-pending"><i class="bi bi-pencil-square me-1"></i>{{ row.vacancy.get_status_display }}</span>
+                {% endif %}
+              </td>
+              <td>
+                <div class="text-secondary small">
+                  <div><i class="bi bi-calendar-plus me-1"></i>{{ row.vacancy.created_at|date:"M d, Y" }}</div>
+                  <div style="font-size: 0.72rem;"><i class="bi bi-clock-history me-1"></i>{{ row.vacancy.updated_at|date:"M d, Y" }}</div>
+                </div>
+              </td>
+              <td style="text-align: right;">
+                <a href="{% url 'admin_module:recruitment_job_status' row.vacancy.pk %}" class="table-action-btn btn-action-view" title="View Recruitment Status">
+                  <i class="bi bi-eye"></i>
+                </a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="empty-state-box">
+      <i class="bi bi-briefcase empty-state-icon"></i>
+      <h5 class="empty-state-title">No Job Postings Found</h5>
+      <p class="empty-state-desc">Job postings published by the HR module will appear here for monitoring.</p>
+    </div>
+  {% endif %}
+</div>
+{% endblock content %}

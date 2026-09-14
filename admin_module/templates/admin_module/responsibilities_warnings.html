@@ -1,0 +1,235 @@
+{% extends "admin_module/base_admin.html" %}
+
+{% block title %}Performance Warnings - Admin Responsibilities{% endblock title %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+  <div>
+    <h1 class="page-title-saas mb-1">Performance Warnings</h1>
+    <p class="page-subtitle-saas mb-0">
+      Admin overview of all employee performance warnings issued by HR managers, recommendations, and decisions.
+    </p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'admin_module:admin_responsibilities_recommendations' %}" class="btn-primary-admin">
+      <i class="bi bi-file-earmark-check-fill me-1"></i> HR Recommendations
+      {% if with_recs_count %}
+        <span class="badge rounded-pill bg-danger ms-1">{{ with_recs_count }}</span>
+      {% endif %}
+    </a>
+    <a href="{% url 'admin_module:admin_dashboard' %}" class="btn-secondary-admin">
+      <i class="bi bi-arrow-left"></i> Dashboard
+    </a>
+  </div>
+</div>
+
+<!-- Summary KPI Cards -->
+<div class="row g-3 mb-4">
+  <div class="col-12 col-sm-6 col-lg-3">
+    <div class="saas-card p-3 h-100">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <span class="text-secondary small text-uppercase fw-semibold" style="font-size: 0.72rem;">Total Warnings</span>
+        <div class="avatar-saas rounded-circle" style="background: rgba(245, 158, 11, 0.12); color: #f59e0b; width: 34px; height: 34px; font-size: 1rem; display: flex; align-items: center; justify-content: center;">
+          <i class="bi bi-exclamation-triangle-fill"></i>
+        </div>
+      </div>
+      <div class="h3 fw-bold text-dark mb-1">{{ total_warnings|default:"0" }}</div>
+      <div class="text-secondary small" style="font-size: 0.75rem;">All historical records</div>
+    </div>
+  </div>
+  <div class="col-12 col-sm-6 col-lg-3">
+    <div class="saas-card p-3 h-100">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <span class="text-secondary small text-uppercase fw-semibold" style="font-size: 0.72rem;">Open Warnings</span>
+        <div class="avatar-saas rounded-circle" style="background: rgba(239, 68, 68, 0.12); color: #ef4444; width: 34px; height: 34px; font-size: 1rem; display: flex; align-items: center; justify-content: center;">
+          <i class="bi bi-bell-fill"></i>
+        </div>
+      </div>
+      <div class="h3 fw-bold text-dark mb-1">{{ open_warnings_count|default:"0" }}</div>
+      <div class="text-danger small fw-semibold" style="font-size: 0.75rem;">Pending action</div>
+    </div>
+  </div>
+  <div class="col-12 col-sm-6 col-lg-3">
+    <div class="saas-card p-3 h-100">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <span class="text-secondary small text-uppercase fw-semibold" style="font-size: 0.72rem;">Sent to Admin</span>
+        <div class="avatar-saas rounded-circle" style="background: rgba(139, 92, 246, 0.12); color: #8b5cf6; width: 34px; height: 34px; font-size: 1rem; display: flex; align-items: center; justify-content: center;">
+          <i class="bi bi-send-check-fill"></i>
+        </div>
+      </div>
+      <div class="h3 fw-bold text-dark mb-1">{{ sent_to_admin_count|default:"0" }}</div>
+      <div class="text-secondary small" style="font-size: 0.75rem;">Awaiting admin review</div>
+    </div>
+  </div>
+  <div class="col-12 col-sm-6 col-lg-3">
+    <div class="saas-card p-3 h-100">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <span class="text-secondary small text-uppercase fw-semibold" style="font-size: 0.72rem;">Resolved</span>
+        <div class="avatar-saas rounded-circle" style="background: rgba(16, 185, 129, 0.12); color: #10b981; width: 34px; height: 34px; font-size: 1rem; display: flex; align-items: center; justify-content: center;">
+          <i class="bi bi-check2-circle"></i>
+        </div>
+      </div>
+      <div class="h3 fw-bold text-dark mb-1">{{ resolved_warnings_count|default:"0" }}</div>
+      <div class="text-success small fw-semibold" style="font-size: 0.75rem;">Decisions finalized</div>
+    </div>
+  </div>
+</div>
+
+<!-- Filters Bar -->
+<div class="saas-card p-3 mb-4">
+  <form method="get" class="row g-2 align-items-center">
+    <div class="col-12 col-md-4">
+      <div class="input-group input-group-sm">
+        <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-search"></i></span>
+        <input type="text" name="q" value="{{ search }}" class="form-control border-start-0 ps-0" placeholder="Search employee, reason, dept...">
+      </div>
+    </div>
+    <div class="col-12 col-sm-6 col-md-3">
+      <select name="status" class="form-select form-select-sm" style="min-height: 38px;">
+        <option value="">All Statuses</option>
+        {% for val, label in status_choices %}
+          <option value="{{ val }}" {% if status_filter == val %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-12 col-sm-6 col-md-3">
+      <select name="has_rec" class="form-select form-select-sm" style="min-height: 38px;">
+        <option value="">All Recommendations</option>
+        <option value="yes" {% if has_rec_filter == "yes" %}selected{% endif %}>With HR Recommendation</option>
+        <option value="no" {% if has_rec_filter == "no" %}selected{% endif %}>No Recommendation</option>
+      </select>
+    </div>
+    <div class="col-12 col-md-2 d-flex gap-2">
+      <button type="submit" class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1 flex-grow-1 justify-content-center" style="min-height: 38px;">
+        <i class="bi bi-funnel"></i> Filter
+      </button>
+      {% if search or status_filter or has_rec_filter %}
+        <a href="{% url 'admin_module:admin_responsibilities_warnings' %}" class="btn btn-sm btn-light border d-inline-flex align-items-center" style="min-height: 38px;" title="Clear filter">
+          <i class="bi bi-x-lg"></i>
+        </a>
+      {% endif %}
+    </div>
+  </form>
+</div>
+
+<!-- Warnings Table Card -->
+<div class="saas-card overflow-hidden">
+  <div class="p-3 border-bottom border-light-subtle d-flex align-items-center justify-content-between">
+    <div class="d-flex align-items-center gap-2">
+      <h2 class="h5 mb-0 fw-bold text-dark"><i class="bi bi-shield-exclamation text-warning me-2"></i>Warning Records</h2>
+      <span class="badge bg-light text-secondary border border-light-subtle rounded-pill">{{ warnings|length }} Record{{ warnings|length|pluralize }}</span>
+    </div>
+  </div>
+
+  {% if warnings %}
+    <div class="table-responsive">
+      <table class="table-saas mb-0">
+        <thead>
+          <tr>
+            <th scope="col" style="width: 5%;">ID</th>
+            <th scope="col" style="width: 20%;">Employee</th>
+            <th scope="col" style="width: 12%;">Department</th>
+            <th scope="col" style="width: 20%;">Warning / Reason</th>
+            <th scope="col" style="width: 10%;">HR Rec</th>
+            <th scope="col" style="width: 12%;">Issued By</th>
+            <th scope="col" style="width: 10%;">Date</th>
+            <th scope="col" style="width: 8%;">Status</th>
+            <th scope="col" style="width: 10%;">Admin Decision</th>
+            <th scope="col" class="text-end pe-3" style="width: 8%;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for w in warnings %}
+            <tr>
+              <td class="text-muted fw-semibold">#{{ w.warning_id }}</td>
+              <td>
+                <div class="d-flex align-items-center gap-2">
+                  <div class="avatar-saas rounded-circle" style="background: rgba(245, 158, 11, 0.12); color: #d97706; font-weight: 700; width: 32px; height: 32px; font-size: 0.8rem; display: flex; align-items: center; justify-content: center;">
+                    {{ w.employee.user.name|default:w.employee.user.email|slice:":1"|upper }}
+                  </div>
+                  <div>
+                    <div class="fw-semibold text-dark">{{ w.employee.user.name|default:w.employee.user.email }}</div>
+                    <div class="text-secondary small" style="font-size: 0.72rem;">{{ w.employee.employee_code }}</div>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span class="badge bg-light text-dark border border-light-subtle">
+                  <i class="bi bi-building me-1 text-secondary"></i>{{ w.employee.department.name|default:"Unassigned" }}
+                </span>
+              </td>
+              <td>
+                <span class="text-dark small d-inline-block text-truncate" style="max-width: 220px;" title="{{ w.reason }}">
+                  {{ w.reason }}
+                </span>
+              </td>
+              <td>
+                {% if w.hr_recommendation %}
+                  <span class="badge-status-saas badge-info-saas" style="font-size: 0.72rem;" title="{{ w.hr_recommendation|truncatewords:20 }}">
+                    <i class="bi bi-chat-quote-fill me-1"></i>Available
+                  </span>
+                {% else %}
+                  <span class="text-secondary small">—</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if w.issued_by %}
+                  <span class="text-dark small">{{ w.issued_by.user.name|default:w.issued_by.user.email }}</span>
+                {% else %}
+                  <span class="text-secondary small">HR System</span>
+                {% endif %}
+              </td>
+              <td>
+                <span class="text-secondary small">{{ w.warning_date|date:"M d, Y" }}</span>
+              </td>
+              <td>
+                {% if w.status == "OPEN" %}
+                  <span class="badge-status-saas badge-danger-saas" style="font-size: 0.72rem;">Open</span>
+                {% elif w.status == "SENT_TO_ADMIN" %}
+                  <span class="badge-status-saas badge-warning-saas" style="font-size: 0.72rem;">Sent to Admin</span>
+                {% elif w.status == "RESOLVED" %}
+                  <span class="badge-status-saas badge-success-saas" style="font-size: 0.72rem;">Resolved</span>
+                {% else %}
+                  <span class="badge-status-saas badge-neutral-saas" style="font-size: 0.72rem;">{{ w.status }}</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if w.admin_decision == "CONTINUE" %}
+                  <span class="badge-status-saas badge-success-saas" style="font-size: 0.72rem;">Continued</span>
+                {% elif w.admin_decision == "ANOTHER_WARNING" %}
+                  <span class="badge-status-saas badge-warning-saas" style="font-size: 0.72rem;">Another Warning</span>
+                {% elif w.admin_decision == "TERMINATION" %}
+                  <span class="badge-status-saas badge-danger-saas" style="font-size: 0.72rem;">Terminated</span>
+                {% else %}
+                  <span class="text-secondary small">Pending</span>
+                {% endif %}
+              </td>
+              <td class="text-end pe-3">
+                <div class="d-inline-flex gap-1">
+                  <a href="{% url 'admin_module:admin_responsibilities_warning_detail' w.warning_id %}" class="btn btn-sm btn-light border py-1 px-2" title="View Warning Details">
+                    <i class="bi bi-eye text-primary"></i>
+                  </a>
+                  {% if w.hr_recommendation and w.status != "RESOLVED" %}
+                    <a href="{% url 'admin_module:admin_responsibilities_review' w.warning_id %}" class="btn btn-sm btn-primary-admin py-1 px-2" style="font-size: 0.75rem;" title="Review & Decide">
+                      <i class="bi bi-hammer"></i>
+                    </a>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="text-center py-5">
+      <div class="avatar-saas-lg rounded-circle mx-auto mb-3" style="background: #f1f5f9; color: #94a3b8; width: 64px; height: 64px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem;">
+        <i class="bi bi-shield-check"></i>
+      </div>
+      <h5 class="text-dark fw-bold mt-3 mb-1">No Performance Warnings Found</h5>
+      <p class="text-secondary small mb-0">No warnings match the specified filter criteria.</p>
+    </div>
+  {% endif %}
+</div>
+{% endblock content %}

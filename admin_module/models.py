@@ -59,6 +59,15 @@ class Announcement(models.Model):
         default="GENERAL",
     )
 
+    target_audience = models.CharField(
+        max_length=50,
+        default="All",
+)
+
+    is_active = models.BooleanField(
+        default=True,
+    )
+
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,

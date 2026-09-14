@@ -50,7 +50,7 @@ class UserRedirectView(LoginRequiredMixin, RedirectView):
         role = getattr(user, "role", None)
 
         if role == User.RoleChoices.ADMIN:
-            return reverse("hrms:admin_dashboard")
+            return reverse("admin_module:admin_dashboard")
         elif role == User.RoleChoices.HR:
             # HR managers go to the public home page for now
             # (their own dashboard is not yet implemented)

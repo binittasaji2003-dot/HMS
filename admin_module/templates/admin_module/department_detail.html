@@ -1,0 +1,183 @@
+{% extends "admin_module/base_admin.html" %}
+{% load static %}
+
+{% block title %}{{ page_title|default:department.name }}{% endblock title %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+  <div>
+    <h1 class="h3 mb-1 fw-bold">{{ department.name }}</h1>
+    <p class="text-secondary mb-0 small">Departmental organizational metrics, workforce placement, and administrative leadership.</p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'admin_module:department_edit' department.department_id %}" class="btn-primary-admin">
+      <i class="bi bi-pencil-square"></i> Edit Department
+    </a>
+    <a href="{% url 'admin_module:departments_list' %}" class="btn-secondary-admin">
+      <i class="bi bi-arrow-left"></i> Back to Directory
+    </a>
+  </div>
+</div>
+
+<!-- Department Overview Hero Card -->
+<div class="saas-card mb-4 p-4">
+  <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
+    <div class="d-flex align-items-center gap-3">
+      <div class="kpi-icon-circle icon-circle-blue" style="width: 56px; height: 56px; border-radius: 14px; font-size: 1.5rem;">
+        <i class="bi bi-diagram-3"></i>
+      </div>
+      <div>
+        <h2 class="h4 mb-1 text-dark fw-bold">{{ department.name }}</h2>
+        <p class="text-secondary small mb-0">{{ department.description|default:"No description provided for this department." }}</p>
+      </div>
+    </div>
+    <div>
+      {% if department.status == "Active" or department.is_active %}
+        <span class="badge-status badge-status-active" style="font-size: 0.85rem; padding: 0.35rem 0.85rem;">
+          <i class="bi bi-check-circle-fill me-1"></i> Active Department
+        </span>
+      {% else %}
+        <span class="badge-status badge-status-danger" style="font-size: 0.85rem; padding: 0.35rem 0.85rem;">
+          <i class="bi bi-pause-circle-fill me-1"></i> Inactive
+        </span>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Metric Badges -->
+  <div class="row g-3">
+    <div class="col-12 col-md-4">
+      <div class="profile-stat-box" style="background-color: var(--bg-main); border: 1px solid var(--border-color); border-radius: 10px; padding: 1rem;">
+        <span class="profile-stat-label">Total Personnel</span>
+        <span class="profile-stat-val text-primary">{{ employee_count|default:"0" }} Members</span>
+      </div>
+    </div>
+    <div class="col-12 col-md-4">
+      <div class="profile-stat-box" style="background-color: var(--bg-main); border: 1px solid var(--border-color); border-radius: 10px; padding: 1rem;">
+        <span class="profile-stat-label">HR Management Leads</span>
+        <span class="profile-stat-val text-primary" style="color: var(--accent-purple) !important;">{{ hr_managers|length|default:"0" }} Leads</span>
+      </div>
+    </div>
+    <div class="col-12 col-md-4">
+      <div class="profile-stat-box" style="background-color: var(--bg-main); border: 1px solid var(--border-color); border-radius: 10px; padding: 1rem;">
+        <span class="profile-stat-label">Status</span>
+        <span class="profile-stat-val text-dark">{% if department.status %}{{ department.status }}{% else %}Active{% endif %}</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Assigned Employees and HR Managers Split Grid -->
+<div class="row g-4">
+  <!-- Assigned Employees Table (7 cols) -->
+  <div class="col-12 col-xl-7">
+    <div class="saas-card">
+      <div class="card-header">
+        <div class="d-flex align-items-center gap-2">
+          <h2 class="card-title">
+            <i class="bi bi-people-fill text-primary"></i> Assigned Employees
+          </h2>
+          <span class="btn-pill-action">{{ employee_count|default:"0" }} Records</span>
+        </div>
+      </div>
+
+      {% if employees %}
+        <div class="table-responsive">
+          <table class="table-saas">
+            <thead>
+              <tr>
+                <th>Employee Details</th>
+                <th>Designation</th>
+                <th style="text-align: right;">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for employee in employees %}
+                <tr>
+                  <td>
+                    <div class="emp-table-profile">
+                      <div class="emp-table-avatar">
+                        {{ employee.user.name|default:employee.user.email|slice:":1"|upper }}
+                      </div>
+                      <div>
+                        <div class="emp-table-name text-dark fw-semibold">{{ employee.user.name|default:employee.user.email }}</div>
+                        <div class="emp-table-dept text-muted">{{ employee.user.email }}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td><span class="text-secondary fw-medium">{{ employee.designation|default:"Staff" }}</span></td>
+                  <td style="text-align: right;">
+                    <a href="{% url 'admin_module:employee_detail' employee.pk %}" class="table-action-btn btn-action-view" title="View Employee">
+                      <i class="bi bi-eye"></i>
+                    </a>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="empty-state-box py-4">
+          <i class="bi bi-people text-muted fs-3 d-block mb-2"></i>
+          <p class="text-secondary small mb-0">No employees currently assigned to this department.</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Assigned HR Managers Table (5 cols) -->
+  <div class="col-12 col-xl-5">
+    <div class="saas-card">
+      <div class="card-header">
+        <div class="d-flex align-items-center gap-2">
+          <h2 class="card-title">
+            <i class="bi bi-person-badge-fill text-primary"></i> Department HR Leads
+          </h2>
+          <span class="btn-pill-action">{{ hr_managers|length|default:"0" }}</span>
+        </div>
+      </div>
+
+      {% if hr_managers %}
+        <div class="table-responsive">
+          <table class="table-saas">
+            <thead>
+              <tr>
+                <th>HR Manager</th>
+                <th style="text-align: right;">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for manager in hr_managers %}
+                <tr>
+                  <td>
+                    <div class="emp-table-profile">
+                      <div class="emp-table-avatar" style="background: linear-gradient(135deg, #8B5CF6, #6D28D9);">
+                        {{ manager.user.name|default:manager.user.email|slice:":1"|upper }}
+                      </div>
+                      <div>
+                        <div class="emp-table-name text-dark fw-semibold">{{ manager.user.name|default:manager.user.email }}</div>
+                        <div class="emp-table-dept text-muted">{{ manager.phone|default:manager.user.email }}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td style="text-align: right;">
+                    <a href="{% url 'admin_module:hr_manager_detail' manager.pk %}" class="table-action-btn btn-action-view" title="View Manager Profile">
+                      <i class="bi bi-eye"></i>
+                    </a>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="empty-state-box py-4">
+          <i class="bi bi-person-badge text-muted fs-3 d-block mb-2"></i>
+          <p class="text-secondary small mb-0">No HR Manager explicitly assigned to this department.</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock content %}

@@ -1,0 +1,35 @@
+{% extends "admin_module/base_admin.html" %}
+{% load static %}
+
+{% block title %}{{ module_name }} - Smart HRMS Admin{% endblock title %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+  <div>
+    <h1 class="page-title-saas mb-1">{{ module_name }}</h1>
+    <p class="page-subtitle-saas mb-0">
+      Admin management workspace for {{ module_name|lower }}.
+    </p>
+  </div>
+  <a href="{% url 'admin_module:admin_dashboard' %}" class="btn-secondary-admin">
+    <i class="bi bi-arrow-left me-1"></i> Back to Dashboard
+  </a>
+</div>
+
+<div class="saas-card text-center p-5">
+  <div class="mb-3">
+    <div class="avatar-saas-lg rounded-circle mx-auto" style="width: 64px; height: 64px; font-size: 1.8rem; background: rgba(59, 130, 246, 0.12); color: #3b82f6; display: flex; align-items: center; justify-content: center;">
+      <i class="bi bi-gear-wide-connected"></i>
+    </div>
+  </div>
+  <h2 class="h4 text-dark fw-bold mb-2">{{ module_name }} Module</h2>
+  <p class="text-secondary mx-auto mb-4" style="max-width: 500px;">
+    The schema and database tables for <strong>{{ module_name }}</strong> are established in the HRMS 9-table architecture. This section is ready for administrative actions.
+  </p>
+  <div>
+    <a href="{% url 'admin_module:admin_dashboard' %}" class="btn-primary-admin d-inline-flex align-items-center gap-2" style="width: auto;">
+      <i class="bi bi-grid-1x2-fill"></i> Return to Executive Dashboard
+    </a>
+  </div>
+</div>
+{% endblock content %}

@@ -87,7 +87,7 @@
               </a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="{% url 'hrms:admin_dashboard' %}">
+              <a class="nav-link" href="{% url 'admin_module:admin_dashboard' %}">
                 <i class="bi bi-speedometer2 me-1"></i> Admin Portal
               </a>
             </li>
@@ -170,7 +170,7 @@
             <h6 class="text-white text-uppercase fs-7 fw-semibold mb-3">Portals</h6>
             <ul class="list-unstyled small d-flex flex-column gap-2 mb-0">
               <li><a href="{% url 'home' %}">Home</a></li>
-              <li><a href="{% url 'hrms:admin_dashboard' %}">Admin Portal</a></li>
+              <li><a href="{% url 'admin_module:admin_dashboard' %}">Admin Portal</a></li>
               <li><a href="{% url 'employees:homepage' %}">Employee Directory</a></li>
               <li><a href="{% url 'about' %}">About Platform</a></li>
             </ul>
@@ -178,10 +178,10 @@
           <div class="col-6 col-lg-2">
             <h6 class="text-white text-uppercase fs-7 fw-semibold mb-3">Admin Suite</h6>
             <ul class="list-unstyled small d-flex flex-column gap-2 mb-0">
-              <li><a href="{% url 'hrms:employees_list' %}">Employees</a></li>
-              <li><a href="{% url 'hrms:departments_list' %}">Departments</a></li>
-              <li><a href="{% url 'hrms:job_vacancies_list' %}">Recruitment</a></li>
-              <li><a href="{% url 'hrms:admin_responsibilities_warnings' %}">Governance</a></li>
+              <li><a href="{% url 'admin_module:employees_list' %}">Employees</a></li>
+              <li><a href="{% url 'admin_module:departments_list' %}">Departments</a></li>
+              <li><a href="{% url 'admin_module:job_vacancies_list' %}">Recruitment</a></li>
+              <li><a href="{% url 'admin_module:admin_responsibilities_warnings' %}">Governance</a></li>
             </ul>
           </div>
           <div class="col-lg-3">
