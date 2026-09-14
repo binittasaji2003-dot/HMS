@@ -87,6 +87,37 @@ class TestUserRedirectView:
         view.request = request
         assert view.get_redirect_url() == f"/users/{user.pk}/"
 
+    def test_employee_redirect_url(self, user: User, rf: RequestFactory):
+        from datetime import date
+        from admin_module.models import Department
+        from employees.models import Employee
+
+        dept, _ = Department.objects.get_or_create(name="Engineering", defaults={"is_active": True})
+        Employee.objects.get_or_create(
+            user=user,
+            defaults={
+                "employee_code": f"EMP{user.pk:04d}",
+                "department": dept,
+                "designation": "Developer",
+                "joining_date": date(2025, 1, 1),
+                "employment_status": "ACTIVE",
+            },
+        )
+        view = UserRedirectView()
+        request = rf.get("/fake-url")
+        request.user = user
+        view.request = request
+        assert view.get_redirect_url() == reverse("employees:dashboard")
+
+    def test_admin_redirect_url(self, user: User, rf: RequestFactory):
+        user.is_staff = True
+        user.save()
+        view = UserRedirectView()
+        request = rf.get("/fake-url")
+        request.user = user
+        view.request = request
+        assert view.get_redirect_url() == reverse("admin:index")
+
 
 class TestUserDetailView:
     def test_authenticated(self, user: User, rf: RequestFactory):
