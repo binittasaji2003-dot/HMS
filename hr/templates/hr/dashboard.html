@@ -1,0 +1,207 @@
+{% extends "hr/base.html" %}
+
+{% block title %}HR Dashboard | Smart HRMS{% endblock %}
+
+{% block content %}
+<!-- 1. Top Welcome Banner Card -->
+<div class="card card-custom p-4 mb-4" style="background: linear-gradient(135deg, #eef5ff 0%, #ffffff 100%); border: 1px solid #dbeafe;">
+    <div class="row align-items-center">
+        <div class="col-lg-8">
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <h3 class="fw-bold mb-0 text-dark">
+                    Good Day, {{ request.user.first_name|default:request.user.username }}! 👋
+                </h3>
+            </div>
+            <p class="text-muted small mb-3">Welcome to your HR Management workspace. Here is an overview of ongoing recruitment, reviews, and escalations.</p>
+
+            <div class="d-flex flex-wrap gap-4 pt-2 border-top border-light">
+                <div>
+                    <span class="text-muted small d-block">ROLE</span>
+                    <strong class="text-dark small">HR Manager</strong>
+                </div>
+                <div>
+                    <span class="text-muted small d-block">DEPARTMENT</span>
+                    <strong class="text-dark small">{{ request.user.hr_profile.department.name|default:"Human Resources" }}</strong>
+                </div>
+                <div>
+                    <span class="text-muted small d-block">EMPLOYEE ID</span>
+                    <strong class="text-dark small">{{ request.user.hr_profile.employee_code|default:"HR-0001" }}</strong>
+                </div>
+                <div>
+                    <span class="text-muted small d-block">ACCOUNT</span>
+                    <strong class="text-dark small">{{ request.user.email }}</strong>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-4 text-end d-none d-lg-block">
+            <a href="{% url 'hr:job_create' %}" class="btn btn-blue me-2">
+                <i class="bi bi-plus-circle me-1"></i> Post Vacancy
+            </a>
+            <a href="{% url 'hr:job_list' %}" class="btn btn-outline-blue">
+                <i class="bi bi-briefcase me-1"></i> View Jobs
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- 2. Metric Stat Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card card-custom p-3 h-100">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="text-muted small fw-semibold">Active Employees</span>
+                    <h3 class="fw-bold my-1 text-dark">{{ metrics.total_employees|default:"0" }}</h3>
+                    <small class="text-success"><i class="bi bi-arrow-up-right"></i>  Staff</small>
+                </div>
+                <div class="brand-icon-box bg-light text-primary border">
+                    <i class="bi bi-people fs-5"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card card-custom p-3 h-100">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="text-muted small fw-semibold">Pending Work Reports</span>
+                    <h3 class="fw-bold my-1 text-dark">{{ metrics.pending_reports|default:"0" }}</h3>
+                    <small class="text-warning"><i class="bi bi-clock"></i> Needs Review</small>
+                </div>
+                <div class="brand-icon-box bg-light text-warning border">
+                    <i class="bi bi-file-earmark-text fs-5"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card card-custom p-3 h-100">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="text-muted small fw-semibold">Open Warnings</span>
+                    <h3 class="fw-bold my-1 text-dark">{{ metrics.active_warnings|default:"0" }}</h3>
+                    <small class="text-info"><i class="bi bi-exclamation-circle"></i> In Observation</small>
+                </div>
+                <div class="brand-icon-box bg-light text-info border">
+                    <i class="bi bi-exclamation-triangle fs-5"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-sm-6 col-xl-3">
+        <div class="card card-custom p-3 h-100">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <span class="text-muted small fw-semibold">Admin Escalations</span>
+                    <h3 class="fw-bold my-1 text-dark">{{ metrics.escalations|default:"0" }}</h3>
+                    <small class="text-danger"><i class="bi bi-send-exclamation"></i> Action Required</small>
+                </div>
+                <div class="brand-icon-box bg-light text-danger border">
+                    <i class="bi bi-shield-exclamation fs-5"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 3. Work Queues & Pipelines Grid -->
+<div class="row g-4">
+    <!-- Work Reports Queue -->
+    <div class="col-12 col-lg-6">
+        <div class="card card-custom p-3 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                <h6 class="fw-bold mb-0 text-dark">
+                    <i class="bi bi-journal-text text-primary me-2"></i>Weekly Work Reports
+                </h6>
+                <span class="badge bg-light text-primary border">Pending Review</span>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 small">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Employee</th>
+                            <th>Week Period</th>
+                            <th>Status</th>
+                            <th class="text-end">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for report in recent_reports %}
+                        <tr>
+                            <td>
+                                <strong>{{ report.employee.employee_code }}</strong><br>
+                                <span class="text-muted">{{ report.employee.user.username }}</span>
+                            </td>
+                            <td>{{ report.week_start_date|date:"M d" }} - {{ report.week_end_date|date:"M d" }}</td>
+                            <td>
+                                <span class="badge {% if report.status == 'SUBMITTED' %}bg-warning text-dark{% elif report.status == 'REVIEWED' %}bg-success text-white{% else %}bg-secondary text-white{% endif %}">
+                                    {{ report.get_status_display }}
+                                </span>
+                            </td>
+                            <td class="text-end">
+                                <button class="btn btn-sm btn-outline-blue py-1 px-2">Review</button>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center text-muted py-4">No pending employee reports.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Performance Warning Pipeline -->
+    <div class="col-12 col-lg-6">
+        <div class="card card-custom p-3 h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                <h6 class="fw-bold mb-0 text-dark">
+                    <i class="bi bi-shield-exclamation text-danger me-2"></i>Performance Warning Pipeline
+                </h6>
+                <span class="badge bg-light text-danger border">Escalations</span>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 small">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Employee</th>
+                            <th>Issued Date</th>
+                            <th>Status</th>
+                            <th class="text-end">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for warning in critical_warnings %}
+                        <tr>
+                            <td><strong>{{ warning.employee.employee_code }}</strong></td>
+                            <td>{{ warning.warning_date|date:"M d, Y" }}</td>
+                            <td>
+                                <span class="badge {% if warning.status == 'OPEN' %}bg-info text-dark{% elif warning.status == 'SENT_TO_ADMIN' %}bg-danger text-white{% else %}bg-secondary text-white{% endif %}">
+                                    {{ warning.get_status_display }}
+                                </span>
+                            </td>
+                            <td class="text-end">
+                                {% if warning.status == 'OPEN' %}
+                                    <button class="btn btn-sm btn-outline-danger py-1 px-2">Escalate</button>
+                                {% else %}
+                                    <span class="text-muted small">Under Review</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="4" class="text-center text-muted py-4">No active performance warnings in pipeline.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

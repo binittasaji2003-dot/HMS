@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}HRMS Portal{% endblock %}</title>
+    <!-- Bootstrap 5 CDN -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-blue: #1a73e8;
+            --primary-blue-hover: #1557b0;
+            --light-blue-bg: #e8f0fe;
+            --sidebar-width: 260px;
+            --bg-canvas: #f6f9fc;
+            --text-dark: #1e293b;
+            --text-muted: #64748b;
+            --card-radius: 16px;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: var(--bg-canvas);
+            color: var(--text-dark);
+            overflow-x: hidden;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* --- Left Sidebar --- */
+        .sidebar-wrapper {
+            width: var(--sidebar-width);
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background: #ffffff;
+            border-right: 1px solid #eef2f6;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 24px 16px;
+            z-index: 1040;
+        }
+
+        .brand-logo-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0 12px 28px 12px;
+            text-decoration: none;
+            color: var(--text-dark);
+        }
+
+        .brand-icon-box {
+            width: 38px;
+            height: 38px;
+            background-color: var(--primary-blue);
+            color: #ffffff;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.15rem;
+            box-shadow: 0 4px 10px rgba(26, 115, 232, 0.25);
+        }
+
+        .brand-text {
+            font-size: 1.25rem;
+            font-weight: 700;
+            letter-spacing: -0.5px;
+            color: #0f172a;
+        }
+
+        .sidebar-nav {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 12px 16px;
+            border-radius: 12px;
+            text-decoration: none;
+            color: var(--text-muted);
+            font-size: 0.92rem;
+            font-weight: 500;
+            transition: all 0.2s ease-in-out;
+        }
+
+        .sidebar-link i {
+            font-size: 1.15rem;
+        }
+
+        .sidebar-link:hover {
+            color: var(--primary-blue);
+            background-color: #f8fafc;
+        }
+
+        .sidebar-link.active {
+            background-color: var(--primary-blue);
+            color: #ffffff !important;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(26, 115, 232, 0.28);
+        }
+
+        .sidebar-bottom {
+            border-top: 1px solid #f1f5f9;
+            padding-top: 16px;
+        }
+
+        .sidebar-logout-btn {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 16px;
+            color: var(--text-muted);
+            text-decoration: none;
+            font-size: 0.9rem;
+            font-weight: 500;
+            border-radius: 10px;
+            transition: 0.2s ease;
+        }
+
+        .sidebar-logout-btn:hover {
+            background-color: #fef2f2;
+            color: #ef4444;
+        }
+
+        /* --- Main Content Shell --- */
+        .main-content {
+            margin-left: var(--sidebar-width);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- Minimal Top Navigation Bar --- */
+        .top-navbar {
+            height: 72px;
+            background: transparent;
+            padding: 16px 36px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .search-box-wrapper {
+            position: relative;
+            width: 320px;
+        }
+
+        .search-box-wrapper i {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #94a3b8;
+            font-size: 0.95rem;
+        }
+
+        .search-box-input {
+            width: 100%;
+            padding: 9px 16px 9px 40px;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            border-radius: 20px;
+            font-size: 0.88rem;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .search-box-input:focus {
+            border-color: var(--primary-blue);
+            box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.12);
+        }
+
+        .topbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .icon-btn-round {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #ffffff;
+            border: 1px solid #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #64748b;
+            position: relative;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .icon-btn-round:hover {
+            background: #f8fafc;
+            color: var(--primary-blue);
+        }
+
+        .user-profile-widget {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            text-decoration: none;
+            padding: 4px 8px;
+            border-radius: 24px;
+            transition: 0.2s ease;
+        }
+
+        .user-profile-widget:hover {
+            background-color: #ffffff;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #e2e8f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-blue);
+            font-weight: 700;
+            font-size: 0.95rem;
+            border: 2px solid #ffffff;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+        }
+
+        .user-meta-name {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: #0f172a;
+            line-height: 1.2;
+        }
+
+        .user-meta-role {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        /* --- Page Canvas Layout --- */
+        .page-body-container {
+            padding: 10px 36px 36px 36px;
+            flex-grow: 1;
+        }
+
+        /* --- Card & Component Overrides Matching Mockup --- */
+        .card-custom {
+            background: #ffffff;
+            border: 1px solid #edf2f7;
+            border-radius: var(--card-radius);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02), 0 4px 12px rgba(15, 23, 42, 0.03);
+        }
+
+        .btn-blue {
+            background-color: var(--primary-blue);
+            color: #ffffff;
+            border: none;
+            border-radius: 8px;
+            padding: 8px 18px;
+            font-weight: 500;
+            font-size: 0.88rem;
+            transition: 0.2s;
+        }
+
+        .btn-blue:hover {
+            background-color: var(--primary-blue-hover);
+            color: #ffffff;
+        }
+
+        .btn-outline-blue {
+            color: var(--primary-blue);
+            border: 1px solid var(--primary-blue);
+            border-radius: 8px;
+            padding: 8px 18px;
+            font-weight: 500;
+            font-size: 0.88rem;
+        }
+
+        .btn-outline-blue:hover {
+            background-color: var(--light-blue-bg);
+            color: var(--primary-blue);
+        }
+    </style>
+</head>
+<body>
+
+<!-- 1. Left Sidebar Navigation -->
+<aside class="sidebar-wrapper">
+    <div>
+        <!-- Logo & Branding -->
+        <a href="{% url 'hr:dashboard' %}" class="brand-logo-container">
+            <div class="brand-icon-box">
+                <i class="bi bi-grid-fill"></i>
+            </div>
+            <span class="brand-text">HRMS</span>
+        </a>
+
+        <!-- Menu Navigation Items -->
+        <ul class="sidebar-nav">
+            <li>
+                <a href="{% url 'hr:dashboard' %}" class="sidebar-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+                    <i class="bi bi-grid"></i>
+                    <span>Dashboard</span>
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'hr:profile' %}" class="sidebar-link {% if 'profile' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="bi bi-person"></i>
+                    <span>My Profile</span>
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'hr:job_list' %}" class="sidebar-link {% if 'job' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="bi bi-briefcase"></i>
+                    <span>Job Vacancies</span>
+                </a>
+            </li>
+           <li>
+                <a href="{% url 'hr:application_list' %}" class="sidebar-link {% if 'application' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="bi bi-file-earmark-person"></i>
+                    <span>Recruitment</span>
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'hr:aptitude_test_list' %}" class="sidebar-link {% if 'aptitude' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="bi bi-patch-question"></i>
+                    <span>Aptitude Tests</span>
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'hr:interview_list' %}" class="sidebar-link {% if 'interview' in request.resolver_match.url_name %}active{% endif %}">
+                 <i class="bi bi-calendar-check"></i>
+                <span>Interviews</span>
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'hr:employee_report_list' %}" class="sidebar-link {% if 'report' in request.resolver_match.url_name %}active{% endif %}">
+                 <i class="bi bi-file-earmark-text"></i>
+                <span>Employee Reports</span>
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'hr:warning_list' %}" class="sidebar-link {% if 'warning' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="bi bi-shield-exclamation"></i>
+                    <span>Performance Warnings</span>
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'hr:performance_list' %}" class="sidebar-link {% if 'performance' in request.resolver_match.url_name %}active{% endif %}">
+                    <i class="bi bi-graph-up-arrow"></i>
+                    <span>Performance Reviews</span>
+                </a>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Bottom Actions -->
+    <div class="sidebar-bottom">
+        <a href="{% url 'account_logout' %}" class="sidebar-logout-btn">
+            <i class="bi bi-box-arrow-left"></i>
+            <span>Logout</span>
+        </a>
+    </div>
+</aside>
+
+<!-- 2. Main Work Content Area -->
+<div class="main-content">
+    <!-- Top Minimal Navbar -->
+    <header class="top-navbar">
+        <div class="search-box-wrapper">
+            <i class="bi bi-search"></i>
+            <input type="text" class="search-box-input" placeholder="Search anything...">
+        </div>
+
+        <div class="topbar-actions">
+            <div class="icon-btn-round" title="Notifications">
+                <i class="bi bi-bell"></i>
+            </div>
+            
+            <a href="{% url 'hr:profile' %}" class="user-profile-widget">
+                <div class="user-avatar">
+                    {{ request.user.first_name|default:request.user.username|make_list|first|upper }}
+                </div>
+                <div class="d-none d-sm-block text-start">
+                    <div class="user-meta-name">
+                        {{ request.user.get_full_name|default:request.user.username }}
+                    </div>
+                    <div class="user-meta-role">HR Manager</div>
+                </div>
+                <i class="bi bi-chevron-down text-muted small ms-1"></i>
+            </a>
+        </div>
+    </header>
+
+    <!-- Page Body Container -->
+    <main class="page-body-container">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags|default:'primary' }} alert-dismissible fade show rounded-3 mb-4" role="alert">
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </main>
+</div>
+
+<!-- Bootstrap Bundle JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

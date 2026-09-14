@@ -1,0 +1,138 @@
+{% extends "hr/base.html" %}
+
+{% block title %}Employee Weekly Reports | Smart HRMS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold text-primary mb-1">Weekly Work Reports</h4>
+        <p class="text-muted small mb-0">Track and review weekly milestones, achievements, and challenges</p>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="d-flex gap-2 mb-3">
+    <a href="{% url 'hr:employee_report_list' %}" class="btn btn-sm {% if not selected_status %}btn-primary{% else %}btn-light border{% endif %}">All</a>
+    <a href="{% url 'hr:employee_report_list' %}?status=SUBMITTED" class="btn btn-sm {% if selected_status == 'SUBMITTED' %}btn-primary{% else %}btn-light border{% endif %}">Submitted</a>
+    <a href="{% url 'hr:employee_report_list' %}?status=UNDER_REVIEW" class="btn btn-sm {% if selected_status == 'UNDER_REVIEW' %}btn-primary{% else %}btn-light border{% endif %}">Under Review</a>
+    <a href="{% url 'hr:employee_report_list' %}?status=REVIEWED" class="btn btn-sm {% if selected_status == 'REVIEWED' %}btn-primary{% else %}btn-light border{% endif %}">Reviewed</a>
+    <a href="{% url 'hr:employee_report_list' %}?status=NEEDS_CORRECTION" class="btn btn-sm {% if selected_status == 'NEEDS_CORRECTION' %}btn-primary{% else %}btn-light border{% endif %}">Needs Correction</a>
+</div>
+
+<div class="card card-custom p-3 shadow-sm border-0">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light small">
+                <tr>
+                    <th>Employee</th>
+                    <th>Week Period</th>
+                    <th>Summary & Tasks</th>
+                    <th>Status</th>
+                    <th>Reviewed By</th>
+                    <th class="text-end">Action</th>
+                </tr>
+            </thead>
+            <tbody class="small">
+                {% for report in reports %}
+                <tr>
+                    <td>
+                        <strong>{{ report.employee.user.get_full_name|default:report.employee.user.username }}</strong><br>
+                        <span class="text-muted">{{ report.employee.employee_code }} &bull; {{ report.employee.department.name }}</span>
+                    </td>
+                    <td>
+                        <strong>{{ report.week_start_date|date:"M d" }} - {{ report.week_end_date|date:"M d, Y" }}</strong><br>
+                        <small class="text-muted">Submitted {{ report.submitted_at|date:"M d, H:i" }}</small>
+                    </td>
+                    <td style="max-width: 320px;">
+                        <span class="fw-semibold text-dark">{{ report.work_summary|truncatewords:8 }}</span>
+                        <div class="text-muted small mt-1">{{ report.tasks_completed|truncatewords:10 }}</div>
+                        {% if report.challenges %}
+                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle mt-1">Has Challenges</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if report.status == 'REVIEWED' %}
+                            <span class="badge bg-success">Reviewed</span>
+                        {% elif report.status == 'NEEDS_CORRECTION' %}
+                            <span class="badge bg-danger">Needs Correction</span>
+                        {% elif report.status == 'UNDER_REVIEW' %}
+                            <span class="badge bg-info text-dark">Under Review</span>
+                        {% else %}
+                            <span class="badge bg-warning text-dark">Submitted</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if report.reviewed_by %}
+                            {{ report.reviewed_by.user.get_full_name|default:report.reviewed_by.user.username }}<br>
+                            <small class="text-muted">{{ report.reviewed_at|date:"M d, Y" }}</small>
+                        {% else %}
+                            <span class="text-muted">Pending</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end">
+                        <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#reportModal{{ report.pk }}">
+                            Review
+                        </button>
+                    </td>
+                </tr>
+
+                <!-- Review Modal -->
+                <div class="modal fade text-start" id="reportModal{{ report.pk }}" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered modal-lg">
+                        <div class="modal-content border-0 shadow">
+                            <div class="modal-header border-bottom">
+                                <div>
+                                    <h5 class="modal-title fw-bold">{{ report.employee.user.get_full_name|default:report.employee.user.username }}</h5>
+                                    <span class="text-muted small">{{ report.week_start_date }} to {{ report.week_end_date }}</span>
+                                </div>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <form method="POST" action="{% url 'hr:employee_report_review' report.pk %}">
+                                {% csrf_token %}
+                                <div class="modal-body">
+                                    <div class="mb-3">
+                                        <label class="small fw-bold text-muted text-uppercase">Work Summary</label>
+                                        <div class="p-2 bg-light rounded">{{ report.work_summary|linebreaks }}</div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label class="small fw-bold text-muted text-uppercase">Tasks Completed</label>
+                                        <div class="p-2 bg-light rounded">{{ report.tasks_completed|linebreaks }}</div>
+                                    </div>
+                                    {% if report.achievements %}
+                                    <div class="mb-3">
+                                        <label class="small fw-bold text-success text-uppercase">Achievements</label>
+                                        <div class="p-2 bg-success-subtle text-success-emphasis rounded">{{ report.achievements|linebreaks }}</div>
+                                    </div>
+                                    {% endif %}
+                                    {% if report.challenges %}
+                                    <div class="mb-3">
+                                        <label class="small fw-bold text-danger text-uppercase">Challenges</label>
+                                        <div class="p-2 bg-danger-subtle text-danger-emphasis rounded">{{ report.challenges|linebreaks }}</div>
+                                    </div>
+                                    {% endif %}
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-bold text-muted text-uppercase">HR Feedback Comments</label>
+                                        <textarea name="hr_comments" class="form-control" rows="3" placeholder="Provide feedback or instructions...">{{ report.hr_comments }}</textarea>
+                                    </div>
+                                </div>
+                                <div class="modal-footer border-top d-flex justify-content-between">
+                                    <button type="submit" name="action" value="UNDER_REVIEW" class="btn btn-outline-info btn-sm">Mark Under Review</button>
+                                    <div class="d-flex gap-2">
+                                        <button type="submit" name="action" value="NEEDS_CORRECTION" class="btn btn-outline-danger btn-sm">Request Correction</button>
+                                        <button type="submit" name="action" value="REVIEWED" class="btn btn-success btn-sm">Approve / Complete Review</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center text-muted py-4">No employee reports found.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

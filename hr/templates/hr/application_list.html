@@ -1,0 +1,68 @@
+{% extends "hr/base.html" %}
+
+{% block title %}Applications | Smart HRMS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold text-primary mb-1">Recruitment Applications</h4>
+        <p class="text-muted small mb-0">Track candidate progression through hiring stages</p>
+    </div>
+    
+    <!-- Status Filter Pills -->
+    <div class="d-flex gap-2">
+        <a href="{% url 'hr:application_list' %}" class="btn btn-sm {% if not selected_status %}btn-blue{% else %}btn-light border{% endif %}">All</a>
+        <a href="{% url 'hr:application_list' %}?status=APPLIED" class="btn btn-sm {% if selected_status == 'APPLIED' %}btn-blue{% else %}btn-light border{% endif %}">Applied</a>
+        <a href="{% url 'hr:application_list' %}?status=SHORTLISTED" class="btn btn-sm {% if selected_status == 'SHORTLISTED' %}btn-blue{% else %}btn-light border{% endif %}">Shortlisted</a>
+        <a href="{% url 'hr:application_list' %}?status=SELECTED" class="btn btn-sm {% if selected_status == 'SELECTED' %}btn-blue{% else %}btn-light border{% endif %}">Selected</a>
+        <a href="{% url 'hr:application_list' %}?status=REJECTED" class="btn btn-sm {% if selected_status == 'REJECTED' %}btn-blue{% else %}btn-light border{% endif %}">Rejected</a>
+    </div>
+</div>
+
+<div class="card card-custom p-3">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Candidate</th>
+                    <th>Applied Position</th>
+                    <th>Date Applied</th>
+                    <th>Status</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for app in applications %}
+                <tr>
+                    <td>
+                        <strong>{{ app.candidate.user.get_full_name|default:app.candidate.user.username }}</strong><br>
+                        <small class="text-muted">{{ app.candidate.user.email }}</small>
+                    </td>
+                    <td>
+                        <span class="fw-semibold">{{ app.job.title }}</span><br>
+                        <small class="text-muted">{{ app.job.department_name }}</small>
+                    </td>
+                    <td>{{ app.applied_at|date:"M d, Y" }}</td>
+                    <td>
+                        <span class="badge {% if app.status == 'SELECTED' %}bg-success{% elif app.status == 'SHORTLISTED' %}bg-primary{% elif app.status == 'REJECTED' %}bg-danger{% else %}bg-secondary{% endif %}">
+                            {{ app.get_status_display }}
+                        </span>
+                    </td>
+                    <td class="text-end">
+                        <a href="{% url 'hr:application_detail' app.pk %}" class="btn btn-sm btn-outline-blue">
+                            View Candidate
+                        </a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="5" class="text-center text-muted py-4">
+                        No candidate applications found for this stage.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

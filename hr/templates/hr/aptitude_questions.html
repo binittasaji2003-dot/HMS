@@ -1,0 +1,95 @@
+{% extends "hr/base.html" %}
+
+{% block title %}Manage Questions - {{ test.title }} | Smart HRMS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <a href="{% url 'hr:aptitude_test_list' %}" class="btn btn-sm btn-light border mb-2">
+            <i class="bi bi-arrow-left me-1"></i> Back to Tests
+        </a>
+        <h4 class="fw-bold text-primary mb-0">{{ test.title }}</h4>
+        <span class="text-muted small">Duration: {{ test.duration_minutes }} mins | Status: {{ test.get_status_display }}</span>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Add Question Form -->
+    <div class="col-12 col-lg-5">
+        <div class="card card-custom p-4 sticky-top" style="top: 90px;">
+            <h5 class="fw-bold text-dark border-bottom pb-2 mb-3">Add MCQ Question</h5>
+            <form method="POST">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">Question Text</label>
+                    <textarea name="question" rows="3" class="form-control" placeholder="Type the question..." required></textarea>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label small fw-semibold">Option A</label>
+                    <input type="text" name="option_a" class="form-control" required>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label small fw-semibold">Option B</label>
+                    <input type="text" name="option_b" class="form-control" required>
+                </div>
+                <div class="mb-2">
+                    <label class="form-label small fw-semibold">Option C</label>
+                    <input type="text" name="option_c" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">Option D</label>
+                    <input type="text" name="option_d" class="form-control" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-semibold">Correct Answer</label>
+                    <select name="correct_answer" class="form-select" required>
+                        <option value="">Select Correct Option</option>
+                        <option value="A">Option A</option>
+                        <option value="B">Option B</option>
+                        <option value="C">Option C</option>
+                        <option value="D">Option D</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-blue w-100">
+                    <i class="bi bi-plus-lg me-1"></i> Add Question
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Questions List -->
+    <div class="col-12 col-lg-7">
+        <div class="card card-custom p-4">
+            <h5 class="fw-bold text-dark border-bottom pb-2 mb-3">Question Bank ({{ questions.count }})</h5>
+            
+            {% for q in questions %}
+            <div class="border rounded-3 p-3 mb-3 bg-light">
+                <div class="d-flex justify-content-between align-items-start">
+                    <h6 class="fw-semibold text-dark mb-2">Q{{ forloop.counter }}. {{ q.question }}</h6>
+                    <form method="POST" action="{% url 'hr:aptitude_question_delete' q.pk %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm text-danger p-0 ms-2" onclick="return confirm('Delete this question?');">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </form>
+                </div>
+                <div class="row g-2 small text-muted mt-1">
+                    <div class="col-6 {% if q.correct_answer == 'A' %}text-success fw-bold{% endif %}">A) {{ q.option_a }}</div>
+                    <div class="col-6 {% if q.correct_answer == 'B' %}text-success fw-bold{% endif %}">B) {{ q.option_b }}</div>
+                    <div class="col-6 {% if q.correct_answer == 'C' %}text-success fw-bold{% endif %}">C) {{ q.option_c }}</div>
+                    <div class="col-6 {% if q.correct_answer == 'D' %}text-success fw-bold{% endif %}">D) {{ q.option_d }}</div>
+                </div>
+                <div class="mt-2 pt-2 border-top border-secondary-subtle">
+                    <span class="badge bg-success-subtle text-success border border-success-subtle">Answer: Option {{ q.correct_answer }}</span>
+                </div>
+            </div>
+            {% empty %}
+            <div class="text-center text-muted py-5">
+                <i class="bi bi-journal-x fs-2 d-block mb-2 text-secondary"></i>
+                No questions added to this test yet. Add your first MCQ using the form on the left.
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,122 @@
+{% extends "hr/base.html" %}
+
+{% block title %}Employee Performance Reviews | Smart HRMS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold text-primary mb-1">Performance Reviews</h4>
+        <p class="text-muted small mb-0">Record periodic appraisals, performance ratings, and feedback notes</p>
+    </div>
+    
+    <button type="button" class="btn btn-blue" data-bs-toggle="modal" data-bs-target="#newReviewModal">
+        <i class="bi bi-star me-1"></i> New Evaluation
+    </button>
+</div>
+
+<!-- Rating Filter Pills -->
+<div class="d-flex gap-2 mb-3">
+    <a href="{% url 'hr:performance_list' %}" class="btn btn-sm {% if not selected_rating %}btn-blue{% else %}btn-light border{% endif %}">All</a>
+    <a href="{% url 'hr:performance_list' %}?rating=EXCELLENT" class="btn btn-sm {% if selected_rating == 'EXCELLENT' %}btn-blue{% else %}btn-light border{% endif %}">Excellent</a>
+    <a href="{% url 'hr:performance_list' %}?rating=GOOD" class="btn btn-sm {% if selected_rating == 'GOOD' %}btn-blue{% else %}btn-light border{% endif %}">Good</a>
+    <a href="{% url 'hr:performance_list' %}?rating=AVERAGE" class="btn btn-sm {% if selected_rating == 'AVERAGE' %}btn-blue{% else %}btn-light border{% endif %}">Average</a>
+    <a href="{% url 'hr:performance_list' %}?rating=NEEDS_IMPROVEMENT" class="btn btn-sm {% if selected_rating == 'NEEDS_IMPROVEMENT' %}btn-blue{% else %}btn-light border{% endif %}">Needs Improvement</a>
+</div>
+
+<div class="card card-custom p-3 shadow-sm border-0">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light small">
+                <tr>
+                    <th>Employee</th>
+                    <th>Period</th>
+                    <th>Rating</th>
+                    <th>Comments / Feedback</th>
+                    <th>Evaluated By</th>
+                    <th>Review Date</th>
+                </tr>
+            </thead>
+            <tbody class="small">
+                {% for rev in reviews %}
+                <tr>
+                    <td>
+                        <strong>{{ rev.employee.user.get_full_name|default:rev.employee.user.username }}</strong><br>
+                        <small class="text-muted">{{ rev.employee.employee_code }} &bull; {{ rev.employee.department.name }}</small>
+                    </td>
+                    <td><span class="fw-semibold text-dark">{{ rev.review_period }}</span></td>
+                    <td>
+                        {% if rev.rating == 'EXCELLENT' %}
+                            <span class="badge bg-success">Excellent</span>
+                        {% elif rev.rating == 'GOOD' %}
+                            <span class="badge bg-primary">Good</span>
+                        {% elif rev.rating == 'AVERAGE' %}
+                            <span class="badge bg-warning text-dark">Average</span>
+                        {% else %}
+                            <span class="badge bg-danger">Needs Improvement</span>
+                        {% endif %}
+                    </td>
+                    <td style="max-width: 320px;">
+                        <span class="text-muted">{{ rev.comments|default:"No written feedback provided." }}</span>
+                    </td>
+                    <td>
+                        {{ rev.reviewed_by.user.get_full_name|default:rev.reviewed_by.user.username|default:"HR Team" }}
+                    </td>
+                    <td>{{ rev.review_date|date:"M d, Y" }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="6" class="text-center text-muted py-4">No performance evaluations recorded yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal to Log Review -->
+<div class="modal fade" id="newReviewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-bottom">
+                <h5 class="modal-title fw-bold text-dark">Log Performance Evaluation</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{% url 'hr:performance_create' %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Employee</label>
+                        <select name="employee_id" class="form-select" required>
+                            <option value="">Select Active Employee...</option>
+                            {% for emp in employees %}
+                                <option value="{{ emp.pk }}">{{ emp.employee_code }} - {{ emp.user.get_full_name|default:emp.user.username }} ({{ emp.department.name }})</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Review Period</label>
+                        <input type="text" name="review_period" class="form-control" placeholder="e.g. Q3 2026, August 2026, Annual 2025-26" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Rating</label>
+                        <select name="rating" class="form-select" required>
+                            <option value="EXCELLENT">Excellent</option>
+                            <option value="GOOD" selected>Good</option>
+                            <option value="AVERAGE">Average</option>
+                            <option value="NEEDS_IMPROVEMENT">Needs Improvement</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">HR Evaluation Feedback</label>
+                        <textarea name="comments" rows="3" class="form-control" placeholder="Summarize key strengths, delivery metrics, or improvement points..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-top">
+                    <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-blue">Save Evaluation</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -184,3 +184,59 @@ class Interview(models.Model):
 
     def __str__(self):
         return f"{self.application} - {self.interview_date}"
+
+#My new contribution for the job portal feature :
+
+class JobVacancy(models.Model):
+    JOB_TYPE_CHOICES = [
+        ("FULL_TIME", "Full Time"),
+        ("PART_TIME", "Part Time"),
+        ("CONTRACT", "Contract"),
+        ("INTERNSHIP", "Internship"),
+    ]
+
+    STATUS_CHOICES = [
+        ("OPEN", "Open"),
+        ("CLOSED", "Closed"),
+    ]
+
+    vacancy_id = models.AutoField(primary_key=True)
+    title = models.CharField(max_length=200)
+    department_name = models.CharField(
+        max_length=100, 
+        help_text="Designated department name for the position"
+    )
+    job_type = models.CharField(
+        max_length=20, 
+        choices=JOB_TYPE_CHOICES, 
+        default="FULL_TIME"
+    )
+    experience_required = models.CharField(
+        max_length=100, 
+        help_text="e.g., 2+ years, Entry Level"
+    )
+    description = models.TextField()
+    requirements = models.TextField(help_text="Key skills and qualifications required")
+    openings_count = models.PositiveIntegerField(default=1)
+    status = models.CharField(
+        max_length=20, 
+        choices=STATUS_CHOICES, 
+        default="OPEN"
+    )
+    posted_by = models.ForeignKey(
+        HRManager,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="posted_jobs",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.title} ({self.get_status_display()})"
+
+#My contribution
+

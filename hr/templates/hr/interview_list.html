@@ -1,0 +1,159 @@
+{% extends "hr/base.html" %}
+
+{% block title %}Interview Schedule | Smart HRMS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h4 class="fw-bold text-primary mb-1">Candidate Interviews</h4>
+        <p class="text-muted small mb-0">Schedule interview sessions, manage statuses, and record interviewer remarks</p>
+    </div>
+    <button type="button" class="btn btn-blue" data-bs-toggle="modal" data-bs-target="#scheduleInterviewModal">
+        <i class="bi bi-calendar-plus me-1"></i> Schedule Interview
+    </button>
+</div>
+
+<!-- Status Filters -->
+<div class="d-flex gap-2 mb-3">
+    <a href="{% url 'hr:interview_list' %}" class="btn btn-sm {% if not selected_status %}btn-blue{% else %}btn-light border{% endif %}">All</a>
+    <a href="{% url 'hr:interview_list' %}?status=SCHEDULED" class="btn btn-sm {% if selected_status == 'SCHEDULED' %}btn-blue{% else %}btn-light border{% endif %}">Scheduled</a>
+    <a href="{% url 'hr:interview_list' %}?status=COMPLETED" class="btn btn-sm {% if selected_status == 'COMPLETED' %}btn-blue{% else %}btn-light border{% endif %}">Completed</a>
+    <a href="{% url 'hr:interview_list' %}?status=CANCELLED" class="btn btn-sm {% if selected_status == 'CANCELLED' %}btn-blue{% else %}btn-light border{% endif %}">Cancelled</a>
+</div>
+
+<div class="card card-custom p-3 shadow-sm border-0">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light small">
+                <tr>
+                    <th>Candidate</th>
+                    <th>Job Vacancy</th>
+                    <th>Date & Time</th>
+                    <th>Interviewer</th>
+                    <th>Status</th>
+                    <th>Remarks</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="small">
+                {% for item in interviews %}
+                <tr>
+                    <td>
+                        <strong>{{ item.application.candidate.user.get_full_name|default:item.application.candidate.user.username }}</strong><br>
+                        <small class="text-muted">{{ item.application.candidate.user.email }}</small>
+                    </td>
+                    <td><span class="fw-semibold text-dark">{{ item.application.vacancy.title }}</span></td>
+                    <td>
+                        <span class="text-primary fw-semibold">{{ item.interview_date|date:"M d, Y" }}</span><br>
+                        <small class="text-muted">{{ item.interview_time|time:"H:i" }}</small>
+                    </td>
+                    <td>{{ item.interviewer.user.get_full_name|default:item.interviewer.user.username|default:"HR Team" }}</td>
+                    <td>
+                        {% if item.status == 'COMPLETED' %}
+                            <span class="badge bg-success">Completed</span>
+                        {% elif item.status == 'CANCELLED' %}
+                            <span class="badge bg-danger">Cancelled</span>
+                        {% else %}
+                            <span class="badge bg-warning text-dark">Scheduled</span>
+                        {% endif %}
+                    </td>
+                    <td style="max-width: 220px;">
+                        <span class="text-muted">{{ item.remarks|default:"No remarks logged."|truncatewords:8 }}</span>
+                    </td>
+                    <td class="text-end">
+                        {% if item.status == 'SCHEDULED' %}
+                        <button type="button" class="btn btn-sm btn-outline-success me-1" data-bs-toggle="modal" data-bs-target="#completeModal{{ item.interview_id }}">
+                            Complete
+                        </button>
+                        <form method="POST" action="{% url 'hr:interview_status_update' item.interview_id %}" class="d-inline">
+                            {% csrf_token %}
+                            <input type="hidden" name="status" value="CANCELLED">
+                            <button type="submit" class="btn btn-sm btn-outline-secondary">Cancel</button>
+                        </form>
+                        {% else %}
+                            <span class="text-muted small">Done</span>
+                        {% endif %}
+                    </td>
+                </tr>
+
+                <!-- Remarks / Complete Modal -->
+                <div class="modal fade text-start" id="completeModal{{ item.interview_id }}" tabindex="-1" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content border-0 shadow">
+                            <div class="modal-header border-bottom">
+                                <h5 class="modal-title fw-bold">Complete Interview</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <form method="POST" action="{% url 'hr:interview_status_update' item.interview_id %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="status" value="COMPLETED">
+                                <div class="modal-body">
+                                    <div class="mb-3">
+                                        <label class="form-label small fw-semibold">Interviewer Remarks / Feedback</label>
+                                        <textarea name="remarks" rows="3" class="form-control" placeholder="Candidate evaluation, performance feedback, or hiring notes...">{{ item.remarks }}</textarea>
+                                    </div>
+                                </div>
+                                <div class="modal-footer border-top">
+                                    <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Close</button>
+                                    <button type="submit" class="btn btn-success">Save & Mark Completed</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <tr>
+                    <td colspan="7" class="text-center text-muted py-4">No interviews scheduled yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Schedule Modal -->
+<div class="modal fade text-start" id="scheduleInterviewModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-bottom">
+                <h5 class="modal-title fw-bold text-dark">Schedule Candidate Interview</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{% url 'hr:interview_create' %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Candidate Application</label>
+                        <select name="application_id" class="form-select" required>
+                            <option value="">Select Candidate Application...</option>
+                            {% for app in applications %}
+                                <option value="{{ app.pk }}">
+                                    {{ app.candidate.user.get_full_name|default:app.candidate.user.username }} - {{ app.vacancy.title }}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold">Date</label>
+                            <input type="date" name="interview_date" class="form-control" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold">Time</label>
+                            <input type="time" name="interview_time" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Initial Remarks / Instructions</label>
+                        <textarea name="remarks" rows="2" class="form-control" placeholder="Optional notes for candidate or interview round..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-top">
+                    <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-blue">Schedule</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

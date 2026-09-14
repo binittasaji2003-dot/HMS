@@ -1,0 +1,71 @@
+{% extends "hr/base.html" %}
+
+{% block title %}{% if object %}Edit Job{% else %}Post New Job{% endif %} | Smart HRMS{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-md-8">
+        <div class="card card-custom p-4">
+            <div class="border-bottom pb-3 mb-4">
+                <h4 class="fw-bold text-primary mb-1">
+                    {% if object %}Edit Job Vacancy{% else %}Post a New Job Vacancy{% endif %}
+                </h4>
+                <p class="text-muted small mb-0">Fill in the role details, requirements, and open positions</p>
+            </div>
+
+            <form method="POST">
+                {% csrf_token %}
+                <div class="row g-3 mb-3">
+                    <div class="col-md-8">
+                        <label class="form-label small fw-semibold">Job Title</label>
+                        {{ form.title }}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-semibold">Openings</label>
+                        {{ form.openings_count }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">Department</label>
+                        {{ form.department_name }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">Job Type</label>
+                        {{ form.job_type }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">Experience Required</label>
+                        {{ form.experience_required }}
+                    </div>
+                    {% if object %}
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">Status</label>
+                        {{ form.status }}
+                    </div>
+                    {% endif %}
+                    <div class="col-12">
+                        <label class="form-label small fw-semibold">Job Description</label>
+                        {{ form.description }}
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label small fw-semibold">Requirements / Skills</label>
+                        {{ form.requirements }}
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2 mt-4">
+                    <a href="{% url 'hr:job_list' %}" class="btn btn-light border">Cancel</a>
+                    <button type="submit" class="btn btn-blue">
+                        {% if object %}Update Vacancy{% else %}Publish Job{% endif %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.querySelectorAll("form input, form select, form textarea").forEach(el => {
+        el.classList.add("form-control");
+    });
+</script>
+{% endblock %}
