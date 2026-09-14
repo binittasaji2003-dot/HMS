@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Candidate Dashboard{% endblock title %}
+{% block content %}
+<div class="py-4">
+  <h1>Candidate Dashboard</h1>
+  <p>Welcome, {{ request.user.name|default:request.user.email }}.</p>
+  <div class="row g-3 mb-4">
+    <div class="col-md-6"><div class="card p-3"><strong>{{ application_count }}</strong><span>Applications</span></div></div>
+    <div class="col-md-6"><div class="card p-3"><strong>{{ open_jobs }}</strong><span>Open vacancies</span></div></div>
+  </div>
+  <p><a class="btn btn-primary" href="{% url 'candidates:job_list' %}">Browse vacancies</a> <a class="btn btn-outline-primary" href="{% url 'candidates:profile' %}">My profile</a></p>
+  <h2 class="h4 mt-4">Recent applications</h2>
+  {% for application in applications %}
+    <div class="border rounded p-3 mb-2">{{ application.vacancy.title }} <span class="badge bg-secondary">{{ application.get_status_display }}</span></div>
+  {% empty %}
+    <p>No applications yet.</p>
+  {% endfor %}
+</div>
+{% endblock content %}

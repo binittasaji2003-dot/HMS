@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Open Vacancies{% endblock title %}
+{% block content %}
+<div class="py-4">
+  <h1>Open Vacancies</h1>
+  <form method="get" class="mb-4"><input class="form-control" name="q" value="{{ query }}" placeholder="Search vacancies"><button class="btn btn-primary mt-2">Search</button></form>
+  {% for job in jobs %}
+    <article class="card mb-3 p-3">
+      <h2 class="h4"><a href="{% url 'candidates:job_detail' job.vacancy_id %}">{{ job.title }}</a></h2>
+      <p>{{ job.department }} · {{ job.location }}</p>
+      <p>{{ job.description|truncatewords:30 }}</p>
+      <a class="btn btn-outline-primary" href="{% url 'candidates:job_detail' job.vacancy_id %}">View vacancy</a>
+    </article>
+  {% empty %}<p>No open vacancies found.</p>{% endfor %}
+</div>
+{% endblock content %}

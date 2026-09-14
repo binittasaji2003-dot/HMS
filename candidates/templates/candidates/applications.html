@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}My Applications{% endblock title %}
+{% block content %}
+<div class="py-4">
+  <h1>My Applications</h1>
+  {% for application in applications %}
+    <div class="card p-3 mb-3">
+      <h2 class="h5">{{ application.vacancy.title }}</h2>
+      <p>{{ application.vacancy.location }} · {{ application.applied_at|date:"M j, Y" }}</p>
+      <span class="badge bg-secondary">{{ application.get_status_display }}</span>
+    </div>
+  {% empty %}<p>You have not submitted any applications.</p>{% endfor %}
+</div>
+{% endblock content %}
