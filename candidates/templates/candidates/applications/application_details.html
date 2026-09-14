@@ -1,0 +1,321 @@
+{% extends 'candidates/base.html' %}
+{% load static %}
+
+{% block title %}Application {{ application.application_code }} - HRMS Portal{% endblock %}
+
+{% block content %}
+<div class="breadcrumb">
+  <a href="{% url 'candidates:my_applications' %}">My Applications</a>
+  <span class="breadcrumb-separator">/</span>
+  <span class="breadcrumb-current">{{ application.application_code }}</span>
+</div>
+
+<!-- Application Hero Header Card -->
+<div class="card mb-4">
+  <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+    <div>
+      <span class="job-dept-badge">{{ application.job.department.name }}</span>
+      <h1 class="page-title mt-2">{{ application.job.title }}</h1>
+      <div class="text-xs text-muted mt-1">
+        Application ID: <strong>{{ application.application_code }}</strong> • Applied on {{ application.applied_at|date:"d M Y" }} • {{ application.job.location }}
+      </div>
+    </div>
+    <div>
+      {% if application.status == 'APPLIED' %}
+      <span class="badge badge-applied" style="font-size: 0.875rem; padding: 6px 14px;"><span class="badge-dot"></span>Applied</span>
+      {% elif application.status == 'RESUME_REVIEW' %}
+      <span class="badge badge-review" style="font-size: 0.875rem; padding: 6px 14px;"><span class="badge-dot"></span>Resume Under Review</span>
+      {% elif application.status == 'SHORTLISTED' %}
+      <span class="badge badge-shortlisted" style="font-size: 0.875rem; padding: 6px 14px;"><span class="badge-dot"></span>Shortlisted</span>
+      {% elif application.status == 'APTITUDE_TEST' %}
+      <span class="badge badge-aptitude" style="font-size: 0.875rem; padding: 6px 14px;"><span class="badge-dot"></span>Aptitude Test</span>
+      {% elif application.status == 'INTERVIEW_SCHEDULED' %}
+      <span class="badge badge-interview" style="font-size: 0.875rem; padding: 6px 14px;"><span class="badge-dot"></span>Interview Scheduled</span>
+      {% elif application.status == 'SELECTED' %}
+      <span class="badge badge-selected" style="font-size: 0.875rem; padding: 6px 14px;"><span class="badge-dot"></span>Selected</span>
+      {% elif application.status == 'REJECTED' %}
+      <span class="badge badge-rejected" style="font-size: 0.875rem; padding: 6px 14px;"><span class="badge-dot"></span>Rejected</span>
+      {% else %}
+      <span class="badge badge-applied" style="font-size: 0.875rem; padding: 6px 14px;">{{ application.get_status_display }}</span>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<!-- Application Status Stepper -->
+<div class="card mb-4">
+  <h3 class="card-title mb-3">Application Progress Stepper</h3>
+  <div class="stepper-wrapper">
+    <div class="stepper">
+      {% for step in stepper_steps %}
+      <div class="stepper-step {{ step.status }}">
+        <div class="step-circle">
+          {% if step.status == 'completed' %}✓{% elif step.status == 'current' %}●{% else %}○{% endif %}
+        </div>
+        <div class="step-content">
+          <div class="step-title">{{ step.title }}</div>
+          <div class="step-date">{{ step.date }}</div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<!-- Status Banner -->
+{% if application.status == 'SELECTED' %}
+<div class="card mb-4" style="border-left: 5px solid var(--success); background: #ECFDF5;">
+  <div class="d-flex align-items-center gap-3">
+    <div style="width: 44px; height: 44px; border-radius: 50%; background: var(--success); color: #FFF; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; font-weight: 700; flex-shrink: 0;">✓</div>
+    <div style="flex: 1;">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <h3 style="font-size: 1.15rem; font-weight: 700; color: #065F46;">Candidate Selected — Offer Confirmed!</h3>
+        {% if candidate.is_onboarded %}
+        <span class="badge" style="background: #20A47A; color: #FFF; padding: 4px 12px; border-radius: 12px; font-weight: 700; font-size: 0.78rem;">
+          Employee Lifecycle Active
+        </span>
+        {% else %}
+        <span class="badge" style="background: #EAF3FF; color: var(--primary-blue); padding: 4px 12px; border-radius: 12px; font-weight: 700; font-size: 0.78rem;">
+          Onboarding in Progress
+        </span>
+        {% endif %}
+      </div>
+      <p class="text-sm text-navy mt-1">
+        Congratulations! You have been selected for the position of <strong>{{ application.job.title }}</strong>. The recruitment phase is complete.
+      </p>
+      {% if candidate.is_onboarded and candidate.employee_record %}
+      <div class="mt-3 p-3" style="background: #FFFFFF; border: 1px solid #A7F3D0; border-radius: 8px;">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+          <div>
+            <span class="text-xs text-muted d-block">Official Employee ID:</span>
+            <strong style="color: #065F46; font-size: 1rem;">{{ candidate.employee_record.employee_code }}</strong>
+          </div>
+          <div>
+            <span class="text-xs text-muted d-block">Designation:</span>
+            <span class="text-xs font-semibold text-navy">{{ candidate.employee_record.designation }}</span>
+          </div>
+          <div>
+            <span class="text-xs text-muted d-block">Joining Date:</span>
+            <span class="text-xs font-semibold text-navy">{{ candidate.employee_record.joining_date }}</span>
+          </div>
+          <div>
+            <span class="text-xs text-muted d-block">Status:</span>
+            <span class="badge" style="background: #D1FAE5; color: #065F46; font-weight: 700; font-size: 0.75rem;">{{ candidate.employee_record.employment_status }}</span>
+          </div>
+        </div>
+      </div>
+      {% else %}
+      <p class="text-xs text-muted mt-2">
+        Our HR Operations team is preparing your official employee onboarding profile in the HRMS system. You will receive further instructions shortly.
+      </p>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% elif application.status == 'REJECTED' %}
+<div class="card mb-4" style="border-left: 5px solid var(--danger); background: var(--status-rejected-bg);">
+  <div class="d-flex align-items-center gap-3">
+    <div style="width: 44px; height: 44px; border-radius: 50%; background: var(--danger); color: #FFF; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; font-weight: 700; flex-shrink: 0;">✕</div>
+    <div>
+      <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--danger);">Application Decision</h3>
+      <p class="text-sm text-navy mt-1">
+        Thank you for your interest in joining our team. While we were impressed by your profile, we have decided to proceed with other candidates whose qualifications more closely match our current role requirements.
+      </p>
+    </div>
+  </div>
+</div>
+{% elif application.status == 'INTERVIEW_SCHEDULED' %}
+<div class="card mb-4" style="border-left: 5px solid var(--primary-blue); background: var(--primary-blue-subtle);">
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+    <div>
+      <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--dark-navy);">Interview Scheduled</h3>
+      <p class="text-sm text-navy mt-1">
+        Your interview round has been scheduled. Please check the details below and ensure you join on time.
+      </p>
+    </div>
+  </div>
+</div>
+{% elif application.status == 'SHORTLISTED' %}
+<div class="card mb-4" style="border-left: 5px solid #10B981; background: #ECFDF5;">
+  <h3 style="font-size: 1.15rem; font-weight: 700; color: #065F46;">Application Shortlisted</h3>
+  <p class="text-sm text-navy mt-1">
+    Your profile has been shortlisted by the recruitment team! You will be notified regarding the next evaluation round shortly.
+  </p>
+</div>
+{% elif application.status == 'APTITUDE_TEST' %}
+<div class="card mb-4" style="border-left: 5px solid #8B5CF6; background: #F5F3FF;">
+  <h3 style="font-size: 1.15rem; font-weight: 700; color: #6D28D9;">Aptitude Assessment Stage</h3>
+  <p class="text-sm text-navy mt-1">
+    An online aptitude assessment has been assigned for this application. Please navigate to the Aptitude Tests section to complete your evaluation.
+  </p>
+</div>
+{% elif application.status == 'RESUME_REVIEW' %}
+<div class="card mb-4" style="border-left: 5px solid #F59E0B; background: #FFFBEB;">
+  <h3 style="font-size: 1.15rem; font-weight: 700; color: #92400E;">Resume Under Review</h3>
+  <p class="text-sm text-navy mt-1">
+    Our technical hiring panel is currently evaluating your resume and submitted credentials against the role criteria.
+  </p>
+</div>
+{% else %}
+<div class="card mb-4" style="border-left: 5px solid var(--primary-blue); background: var(--primary-blue-subtle);">
+  <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--dark-navy);">Application Successfully Registered</h3>
+  <p class="text-sm text-navy mt-1">
+    Your application for <strong>{{ application.job.title }}</strong> was received on {{ application.applied_at|date:"d F Y" }}. You will receive status notifications as your application progresses.
+  </p>
+</div>
+{% endif %}
+
+<div class="grid-2 mb-4">
+  <!-- Submission Info -->
+  <div class="card">
+    <h3 class="card-title mb-3">Submitted Application Data</h3>
+    <div style="display: flex; flex-direction: column; gap: 14px;">
+      <div class="d-flex justify-content-between border-bottom pb-2">
+        <span class="text-xs text-muted">Candidate Name:</span>
+        <span class="text-xs font-semibold text-navy">{{ candidate.full_name }}</span>
+      </div>
+      <div class="d-flex justify-content-between border-bottom pb-2">
+        <span class="text-xs text-muted">Email:</span>
+        <span class="text-xs font-semibold text-navy">{{ candidate.user.email }}</span>
+      </div>
+      <div class="d-flex justify-content-between border-bottom pb-2">
+        <span class="text-xs text-muted">Phone:</span>
+        <span class="text-xs font-semibold text-navy">{{ candidate.phone }}</span>
+      </div>
+      <div class="d-flex justify-content-between border-bottom pb-2">
+        <span class="text-xs text-muted">Department:</span>
+        <span class="text-xs font-semibold text-navy">{{ application.job.department.name }}</span>
+      </div>
+      <div class="d-flex justify-content-between border-bottom pb-2">
+        <span class="text-xs text-muted">Applied Date:</span>
+        <span class="text-xs font-semibold text-navy">{{ application.applied_at|date:"d M Y, h:i A" }}</span>
+      </div>
+      <div class="d-flex justify-content-between">
+        <span class="text-xs text-muted">Resume Attached:</span>
+        {% if application.resume %}
+        <a href="{% url 'candidates:application_resume_download' application.application_id %}" class="text-xs font-semibold text-primary" style="display: inline-flex; align-items: center; gap: 4px;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          {{ resume_filename|default:"Download Resume" }}
+        </a>
+        {% else %}
+        <span class="text-xs text-muted">No file attached</span>
+        {% endif %}
+      </div>
+      {% if application.cover_note %}
+      <div class="border-top pt-2">
+        <span class="text-xs text-muted">Candidate Remarks / Cover Note:</span>
+        <p class="text-xs text-navy mt-1" style="line-height: 1.6; white-space: pre-line;">{{ application.cover_note }}</p>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Job Details Summary -->
+  <div class="card">
+    <h3 class="card-title mb-3">Position Information</h3>
+    <div style="display: flex; flex-direction: column; gap: 14px;">
+      <div class="d-flex justify-content-between border-bottom pb-2">
+        <span class="text-xs text-muted">Role Title:</span>
+        <span class="text-xs font-semibold text-navy">{{ application.job.title }}</span>
+      </div>
+      <div class="d-flex justify-content-between border-bottom pb-2">
+        <span class="text-xs text-muted">Job Type:</span>
+        <span class="text-xs font-semibold text-navy">{{ application.job.get_job_type_display }}</span>
+      </div>
+      <div class="d-flex justify-content-between border-bottom pb-2">
+        <span class="text-xs text-muted">Location:</span>
+        <span class="text-xs font-semibold text-navy">{{ application.job.location }}</span>
+      </div>
+      <div class="d-flex justify-content-between border-bottom pb-2">
+        <span class="text-xs text-muted">Experience Required:</span>
+        <span class="text-xs font-semibold text-navy">{{ application.job.experience_required }}</span>
+      </div>
+      <div class="d-flex justify-content-between border-bottom pb-2">
+        <span class="text-xs text-muted">Salary:</span>
+        <span class="text-xs font-semibold text-primary">{{ application.job.salary_display|default:"Competitive" }}</span>
+      </div>
+      <div>
+        <a href="{% url 'candidates:job_details' application.job.job_id %}" class="btn btn-sm btn-outline">View Full Job Description</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Interview Details (If any) -->
+{% if interviews %}
+<div class="card mb-4">
+  <h3 class="card-title mb-3">Scheduled Interview Rounds</h3>
+  <div class="table-responsive">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Round</th>
+          <th>Date & Time</th>
+          <th>Mode</th>
+          <th>Interviewer</th>
+          <th>Meeting / Instructions</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for iv in interviews %}
+        <tr>
+          <td><strong>{{ iv.interview_round }}</strong></td>
+          <td>{{ iv.date|date:"d M Y" }} at {{ iv.time|time:"h:i A" }}</td>
+          <td>{{ iv.get_mode_display }}</td>
+          <td>{{ iv.interviewer }}</td>
+          <td>
+            {% if iv.meeting_link %}
+            <a href="{{ iv.meeting_link }}" target="_blank" rel="noopener" class="btn btn-xs btn-primary">Join Meeting</a>
+            {% elif iv.instructions %}
+            <span class="text-xs text-muted">{{ iv.instructions|truncatewords:8 }}</span>
+            {% else %}
+            <span class="text-xs text-muted">Will be shared prior to call</span>
+            {% endif %}
+          </td>
+          <td>
+            <span class="badge badge-interview">{{ iv.get_status_display }}</span>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+
+<!-- Aptitude Test Results (If any) -->
+{% if test_results %}
+<div class="card mb-4">
+  <h3 class="card-title mb-3">Aptitude Test Assessment</h3>
+  <div class="table-responsive">
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Test Name</th>
+          <th>Score</th>
+          <th>Result</th>
+          <th>Completed Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for result in test_results %}
+        <tr>
+          <td><strong>{{ result.test.title }}</strong></td>
+          <td>{{ result.score_percentage }}% ({{ result.correct_answers }}/{{ result.total_questions }})</td>
+          <td>
+            {% if result.is_passed %}
+            <span class="badge badge-selected">Passed</span>
+            {% else %}
+            <span class="badge badge-rejected">Failed</span>
+            {% endif %}
+          </td>
+          <td>{{ result.completed_at|date:"d M Y, h:i A" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

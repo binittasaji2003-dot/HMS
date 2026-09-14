@@ -1,0 +1,134 @@
+{% extends 'candidates/base.html' %}
+{% load static %}
+
+{% block title %}Job Vacancies - HRMS Portal{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Job Vacancies</h1>
+    <p class="page-subtitle">Find the right opportunity for your career and apply in one click</p>
+  </div>
+</div>
+
+<!-- Search & Filter Card -->
+<form method="GET" action="{% url 'candidates:job_list' %}" class="job-search-card">
+  <div class="job-filter-row">
+    <div class="input-group">
+      <input type="text" name="q" id="jobSearchInput" class="form-control" placeholder="Search jobs by title, skills or keywords..." value="{{ query }}">
+    </div>
+
+    <select name="dept" id="deptFilter" class="form-select">
+      <option value="">All Departments</option>
+      {% for dept in departments %}
+      <option value="{{ dept.name }}" {% if selected_dept == dept.name or selected_dept == dept.code %}selected{% endif %}>{{ dept.name }}</option>
+      {% endfor %}
+    </select>
+
+    <select name="exp" id="expFilter" class="form-select">
+      <option value="">All Experience</option>
+      <option value="0-2" {% if selected_exp == "0-2" %}selected{% endif %}>0 - 2 Years</option>
+      <option value="1-3" {% if selected_exp == "1-3" %}selected{% endif %}>1 - 3 Years</option>
+      <option value="3-5" {% if selected_exp == "3-5" %}selected{% endif %}>3 - 5 Years</option>
+    </select>
+
+    <select name="type" id="typeFilter" class="form-select">
+      <option value="">All Job Types</option>
+      <option value="FULL_TIME" {% if selected_type == "FULL_TIME" or selected_type == "full-time" %}selected{% endif %}>Full Time</option>
+      <option value="REMOTE" {% if selected_type == "REMOTE" or selected_type == "remote" %}selected{% endif %}>Remote</option>
+      <option value="HYBRID" {% if selected_type == "HYBRID" or selected_type == "hybrid" %}selected{% endif %}>Hybrid</option>
+      <option value="CONTRACT" {% if selected_type == "CONTRACT" or selected_type == "contract" %}selected{% endif %}>Contract</option>
+      <option value="INTERNSHIP" {% if selected_type == "INTERNSHIP" or selected_type == "internship" %}selected{% endif %}>Internship</option>
+    </select>
+
+    <button type="submit" class="btn btn-primary">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+      <span>Search</span>
+    </button>
+    {% if query or selected_dept or selected_exp or selected_type %}
+    <a href="{% url 'candidates:job_list' %}" class="btn btn-secondary">Clear</a>
+    {% endif %}
+  </div>
+</form>
+
+<!-- Available Jobs Counter -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h2 style="font-size: 1.15rem; font-weight: 700; color: var(--dark-navy);" id="availableJobsCount">
+    {{ total_jobs_count }} Available Job{{ total_jobs_count|pluralize }}
+  </h2>
+  <div class="d-flex align-items-center gap-2">
+    <span class="text-xs text-muted">Sort by:</span>
+    <form method="GET" id="sortForm" style="margin: 0;">
+      {% if query %}<input type="hidden" name="q" value="{{ query }}">{% endif %}
+      {% if selected_dept %}<input type="hidden" name="dept" value="{{ selected_dept }}">{% endif %}
+      {% if selected_exp %}<input type="hidden" name="exp" value="{{ selected_exp }}">{% endif %}
+      {% if selected_type %}<input type="hidden" name="type" value="{{ selected_type }}">{% endif %}
+      <select name="sort" class="form-select" style="height: 34px; width: 140px; font-size: 0.75rem; padding: 4px 10px;" onchange="this.form.submit()">
+        <option value="" {% if not selected_sort %}selected{% endif %}>Latest First</option>
+        <option value="salary" {% if selected_sort == 'salary' %}selected{% endif %}>Highest Salary</option>
+        <option value="experience" {% if selected_sort == 'experience' %}selected{% endif %}>Experience</option>
+      </select>
+    </form>
+  </div>
+</div>
+
+<!-- Job Cards Grid -->
+{% if jobs %}
+<div class="grid-3" id="jobsGridContainer">
+  {% for job in jobs %}
+  <div class="job-card job-card-item">
+    <div class="job-card-header">
+      <span class="job-dept-badge">{{ job.department.name }}</span>
+      <span class="text-xs text-muted">{{ job.posted_at|timesince }} ago</span>
+    </div>
+    <h3 class="job-title">{{ job.title }}</h3>
+    <div class="job-meta-list">
+      <span class="job-meta-item">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+        {{ job.location }}
+      </span>
+      <span class="job-meta-item">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+        {{ job.experience_required }}
+      </span>
+      {% if job.deadline %}
+      <span class="job-meta-item text-danger">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+        Deadline: {{ job.deadline|date:"d M Y" }}
+      </span>
+      {% endif %}
+    </div>
+    <p class="job-desc-snippet">{{ job.description|truncatewords:22 }}</p>
+    {% if job.skills_required %}
+    <div class="job-tags">
+      <span class="job-tag">{{ job.skills_required }}</span>
+    </div>
+    {% endif %}
+    <div class="job-card-footer">
+      <span class="job-salary-tag">{{ job.salary_display|default:"Competitive" }}</span>
+      <div class="d-flex gap-2">
+        <a href="{% url 'candidates:job_details' job.job_id %}" class="btn btn-sm btn-outline">View Details</a>
+        {% if job.job_id in applied_job_ids %}
+        <span class="badge badge-applied" style="align-self: center;">Applied</span>
+        {% else %}
+        <a href="{% url 'candidates:job_apply' job.job_id %}" class="btn btn-sm btn-primary">Apply Now</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<!-- Empty state -->
+<div id="jobsEmptyState" style="margin-top: 30px;">
+  <div class="empty-state">
+    <div class="empty-icon-wrap">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+    </div>
+    <h3 class="empty-title">No Jobs Found</h3>
+    <p class="empty-desc">We could not find any active job vacancies matching your criteria. Try resetting filters or searching with different keywords.</p>
+    <a href="{% url 'candidates:job_list' %}" class="btn btn-outline">Reset Filters</a>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Candidate Portal - HRMS{% endblock %}</title>
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'css/base.css' %}">
+  <link rel="stylesheet" href="{% static 'css/layout.css' %}">
+  <link rel="stylesheet" href="{% static 'css/components.css' %}">
+  <link rel="stylesheet" href="{% static 'css/pages.css' %}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+  <div class="app-shell">
+    {% include 'candidates/includes/sidebar.html' %}
+
+    <div class="main-wrapper">
+      {% include 'candidates/includes/header.html' %}
+
+      <main class="main-content">
+        {% block content %}
+        <!-- Page specific content injected here -->
+        {% endblock %}
+      </main>
+    </div>
+  </div>
+
+  {% include 'candidates/includes/modals.html' %}
+  {% include 'candidates/includes/toast.html' %}
+
+  <script src="{% static 'js/main.js' %}"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

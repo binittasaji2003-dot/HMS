@@ -1,0 +1,150 @@
+{% extends 'candidates/base.html' %}
+{% load static %}
+
+{% block title %}My Applications - HRMS Portal{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">My Applications</h1>
+    <p class="page-subtitle">Track all your job applications and recruitment milestones in one place</p>
+  </div>
+  <a href="{% url 'candidates:job_list' %}" class="btn btn-primary">Explore More Jobs</a>
+</div>
+
+<!-- Top Statistics Cards -->
+<div class="grid-4 mb-5">
+  <div class="stat-card">
+    <div class="stat-icon blue">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+    </div>
+    <div class="stat-info">
+      <div class="stat-value" id="statTotalCount">{{ total_count }}</div>
+      <div class="stat-label">Total Applications</div>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon orange">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+    </div>
+    <div class="stat-info">
+      <div class="stat-value" id="statReviewCount">{{ under_review_count }}</div>
+      <div class="stat-label">Under Review</div>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon green">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+    </div>
+    <div class="stat-info">
+      <div class="stat-value" id="statShortlistedCount">{{ shortlisted_count }}</div>
+      <div class="stat-label">Shortlisted</div>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon purple">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
+    </div>
+    <div class="stat-info">
+      <div class="stat-value" id="statSelectedCount">{{ selected_count }}</div>
+      <div class="stat-label">Selected</div>
+    </div>
+  </div>
+</div>
+
+<!-- Filter Tabs & Table Card -->
+<div class="card">
+  <!-- Status Filter Tabs -->
+  <div class="nav-tabs">
+    <a href="{% url 'candidates:my_applications' %}" class="nav-tab-btn {% if active_tab == 'ALL' %}active{% endif %}">
+      All ({{ status_counts.ALL }})
+    </a>
+    <a href="{% url 'candidates:my_applications' %}?status=APPLIED" class="nav-tab-btn {% if active_tab == 'APPLIED' %}active{% endif %}">
+      Applied ({{ status_counts.APPLIED }})
+    </a>
+    <a href="{% url 'candidates:my_applications' %}?status=RESUME_REVIEW" class="nav-tab-btn {% if active_tab == 'RESUME_REVIEW' %}active{% endif %}">
+      Under Review ({{ status_counts.RESUME_REVIEW }})
+    </a>
+    <a href="{% url 'candidates:my_applications' %}?status=SHORTLISTED" class="nav-tab-btn {% if active_tab == 'SHORTLISTED' %}active{% endif %}">
+      Shortlisted ({{ status_counts.SHORTLISTED }})
+    </a>
+    <a href="{% url 'candidates:my_applications' %}?status=APTITUDE_TEST" class="nav-tab-btn {% if active_tab == 'APTITUDE_TEST' %}active{% endif %}">
+      Aptitude Test ({{ status_counts.APTITUDE_TEST }})
+    </a>
+    <a href="{% url 'candidates:my_applications' %}?status=INTERVIEW_SCHEDULED" class="nav-tab-btn {% if active_tab == 'INTERVIEW_SCHEDULED' %}active{% endif %}">
+      Interview ({{ status_counts.INTERVIEW_SCHEDULED }})
+    </a>
+    <a href="{% url 'candidates:my_applications' %}?status=SELECTED" class="nav-tab-btn {% if active_tab == 'SELECTED' %}active{% endif %}">
+      Selected ({{ status_counts.SELECTED }})
+    </a>
+    <a href="{% url 'candidates:my_applications' %}?status=REJECTED" class="nav-tab-btn {% if active_tab == 'REJECTED' %}active{% endif %}">
+      Rejected ({{ status_counts.REJECTED }})
+    </a>
+  </div>
+
+  <!-- Applications Table -->
+  {% if applications %}
+  <div class="table-responsive">
+    <table class="table" id="myApplicationsTable">
+      <thead>
+        <tr>
+          <th>Job Position</th>
+          <th>Department</th>
+          <th>Location</th>
+          <th>Applied Date</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for app in applications %}
+        <tr>
+          <td>
+            <div class="font-semibold text-navy">{{ app.job.title }}</div>
+            <div class="text-xs text-muted">{{ app.application_code }}</div>
+          </td>
+          <td>{{ app.job.department.name }}</td>
+          <td>{{ app.job.location }}</td>
+          <td>{{ app.applied_at|date:"d M Y" }}</td>
+          <td>
+            {% if app.status == 'APPLIED' %}
+            <span class="badge badge-applied"><span class="badge-dot"></span>Applied</span>
+            {% elif app.status == 'RESUME_REVIEW' %}
+            <span class="badge badge-review"><span class="badge-dot"></span>Resume Under Review</span>
+            {% elif app.status == 'SHORTLISTED' %}
+            <span class="badge badge-shortlisted"><span class="badge-dot"></span>Shortlisted</span>
+            {% elif app.status == 'APTITUDE_TEST' %}
+            <span class="badge badge-aptitude"><span class="badge-dot"></span>Aptitude Test</span>
+            {% elif app.status == 'INTERVIEW_SCHEDULED' %}
+            <span class="badge badge-interview"><span class="badge-dot"></span>Interview Scheduled</span>
+            {% elif app.status == 'SELECTED' %}
+            <span class="badge badge-selected"><span class="badge-dot"></span>Selected</span>
+            {% elif app.status == 'REJECTED' %}
+            <span class="badge badge-rejected"><span class="badge-dot"></span>Rejected</span>
+            {% else %}
+            <span class="badge badge-applied">{{ app.get_status_display }}</span>
+            {% endif %}
+          </td>
+          <td>
+            <a href="{% url 'candidates:application_details' app.application_id %}" class="btn btn-sm btn-outline">View Details</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div style="text-align: center; padding: 48px 20px;">
+    <div style="width: 56px; height: 56px; border-radius: 50%; background: var(--page-bg); color: var(--secondary-text); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+    </div>
+    <h3 style="font-size: 1.15rem; font-weight: 600; color: var(--dark-navy); margin-bottom: 6px;">No Applications Found</h3>
+    <p class="text-xs text-muted mb-4">You haven't submitted any job applications matching this filter yet.</p>
+    <a href="{% url 'candidates:job_list' %}" class="btn btn-primary">Browse Available Vacancies</a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

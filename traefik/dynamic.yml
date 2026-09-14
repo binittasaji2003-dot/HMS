@@ -1,0 +1,13 @@
+http:
+  routers:
+    candidates:
+      rule: Host(`localhost`)
+      entryPoints:
+        - web
+      service: candidates
+
+  services:
+    candidates:
+      loadBalancer:
+        servers:
+          - url: http://django:8000

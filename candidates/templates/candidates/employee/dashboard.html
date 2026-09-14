@@ -1,0 +1,35 @@
+{% extends 'candidates/base.html' %}
+{% load static %}
+
+{% block title %}Employee Workspace | HRMS Portal{% endblock %}
+
+{% block content %}
+<div class="content-body" style="max-width: 1200px; margin: 0 auto; padding: 24px;">
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+    <div>
+      <span class="badge" style="background: #D1FAE5; color: #065F46; font-weight: 700; padding: 4px 10px; border-radius: 6px;">Employee Workspace</span>
+      <h1 style="font-size: 1.75rem; font-weight: 800; color: var(--dark-navy); margin-top: 6px;">
+        Employee Dashboard
+      </h1>
+      <p class="text-sm text-muted">
+        Corporate Employee Portal — Payroll, Attendance, Performance, and Department Communications.
+      </p>
+    </div>
+  </div>
+
+  {% if employee_record %}
+  <div class="card mb-4" style="border-left: 5px solid var(--primary-blue);">
+    <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--dark-navy);">Employee Details</h3>
+    <p class="text-sm mt-1">
+      Employee Code: <strong>{{ employee_record.employee_code }}</strong> | 
+      Designation: <strong>{{ employee_record.designation }}</strong> | 
+      Status: <span class="badge" style="background: #D1FAE5; color: #065F46;">{{ employee_record.employment_status }}</span>
+    </p>
+  </div>
+  {% else %}
+  <div class="card mb-4">
+    <p class="text-muted">Administrator / Staff Employee View</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

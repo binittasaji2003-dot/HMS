@@ -1,0 +1,17 @@
+<!-- Toast Container for alerts & messages -->
+<div class="toast-container" id="globalToastContainer">
+  {% if messages %}
+    {% for message in messages %}
+      <div class="toast toast-{{ message.tags }}">
+        <div class="toast-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+        </div>
+        <div class="toast-body">
+          <div class="toast-title">{{ message.tags|capfirst }}</div>
+          <div class="toast-message">{{ message }}</div>
+        </div>
+        <button class="toast-close" onclick="this.parentElement.remove()">✕</button>
+      </div>
+    {% endfor %}
+  {% endif %}
+</div>

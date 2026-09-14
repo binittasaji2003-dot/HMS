@@ -1,0 +1,202 @@
+{% extends 'candidates/base.html' %}
+{% load static %}
+
+{% block title %}HR Onboarding Dossier - {{ dossier.full_name }} | HRMS{% endblock %}
+
+{% block content %}
+<div class="content-body" style="max-width: 1100px; margin: 0 auto; padding: 24px;">
+  <!-- Header / Breadcrumbs -->
+  <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+    <div>
+      <span class="badge" style="background: #EAF3FF; color: var(--primary-blue); font-weight: 700; padding: 4px 10px; border-radius: 6px;">HR / Admin Onboarding Bridge</span>
+      <h1 style="font-size: 1.6rem; font-weight: 800; color: var(--dark-navy); margin-top: 6px;">
+        Candidate Onboarding Dossier
+      </h1>
+      <p class="text-sm text-muted">
+        Selected Candidate Reference: <strong>{{ dossier.candidate_code }}</strong> | User ID: <strong>#{{ dossier.user_id }}</strong>
+      </p>
+    </div>
+    <div class="d-flex gap-2">
+      <a href="{% url 'candidates:candidate_onboarding_api' %}?candidate_id={{ dossier.candidate_id }}" target="_blank" class="btn btn-outline" style="border: 1px solid var(--border-color); background: #FFF; font-size: 0.85rem;">
+        Export JSON API
+      </a>
+      {% if not dossier.is_onboarded %}
+      <form method="POST" action="{% url 'candidates:complete_candidate_onboarding' dossier.candidate_id %}">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-primary" style="background: #20A47A; border-color: #20A47A; font-weight: 700;">
+          Create Employee Record (employee_table)
+        </button>
+      </form>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Status Banner -->
+  {% if dossier.is_onboarded %}
+  <div class="card mb-4" style="border-left: 5px solid #20A47A; background: #ECFDF5;">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+      <div>
+        <h3 style="font-size: 1.15rem; font-weight: 800; color: #065F46;">Employee Record Active</h3>
+        <p class="text-sm text-navy mt-1">
+          Candidate has completed recruitment and is recorded in <code>employee_table</code> as <strong>{{ dossier.employee_record.employee_code }}</strong> ({{ dossier.employee_record.designation }}).
+        </p>
+      </div>
+      <span class="badge" style="background: #20A47A; color: #FFF; font-size: 0.85rem; padding: 6px 14px; border-radius: 20px;">
+        Status: {{ dossier.employee_record.employment_status }}
+      </span>
+    </div>
+  </div>
+  {% else %}
+  <div class="card mb-4" style="border-left: 5px solid var(--primary-blue); background: #F0F7FF;">
+    <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--primary-blue);">Candidate Selected — Awaiting Employee Onboarding</h3>
+    <p class="text-sm text-navy mt-1">
+      The recruitment lifecycle has concluded with status <strong>SELECTED</strong>. Review candidate data below and record into <code>employee_table</code> to initiate the employee lifecycle.
+    </p>
+  </div>
+  {% endif %}
+
+  <div class="grid-2 mb-4">
+    <!-- Personal Information Card -->
+    <div class="card">
+      <h3 class="card-title mb-3" style="font-size: 1.1rem; font-weight: 700; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+        Personal & Contact Details
+      </h3>
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <div class="d-flex justify-content-between border-bottom pb-2">
+          <span class="text-xs text-muted">Full Name:</span>
+          <span class="text-xs font-semibold text-navy">{{ dossier.full_name }}</span>
+        </div>
+        <div class="d-flex justify-content-between border-bottom pb-2">
+          <span class="text-xs text-muted">Email (auth_user):</span>
+          <span class="text-xs font-semibold text-navy">{{ dossier.email }}</span>
+        </div>
+        <div class="d-flex justify-content-between border-bottom pb-2">
+          <span class="text-xs text-muted">Phone Number:</span>
+          <span class="text-xs font-semibold text-navy">{{ dossier.phone|default:"Not provided" }}</span>
+        </div>
+        <div class="d-flex justify-content-between border-bottom pb-2">
+          <span class="text-xs text-muted">Date of Birth:</span>
+          <span class="text-xs font-semibold text-navy">{{ dossier.date_of_birth|default:"Not provided" }}</span>
+        </div>
+        <div class="d-flex justify-content-between border-bottom pb-2">
+          <span class="text-xs text-muted">Gender:</span>
+          <span class="text-xs font-semibold text-navy">{{ dossier.gender|default:"Not specified" }}</span>
+        </div>
+        <div class="d-flex justify-content-between border-bottom pb-2">
+          <span class="text-xs text-muted">Address:</span>
+          <span class="text-xs font-semibold text-navy">{{ dossier.address|default:"-" }}, {{ dossier.city }}, {{ dossier.state }} - {{ dossier.pincode }}</span>
+        </div>
+        <div class="d-flex justify-content-between">
+          <span class="text-xs text-muted">Profile Completion:</span>
+          <span class="text-xs font-semibold text-primary">{{ dossier.profile_completion_pct }}%</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Selected Position & Proposed Employee Record -->
+    <div class="card">
+      <h3 class="card-title mb-3" style="font-size: 1.1rem; font-weight: 700; border-bottom: 1px solid var(--border-color); padding-bottom: 8px;">
+        Selected Position & Employee Mapping
+      </h3>
+      {% if dossier.selected_application %}
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+        <div class="d-flex justify-content-between border-bottom pb-2">
+          <span class="text-xs text-muted">Role / Position:</span>
+          <span class="text-xs font-semibold text-navy">{{ dossier.selected_application.job_title }}</span>
+        </div>
+        <div class="d-flex justify-content-between border-bottom pb-2">
+          <span class="text-xs text-muted">Department:</span>
+          <span class="text-xs font-semibold text-navy">{{ dossier.selected_application.department_name }} (ID #{{ dossier.selected_application.department_id }})</span>
+        </div>
+        <div class="d-flex justify-content-between border-bottom pb-2">
+          <span class="text-xs text-muted">Employment Type:</span>
+          <span class="text-xs font-semibold text-navy">{{ dossier.selected_application.job_type }}</span>
+        </div>
+        <div class="d-flex justify-content-between border-bottom pb-2">
+          <span class="text-xs text-muted">Suggested Employee Code:</span>
+          <span class="text-xs font-semibold text-primary">{{ dossier.suggested_employee.employee_code }}</span>
+        </div>
+        <div class="d-flex justify-content-between border-bottom pb-2">
+          <span class="text-xs text-muted">Designation:</span>
+          <span class="text-xs font-semibold text-navy">{{ dossier.suggested_employee.designation }}</span>
+        </div>
+        <div class="d-flex justify-content-between">
+          <span class="text-xs text-muted">Proposed Joining Date:</span>
+          <span class="text-xs font-semibold text-navy">{{ dossier.suggested_employee.joining_date }}</span>
+        </div>
+      </div>
+      {% else %}
+      <p class="text-sm text-muted">No selected application currently recorded.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Academic History & Skills -->
+  <div class="grid-2 mb-4">
+    <!-- Education Table -->
+    <div class="card">
+      <h3 class="card-title mb-3" style="font-size: 1.1rem; font-weight: 700;">Academic Background</h3>
+      {% if dossier.educations %}
+      <table class="table" style="width: 100%; font-size: 0.82rem;">
+        <thead>
+          <tr style="border-bottom: 2px solid var(--border-color); text-align: left;">
+            <th style="padding: 8px;">Degree</th>
+            <th style="padding: 8px;">Institution</th>
+            <th style="padding: 8px;">Year</th>
+            <th style="padding: 8px;">Score</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for edu in dossier.educations %}
+          <tr style="border-bottom: 1px solid var(--border-color);">
+            <td style="padding: 8px; font-weight: 600;">{{ edu.qualification_type }}</td>
+            <td style="padding: 8px;">{{ edu.institution }}</td>
+            <td style="padding: 8px;">{{ edu.year }}</td>
+            <td style="padding: 8px; color: #20A47A; font-weight: 600;">{{ edu.percentage_or_cgpa }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+      <p class="text-sm text-muted">No academic records entered by candidate.</p>
+      {% endif %}
+    </div>
+
+    <!-- Skills & Verified Documents -->
+    <div class="card">
+      <h3 class="card-title mb-3" style="font-size: 1.1rem; font-weight: 700;">Skills & Submitted Documents</h3>
+      <!-- Skills -->
+      <div class="mb-3">
+        <span class="text-xs text-muted d-block mb-2 font-semibold">Technical & Domain Skills:</span>
+        <div class="d-flex flex-wrap gap-2">
+          {% for skill in dossier.skills %}
+          <span class="badge" style="background: #F4EEFF; color: #6D28D9; padding: 4px 8px; border-radius: 4px; font-size: 0.78rem;">{{ skill }}</span>
+          {% empty %}
+          <span class="text-xs text-muted">No skills listed</span>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Documents -->
+      <div>
+        <span class="text-xs text-muted d-block mb-2 font-semibold">Candidate Portal Documents (Ready for Onboarding):</span>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          {% for doc_key, doc_item in dossier.documents.items %}
+          <div class="d-flex justify-content-between align-items-center border p-2" style="border-radius: 6px; background: #FDFDFD;">
+            <div>
+              <span class="text-xs font-semibold text-navy">{{ doc_item.label }}</span>
+              <span class="text-xs text-muted d-block">{{ doc_item.filename }}</span>
+            </div>
+            <a href="{{ doc_item.url }}" target="_blank" class="btn btn-sm btn-outline" style="font-size: 0.75rem; padding: 2px 8px;">
+              View
+            </a>
+          </div>
+          {% empty %}
+          <span class="text-xs text-muted">No uploaded documents</span>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

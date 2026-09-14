@@ -1,0 +1,174 @@
+{% extends 'candidates/base.html' %}
+{% load static %}
+
+{% block title %}Apply for {{ job.title }} - HRMS Portal{% endblock %}
+
+{% block content %}
+<div class="breadcrumb">
+  <a href="{% url 'candidates:job_list' %}">Job Vacancies</a>
+  <span class="breadcrumb-separator">/</span>
+  <a href="{% url 'candidates:job_details' job.job_id %}">{{ job.title }}</a>
+  <span class="breadcrumb-separator">/</span>
+  <span class="breadcrumb-current">Apply for Job</span>
+</div>
+
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Submit Job Application</h1>
+    <p class="page-subtitle">Confirm your details and submit your application to the HR recruitment team</p>
+  </div>
+</div>
+
+<div style="max-width: 800px; margin: 0 auto;">
+  <!-- Selected Job Card -->
+  <div class="card mb-4" style="background: var(--primary-blue-subtle); border-color: #C6DEFF;">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+      <div>
+        <span class="badge badge-applied mb-1">Applying For Position</span>
+        <h2 style="font-size: 1.35rem; font-weight: 700; color: var(--dark-navy);">{{ job.title }}</h2>
+        <div class="text-xs text-muted mt-1">
+          {{ job.department.name }} • {{ job.location }} • {{ job.experience_required }} • {{ job.salary_display|default:"Competitive" }}
+        </div>
+      </div>
+      <a href="{% url 'candidates:job_details' job.job_id %}" class="btn btn-sm btn-outline">View Job Specs</a>
+    </div>
+  </div>
+
+  {% if submitted_success and submitted_application %}
+  <!-- Success State Block (Submitted successfully) -->
+  <div id="applySuccessBlock" class="card" style="text-align: center; padding: 48px 32px;">
+    <div style="width: 72px; height: 72px; border-radius: 50%; background: var(--success-light); color: var(--success); display: flex; align-items: center; justify-content: center; margin: 0 auto 20px;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+    </div>
+    <h2 style="font-size: 1.6rem; font-weight: 700; color: var(--dark-navy); margin-bottom: 8px;">Application Submitted Successfully!</h2>
+    <p class="text-muted text-sm" style="max-width: 480px; margin: 0 auto 24px;">
+      Your application for <strong>{{ job.title }}</strong> has been registered in the HRMS recruitment pipeline.
+    </p>
+
+    <div style="background: var(--page-bg); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 18px; max-width: 420px; margin: 0 auto 28px; text-align: left;">
+      <div class="d-flex justify-content-between mb-2">
+        <span class="text-xs text-muted">Application ID:</span>
+        <span class="text-xs font-bold text-navy" id="successApplicationId">{{ submitted_application.application_code }}</span>
+      </div>
+      <div class="d-flex justify-content-between mb-2">
+        <span class="text-xs text-muted">Job Title:</span>
+        <span class="text-xs font-semibold text-navy">{{ job.title }}</span>
+      </div>
+      <div class="d-flex justify-content-between mb-2">
+        <span class="text-xs text-muted">Applied Date:</span>
+        <span class="text-xs font-semibold text-navy">{{ submitted_application.applied_at|date:"d F Y" }}</span>
+      </div>
+      <div class="d-flex justify-content-between">
+        <span class="text-xs text-muted">Current Status:</span>
+        <span class="badge badge-applied">{{ submitted_application.get_status_display }}</span>
+      </div>
+    </div>
+
+    <div class="d-flex justify-content-center gap-3">
+      <a href="{% url 'candidates:my_applications' %}" class="btn btn-primary">Go to My Applications</a>
+      <a href="{% url 'candidates:job_list' %}" class="btn btn-outline">Explore More Jobs</a>
+    </div>
+  </div>
+
+  {% elif validation_error and existing_app %}
+  <!-- Already Applied Alert Card -->
+  <div class="card" style="text-align: center; padding: 40px 24px;">
+    <div style="width: 60px; height: 60px; border-radius: 50%; background: var(--primary-blue-subtle); color: var(--primary-blue); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+    </div>
+    <h3 style="font-size: 1.3rem; font-weight: 700; color: var(--dark-navy); margin-bottom: 8px;">Already Applied</h3>
+    <p class="text-muted text-sm mb-4">{{ validation_error }}</p>
+    <div class="d-flex justify-content-center gap-3">
+      <a href="{% url 'candidates:application_details' existing_app.application_id %}" class="btn btn-primary">View Application ({{ existing_app.application_code }})</a>
+      <a href="{% url 'candidates:job_list' %}" class="btn btn-outline">Explore Other Jobs</a>
+    </div>
+  </div>
+
+  {% elif validation_error and not has_profile_resume %}
+  <!-- Missing Resume / Incomplete Info Alert -->
+  <div class="card" style="padding: 32px 28px;">
+    <div class="d-flex gap-3 align-items-start">
+      <div style="width: 44px; height: 44px; border-radius: 50%; background: #FEE2E2; color: var(--danger); display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+      </div>
+      <div>
+        <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--dark-navy); margin-bottom: 6px;">Application Requirement</h3>
+        <p class="text-sm text-muted mb-3">{{ validation_error }}</p>
+        <div class="d-flex gap-2">
+          <a href="{% url 'candidates:documents' %}" class="btn btn-primary btn-sm">Upload Resume in Documents</a>
+          <a href="{% url 'candidates:edit_profile' %}" class="btn btn-outline btn-sm">Edit Profile Details</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {% else %}
+  <!-- Application Form -->
+  <form id="standaloneApplyForm" method="POST" action="{% url 'candidates:job_apply' job.job_id %}" enctype="multipart/form-data" class="card">
+    {% csrf_token %}
+    <h3 class="card-title mb-4">Candidate Information</h3>
+
+    <div class="form-group">
+      <label class="form-label">Full Name</label>
+      <input type="text" class="form-control" value="{{ candidate.full_name }}" readonly style="background: var(--page-bg);">
+    </div>
+
+    <div class="grid-2">
+      <div class="form-group">
+        <label class="form-label">Email Address</label>
+        <input type="email" class="form-control" value="{{ candidate.user.email }}" readonly style="background: var(--page-bg);">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Phone Number</label>
+        <input type="tel" class="form-control" value="{{ candidate.phone }}" readonly style="background: var(--page-bg);">
+      </div>
+    </div>
+
+    <!-- Resume Selection -->
+    <div class="form-group">
+      <label class="form-label">Active Resume</label>
+      {% if has_profile_resume %}
+      <div style="display: flex; align-items: center; justify-content: space-between; padding: 14px 18px; border: 1px solid var(--border-color); border-radius: var(--radius-md); background: #FFF; margin-bottom: 10px;">
+        <div class="d-flex align-items-center gap-3">
+          <div style="width: 40px; height: 40px; border-radius: var(--radius-sm); background: var(--danger-light); color: var(--danger); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.8rem;">PDF</div>
+          <div>
+            <div class="font-semibold text-navy">{{ profile_resume.name }}</div>
+            <div class="text-xs text-muted">Attached from your verified candidate documents</div>
+          </div>
+        </div>
+        <a href="{% url 'candidates:documents' %}" class="btn btn-sm btn-outline">Change in Documents</a>
+      </div>
+      <div class="text-xs text-muted mb-2">Or upload a specific resume for this application:</div>
+      {% else %}
+      <div style="background: #FFFBEB; border: 1px solid #FCD34D; border-radius: var(--radius-md); padding: 12px; margin-bottom: 12px; font-size: 0.813rem; color: #92400E;">
+        ⚠️ No resume found in your profile. Please attach a resume (PDF, JPG, PNG under 10MB) below to proceed.
+      </div>
+      {% endif %}
+
+      <input type="file" name="custom_resume" id="customResumeInput" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
+      <small class="text-xs text-muted">Supported formats: PDF, JPG, PNG (Max 10MB)</small>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Cover Note / Why are you a good fit? (Optional)</label>
+      <textarea name="cover_note" class="form-textarea" rows="4" placeholder="Describe your relevant projects, technical skills, or any key achievements...">{{ form.cover_note.value|default:'' }}</textarea>
+    </div>
+
+    <div class="mb-4">
+      <label class="form-check">
+        <input type="checkbox" class="form-check-input" required checked>
+        <span class="form-check-label">I confirm that the information provided is accurate and represents my true qualifications.</span>
+      </label>
+    </div>
+
+    <div class="d-flex justify-content-end gap-3 pt-3" style="border-top: 1px solid var(--border-light);">
+      <a href="{% url 'candidates:job_details' job.job_id %}" class="btn btn-secondary">Cancel</a>
+      <button type="submit" class="btn btn-primary btn-lg" id="submitApplicationBtn">
+        <span>Submit Application</span>
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+      </button>
+    </div>
+  </form>
+  {% endif %}
+</div>
+{% endblock %}

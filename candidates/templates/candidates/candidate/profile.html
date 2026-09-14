@@ -1,0 +1,180 @@
+{% extends 'candidates/base.html' %}
+{% load static %}
+
+{% block title %}My Profile - HRMS Portal{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Candidate Profile</h1>
+    <p class="page-subtitle">Manage your personal, professional, and academic information</p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'candidates:edit_profile' %}" class="btn btn-primary" id="editProfileBtn">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+      <span>Edit Profile</span>
+    </a>
+    <a href="{% url 'candidates:documents' %}" class="btn btn-outline" id="manageDocumentsBtn">My Documents</a>
+  </div>
+</div>
+
+<!-- Top Profile Hero Card -->
+<section class="profile-hero-card">
+  <div class="d-flex align-items-center gap-4 flex-wrap">
+    <div class="profile-avatar-large">{{ candidate.initials }}</div>
+    <div class="profile-details-main">
+      <h2 class="profile-name">{{ candidate.full_name }}</h2>
+      <span class="profile-id-badge">Candidate ID: {{ candidate.candidate_code }} • Verified Candidate</span>
+      <div class="profile-contact-chips">
+        <span>📧 {{ candidate.user.email }}</span>
+        <span>📱 {{ candidate.phone|default:"+91 Not Provided" }}</span>
+        <span>📍 {{ candidate.city|default:"Location" }}{% if candidate.state %}, {{ candidate.state }}{% endif %}, India</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="profile-completion-box">
+    <div class="d-flex justify-content-between mb-1">
+      <span class="text-xs font-semibold text-navy">Profile Completion</span>
+      <span class="text-xs font-bold text-primary" id="profileCompletionPctText">{{ completion_pct }}%</span>
+    </div>
+    <div class="progress-bar-bg">
+      <div class="progress-bar-fill" id="profileCompletionBar" style="width: {{ completion_pct }}%;"></div>
+    </div>
+    <div class="text-xs text-muted mt-2" id="profileCompletionAdvice">{{ completion_advice }}</div>
+  </div>
+</section>
+
+<!-- Personal Information Section -->
+<section class="card mb-4">
+  <div class="card-header">
+    <div>
+      <h3 class="card-title">Personal Information</h3>
+      <p class="card-subtitle">Verified contact and demographic records</p>
+    </div>
+    <a href="{% url 'candidates:edit_profile' %}" class="btn btn-sm btn-outline">Edit</a>
+  </div>
+
+  <div class="grid-3">
+    <div>
+      <label class="form-label text-muted">Full Name</label>
+      <div class="font-semibold text-navy" id="displayFullName">{{ candidate.full_name }}</div>
+    </div>
+    <div>
+      <label class="form-label text-muted">Date of Birth</label>
+      <div class="font-semibold text-navy" id="displayDob">{{ candidate.date_of_birth|date:"d M Y"|default:"Not specified" }}</div>
+    </div>
+    <div>
+      <label class="form-label text-muted">Gender</label>
+      <div class="font-semibold text-navy" id="displayGender">{{ candidate.get_gender_display|default:candidate.gender|default:"Not specified" }}</div>
+    </div>
+    <div>
+      <label class="form-label text-muted">Phone Number</label>
+      <div class="font-semibold text-navy" id="displayPhone">{{ candidate.phone|default:"Not specified" }}</div>
+    </div>
+    <div>
+      <label class="form-label text-muted">Email Address</label>
+      <div class="font-semibold text-navy" id="displayEmail">{{ candidate.user.email }}</div>
+    </div>
+    <div>
+      <label class="form-label text-muted">Residential Address</label>
+      <div class="font-semibold text-navy" id="displayAddress">{{ candidate.address|default:"Not specified" }}</div>
+    </div>
+    <div>
+      <label class="form-label text-muted">City</label>
+      <div class="font-semibold text-navy" id="displayCity">{{ candidate.city|default:"Not specified" }}</div>
+    </div>
+    <div>
+      <label class="form-label text-muted">State</label>
+      <div class="font-semibold text-navy" id="displayState">{{ candidate.state|default:"Not specified" }}</div>
+    </div>
+    <div>
+      <label class="form-label text-muted">Pincode</label>
+      <div class="font-semibold text-navy" id="displayPincode">{{ candidate.pincode|default:"Not specified" }}</div>
+    </div>
+  </div>
+</section>
+
+<!-- Professional Information -->
+<section class="card mb-4">
+  <div class="card-header">
+    <div>
+      <h3 class="card-title">Professional Information</h3>
+      <p class="card-subtitle">Technical skills, work experience, and job preferences</p>
+    </div>
+    <a href="{% url 'candidates:edit_profile' %}" class="btn btn-sm btn-outline">Edit</a>
+  </div>
+
+  <div class="grid-2 mb-4">
+    <div>
+      <label class="form-label text-muted">Experience Level</label>
+      <div class="font-semibold text-navy">{{ candidate.experience_level|default:"Fresher / 0-1 Years" }}</div>
+    </div>
+    <div>
+      <label class="form-label text-muted">Preferred Job Type</label>
+      <div class="font-semibold text-navy">{{ candidate.preferred_job_type|default:"Full Time" }}</div>
+    </div>
+    <div>
+      <label class="form-label text-muted">Preferred Locations</label>
+      <div class="font-semibold text-navy">{{ candidate.preferred_locations|default:"Kochi, Bangalore, Remote" }}</div>
+    </div>
+    <div>
+      <label class="form-label text-muted">Notice Period</label>
+      <div class="font-semibold text-navy">{{ candidate.notice_period|default:"Immediate Joiner (0 Days)" }}</div>
+    </div>
+  </div>
+
+  <div>
+    <label class="form-label text-muted mb-2">Technical Skills & Tools</label>
+    <div class="d-flex flex-wrap gap-2" id="skillsListContainer">
+      {% for skill in skills %}
+        <span class="badge badge-applied" style="font-size: 0.813rem; padding: 6px 12px;">{{ skill.skill_name }}</span>
+      {% empty %}
+        <span class="text-sm text-muted">No skills added yet. <a href="{% url 'candidates:edit_profile' %}" class="text-primary font-semibold">Add Skills in Profile</a></span>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+
+<!-- Education History Section -->
+<section class="card">
+  <div class="card-header">
+    <div>
+      <h3 class="card-title">Education History</h3>
+      <p class="card-subtitle">Academic degrees and qualifications (10th, 12th, Degree)</p>
+    </div>
+    <a href="{% url 'candidates:edit_profile' %}" class="btn btn-sm btn-outline">Update Education</a>
+  </div>
+
+  <div class="table-responsive">
+    <table class="table" id="educationHistoryTable">
+      <thead>
+        <tr>
+          <th>Degree / Course</th>
+          <th>Institution / Board</th>
+          <th>Graduation Year</th>
+          <th>Score / CGPA</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for edu in educations %}
+          <tr>
+            <td class="font-semibold">{{ edu.qualification_type }}</td>
+            <td>{{ edu.institution }}{% if edu.board_or_university %} ({{ edu.board_or_university }}){% endif %}</td>
+            <td>{{ edu.year }}</td>
+            <td class="font-bold text-navy">{{ edu.percentage_or_cgpa }}</td>
+            <td><span class="badge badge-shortlisted">Completed</span></td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="5" class="text-center text-muted py-4">
+              No education records added yet. <a href="{% url 'candidates:edit_profile' %}" class="text-primary font-semibold">Update Education in Edit Profile</a>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endblock %}

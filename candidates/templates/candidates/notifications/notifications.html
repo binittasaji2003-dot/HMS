@@ -1,0 +1,154 @@
+{% extends 'candidates/base.html' %}
+{% load static %}
+
+{% block title %}Notifications - HRMS Portal{% endblock %}
+
+{% block extra_css %}
+<style>
+  .notification-item-card {
+    background: #FFFFFF;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 18px 20px;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    transition: all var(--transition-fast);
+    position: relative;
+  }
+  .notification-item-card:hover {
+    border-color: var(--primary-blue);
+    box-shadow: var(--shadow-hover);
+  }
+  .notification-item-card.unread {
+    background: #F6FAFF;
+    border-color: #D1E5FF;
+  }
+  .notif-icon-box {
+    width: 44px;
+    height: 44px;
+    border-radius: var(--radius-md);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .unread-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--primary-blue);
+    margin-left: auto;
+    flex-shrink: 0;
+    margin-top: 4px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Notifications</h1>
+    <p class="page-subtitle">Stay updated with your job applications and recruitment activities</p>
+  </div>
+  {% if unread_count > 0 %}
+  <form method="POST" action="{% url 'candidates:notifications_mark_all_read' %}">
+    {% csrf_token %}
+    <button type="submit" class="btn btn-outline" id="markAllReadBtn">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+      <span>Mark all as read ({{ unread_count }})</span>
+    </button>
+  </form>
+  {% endif %}
+</div>
+
+<!-- Filter Category Tabs -->
+<div class="nav-tabs mb-4">
+  <a href="{% url 'candidates:notifications' %}?category=all" class="nav-tab-btn {% if category == 'all' %}active{% endif %}">
+    All Notifications ({{ total_count }})
+  </a>
+  <a href="{% url 'candidates:notifications' %}?category=apps" class="nav-tab-btn {% if category == 'apps' %}active{% endif %}">
+    Applications ({{ apps_count }})
+  </a>
+  <a href="{% url 'candidates:notifications' %}?category=interviews" class="nav-tab-btn {% if category == 'interviews' %}active{% endif %}">
+    Interviews ({{ interviews_count }})
+  </a>
+  <a href="{% url 'candidates:notifications' %}?category=aptitude" class="nav-tab-btn {% if category == 'aptitude' %}active{% endif %}">
+    Aptitude Tests ({{ aptitude_count }})
+  </a>
+  <a href="{% url 'candidates:notifications' %}?category=announcements" class="nav-tab-btn {% if category == 'announcements' %}active{% endif %}">
+    Announcements ({{ announcements_count }})
+  </a>
+</div>
+
+<div id="notificationsContainer">
+  {% if notifications %}
+    {% for notif in notifications %}
+    <div class="notification-item-card {% if not notif.is_read %}unread{% endif %}">
+      <div class="notif-icon-box" style="
+        {% if notif.notification_type == 'APPLICATION' %}
+          background: var(--primary-blue-subtle); color: var(--primary-blue);
+        {% elif notif.notification_type == 'INTERVIEW' %}
+          background: var(--status-interview-bg); color: var(--status-interview-text);
+        {% elif notif.notification_type == 'APTITUDE' %}
+          background: var(--status-aptitude-bg); color: var(--status-aptitude-text);
+        {% elif notif.notification_type == 'REGISTRATION' %}
+          background: #ECFDF5; color: #059669;
+        {% else %}
+          background: #F3F4F6; color: #4B5563;
+        {% endif %}
+      ">
+        {% if notif.notification_type == 'INTERVIEW' %}
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+        {% elif notif.notification_type == 'APTITUDE' %}
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+        {% elif notif.notification_type == 'REGISTRATION' %}
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><polyline points="17 11 19 13 23 9"></polyline></svg>
+        {% else %}
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+        {% endif %}
+      </div>
+
+      <div class="flex-grow-1">
+        <div class="d-flex align-items-center gap-2 mb-1">
+          <span class="badge {% if notif.notification_type == 'INTERVIEW' %}badge-interview{% elif notif.notification_type == 'APTITUDE' %}badge-aptitude{% elif notif.notification_type == 'REGISTRATION' %}badge-shortlisted{% else %}badge-applied{% endif %}">
+            {{ notif.get_notification_type_display }}
+          </span>
+          <span class="text-xs text-muted">{{ notif.created_at|timesince }} ago</span>
+        </div>
+        <h4 style="font-size: 0.95rem; font-weight: 700; color: var(--dark-navy);">{{ notif.title }}</h4>
+        <p class="text-sm text-muted mt-1">{{ notif.message }}</p>
+        
+        <div class="d-flex align-items-center gap-2 mt-2">
+          {% if notif.link %}
+          <a href="{% url 'candidates:notification_mark_read' notif.notification_id %}" class="btn btn-sm btn-outline">
+            <span>View Details</span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+          </a>
+          {% endif %}
+          {% if not notif.is_read %}
+          <a href="{% url 'candidates:notification_mark_read' notif.notification_id %}?stay=1" class="btn btn-sm btn-outline" style="background: #F8FAFC; font-size: 0.75rem; padding: 4px 10px;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            <span>Mark as read</span>
+          </a>
+          {% endif %}
+        </div>
+      </div>
+
+      {% if not notif.is_read %}
+      <div class="unread-dot" title="Unread notification"></div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  {% else %}
+  <div class="card" style="text-align: center; padding: 48px 24px;">
+    <div style="width: 56px; height: 56px; border-radius: 50%; background: var(--page-bg); color: var(--secondary-text); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+      <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+    </div>
+    <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--dark-navy); margin-bottom: 6px;">No Notifications</h3>
+    <p class="text-xs text-muted mb-0">You're all caught up! Updates from HR regarding your applications will appear here.</p>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

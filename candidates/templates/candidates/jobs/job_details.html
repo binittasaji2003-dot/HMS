@@ -1,0 +1,162 @@
+{% extends 'candidates/base.html' %}
+{% load static %}
+
+{% block title %}{{ job.title }} - HRMS Portal{% endblock %}
+
+{% block content %}
+<div class="breadcrumb">
+  <a href="{% url 'candidates:job_list' %}">Job Vacancies</a>
+  <span class="breadcrumb-separator">/</span>
+  <span class="breadcrumb-current">{{ job.title }}</span>
+</div>
+
+<!-- Job Details Hero Banner -->
+<div class="card mb-4">
+  <div class="d-flex justify-content-between align-items-start flex-wrap gap-3">
+    <div>
+      <span class="job-dept-badge">{{ job.department.name }}</span>
+      <h1 class="page-title mt-2">{{ job.title }}</h1>
+      <div class="job-meta-list">
+        <span class="job-meta-item">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+          {{ job.location }}
+        </span>
+        <span class="job-meta-item">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+          {{ job.experience_required }}
+        </span>
+        <span class="job-meta-item">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+          {{ job.get_job_type_display }}
+        </span>
+        <span class="job-meta-item text-muted">Posted {{ job.posted_at|timesince }} ago</span>
+        {% if job.deadline %}
+        <span class="job-meta-item text-danger">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+          Deadline: {{ job.deadline|date:"d M Y" }}
+        </span>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="d-flex gap-2 align-items-center">
+      {% if has_applied %}
+      <a href="{% url 'candidates:application_details' candidate_app.application_id %}" class="btn btn-primary btn-lg">
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+        <span>View Application ({{ candidate_app.get_status_display }})</span>
+      </a>
+      {% elif not job.is_active %}
+      <button class="btn btn-secondary btn-lg" disabled>Applications Closed</button>
+      {% else %}
+      <a href="{% url 'candidates:job_apply' job.job_id %}" class="btn btn-primary btn-lg">Apply Now</a>
+      {% endif %}
+      <button type="button" class="btn btn-outline" onclick="navigator.clipboard.writeText(window.location.href); alert('Job link copied to clipboard!');">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+        Share
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Main Layout: 2 Columns -->
+<div class="job-details-layout">
+  <!-- Left Main Card -->
+  <div class="card">
+    <h3 class="card-title mb-3">Job Description</h3>
+    <p class="mb-4" style="line-height: 1.7; white-space: pre-line;">{{ job.description }}</p>
+
+    {% if job.responsibilities %}
+    <h3 class="card-title mb-3">Key Responsibilities</h3>
+    <div class="mb-4" style="line-height: 1.7; color: var(--secondary-text); white-space: pre-line;">{{ job.responsibilities }}</div>
+    {% endif %}
+
+    {% if job.requirements %}
+    <h3 class="card-title mb-3">Requirements & Qualifications</h3>
+    <div class="mb-4" style="line-height: 1.7; color: var(--secondary-text); white-space: pre-line;">{{ job.requirements }}</div>
+    {% endif %}
+
+    {% if job.skills_required %}
+    <h3 class="card-title mb-3">Required Technical Skills</h3>
+    <div class="d-flex flex-wrap gap-2 mb-4">
+      <span class="badge badge-applied" style="font-size: 0.813rem; padding: 6px 12px;">{{ job.skills_required }}</span>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Right Sidebar Summary Card -->
+  <div>
+    <div class="card job-summary-card">
+      <h3 class="card-title">Application Summary</h3>
+      
+      <div class="summary-spec-list">
+        <div class="summary-spec-item">
+          <span class="summary-spec-label">Salary</span>
+          <span class="summary-spec-val text-primary">{{ job.salary_display|default:"Negotiable" }}</span>
+        </div>
+        <div class="summary-spec-item">
+          <span class="summary-spec-label">Location</span>
+          <span class="summary-spec-val">{{ job.location }}</span>
+        </div>
+        <div class="summary-spec-item">
+          <span class="summary-spec-label">Experience</span>
+          <span class="summary-spec-val">{{ job.experience_required }}</span>
+        </div>
+        <div class="summary-spec-item">
+          <span class="summary-spec-label">Job Type</span>
+          <span class="summary-spec-val">{{ job.get_job_type_display }}</span>
+        </div>
+        <div class="summary-spec-item">
+          <span class="summary-spec-label">Department</span>
+          <span class="summary-spec-val">{{ job.department.name }}</span>
+        </div>
+        {% if job.deadline %}
+        <div class="summary-spec-item">
+          <span class="summary-spec-label">Deadline</span>
+          <span class="summary-spec-val text-danger">{{ job.deadline|date:"d M Y" }}</span>
+        </div>
+        {% endif %}
+      </div>
+
+      {% if has_applied %}
+      <div style="background: var(--success-light); border: 1px solid #B8EBD6; border-radius: var(--radius-md); padding: 14px; margin-bottom: 16px; text-align: center;">
+        <span class="text-xs font-semibold" style="color: var(--success);">You have applied for this position</span>
+        <div class="text-xs text-muted mt-1">Status: <strong>{{ candidate_app.get_status_display }}</strong></div>
+      </div>
+      <a href="{% url 'candidates:application_details' candidate_app.application_id %}" class="btn btn-primary btn-block btn-lg mb-3">View My Application</a>
+      {% elif not job.is_active %}
+      <button class="btn btn-secondary btn-block btn-lg mb-3" disabled>Applications Closed</button>
+      {% else %}
+      <a href="{% url 'candidates:job_apply' job.job_id %}" class="btn btn-primary btn-block btn-lg mb-3">Apply For This Position</a>
+      {% endif %}
+      <p class="text-xs text-muted text-center">Applications are evaluated on a rolling basis.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Similar Jobs -->
+{% if similar_jobs %}
+<div class="mt-5">
+  <h2 style="font-size: 1.25rem; font-weight: 700; color: var(--dark-navy); margin-bottom: 16px;">Similar Job Opportunities</h2>
+  <div class="grid-3">
+    {% for sim_job in similar_jobs %}
+    <div class="job-card">
+      <div class="job-card-header">
+        <span class="job-dept-badge">{{ sim_job.department.name }}</span>
+        <span class="text-xs text-muted">{{ sim_job.posted_at|timesince }} ago</span>
+      </div>
+      <h3 class="job-title">{{ sim_job.title }}</h3>
+      <div class="job-meta-list">
+        <span class="job-meta-item">{{ sim_job.location }}</span>
+        <span class="job-meta-item">{{ sim_job.experience_required }}</span>
+      </div>
+      <p class="job-desc-snippet">{{ sim_job.description|truncatewords:16 }}</p>
+      <div class="job-card-footer">
+        <span class="job-salary-tag">{{ sim_job.salary_display|default:"Competitive" }}</span>
+        <a href="{% url 'candidates:job_details' sim_job.job_id %}" class="btn btn-sm btn-outline">View Details</a>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+{% endblock %}

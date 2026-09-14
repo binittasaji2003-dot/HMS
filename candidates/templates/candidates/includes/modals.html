@@ -1,0 +1,117 @@
+<!-- Apply Job Modal -->
+  <div class="modal-overlay" id="applyJobModal">
+
+    <div class="modal-dialog">
+      <div class="modal-header">
+        <div>
+          <h3 class="modal-title">Apply for Job</h3>
+          <p class="text-xs text-muted">Submit your application to the HR recruitment team</p>
+        </div>
+        <button type="button" class="modal-close-btn" data-modal-close aria-label="Close">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
+      <form id="quickApplyForm">
+        <div class="modal-body">
+          <!-- Selected Job Summary Banner -->
+          <div style="background: var(--primary-blue-light); border: 1px solid #C2DCFF; border-radius: var(--radius-md); padding: 14px 16px; margin-bottom: 20px;">
+            <div class="d-flex justify-content-between align-items-center">
+              <div>
+                <span class="badge badge-applied" style="margin-bottom: 4px;">Job Application</span>
+                <h4 id="modalJobTitle" style="color: var(--dark-navy); font-size: 1.05rem; margin-top: 2px;">Python Developer</h4>
+                <div style="font-size: 0.75rem; color: var(--secondary-text); margin-top: 2px;">
+                  <span id="modalJobDept">IT Engineering</span> • Kochi (Hybrid) • 0-2 Years
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Full Name</label>
+            <input type="text" class="form-control" value="Alan Shaji" readonly style="background: var(--page-bg);">
+          </div>
+
+          <div class="grid-2">
+            <div class="form-group">
+              <label class="form-label">Email Address</label>
+              <input type="email" class="form-control" value="alan.shaji@example.com" readonly style="background: var(--page-bg);">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Phone Number</label>
+              <input type="tel" class="form-control" value="+91 98765 43210" readonly style="background: var(--page-bg);">
+            </div>
+          </div>
+
+          <!-- Resume Attachment -->
+          <div class="form-group">
+            <label class="form-label">Active Resume</label>
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 16px; border: 1px solid var(--border-color); border-radius: var(--radius-md); background: #FFF;">
+              <div class="d-flex align-items-center gap-3">
+                <div style="width: 36px; height: 36px; border-radius: var(--radius-sm); background: var(--danger-light); color: var(--danger); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.75rem;">PDF</div>
+                <div>
+                  <div style="font-size: 0.844rem; font-weight: 600; color: var(--dark-navy);">Alan_Shaji_Resume_2026.pdf</div>
+                  <div style="font-size: 0.7rem; color: var(--secondary-text);">2.4 MB • Updated on 01 Sep 2026</div>
+                </div>
+              </div>
+              <a href="../candidate/documents.html" class="btn btn-sm btn-outline">Replace Resume</a>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Cover Note / Remarks (Optional)</label>
+            <textarea class="form-textarea" placeholder="Highlight any specific projects, GitHub profile, or availability..."></textarea>
+          </div>
+
+          <div>
+            <label class="form-check">
+              <input type="checkbox" class="form-check-input" required checked>
+              <span class="form-check-label">I confirm that the information provided is accurate and represents my true qualifications.</span>
+            </label>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-modal-close>Cancel</button>
+          <button type="submit" class="btn btn-primary">
+            <span>Submit Application</span>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Application Success State Modal -->
+  <div class="modal-overlay" id="applySuccessModal">
+    <div class="modal-dialog" style="max-width: 480px; text-align: center;">
+      <div class="modal-body" style="padding: 36px 28px;">
+        <div style="width: 64px; height: 64px; border-radius: 50%; background: var(--success-light); color: var(--success); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+          <svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        </div>
+        <h3 class="modal-title" style="margin-bottom: 8px;">Application Submitted!</h3>
+        <p class="text-sm text-muted" style="margin-bottom: 20px;">
+          Your application has been received by the recruitment department. You can track updates and interview schedules in your candidate portal.
+        </p>
+        
+        <div style="background: var(--page-bg); border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 14px; margin-bottom: 24px; text-align: left;">
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-xs text-muted">Application ID:</span>
+            <span class="text-xs font-bold text-navy" id="successApplicationId">APP-2026-8841</span>
+          </div>
+          <div class="d-flex justify-content-between mb-2">
+            <span class="text-xs text-muted">Submission Date:</span>
+            <span class="text-xs font-semibold text-navy">06 Sep 2026</span>
+          </div>
+          <div class="d-flex justify-content-between">
+            <span class="text-xs text-muted">Initial Status:</span>
+            <span class="badge badge-applied">Applied</span>
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-center gap-3">
+          <a href="../applications/my_applications.html" class="btn btn-primary">View My Applications</a>
+          <button type="button" class="btn btn-outline" data-modal-close>Close</button>
+        </div>
+      </div>
+    </div>
+  </div>

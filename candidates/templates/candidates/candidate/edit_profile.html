@@ -1,0 +1,397 @@
+{% extends 'candidates/base.html' %}
+{% load static %}
+
+{% block title %}Edit Profile - HRMS Portal{% endblock %}
+
+{% block content %}
+<div class="breadcrumb">
+  <a href="{% url 'candidates:dashboard' %}">Dashboard</a>
+  <span class="breadcrumb-separator">/</span>
+  <a href="{% url 'candidates:profile' %}">My Profile</a>
+  <span class="breadcrumb-separator">/</span>
+  <span class="breadcrumb-current">Edit Profile</span>
+</div>
+
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Edit Candidate Profile</h1>
+    <p class="page-subtitle">Update your personal, professional, academic records, and skills</p>
+  </div>
+  <div>
+    <span class="badge badge-applied" style="font-size: 0.85rem; padding: 8px 14px;">
+      Profile Completion: {{ completion_pct }}%
+    </span>
+  </div>
+</div>
+
+<form action="{% url 'candidates:edit_profile' %}" method="POST" id="editCandidateProfileForm">
+  {% csrf_token %}
+
+  <!-- 1. Personal Information -->
+  <div class="card mb-4">
+    <div class="card-header">
+      <h3 class="card-title">1. Personal Information</h3>
+      <p class="card-subtitle">Verified contact and identity details</p>
+    </div>
+    
+    <div class="grid-2">
+      <div class="form-group">
+        <label class="form-label" for="id_full_name">Full Name <span class="required">*</span></label>
+        <input type="text" name="full_name" id="id_full_name" class="form-control" value="{{ form.full_name.value|default:'' }}" required>
+        {% if form.full_name.errors %}<div class="text-xs text-danger mt-1">{{ form.full_name.errors.0 }}</div>{% endif %}
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="id_date_of_birth">Date of Birth <span class="required">*</span></label>
+        <input type="date" name="date_of_birth" id="id_date_of_birth" class="form-control" value="{{ form.date_of_birth.value|date:'Y-m-d'|default:form.date_of_birth.value|default:'' }}" required>
+        {% if form.date_of_birth.errors %}<div class="text-xs text-danger mt-1">{{ form.date_of_birth.errors.0 }}</div>{% endif %}
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="id_gender">Gender <span class="required">*</span></label>
+        <select name="gender" id="id_gender" class="form-select" required>
+          <option value="" disabled {% if not form.gender.value %}selected{% endif %}>Select Gender</option>
+          <option value="MALE" {% if form.gender.value == 'MALE' or form.gender.value == 'Male' %}selected{% endif %}>Male</option>
+          <option value="FEMALE" {% if form.gender.value == 'FEMALE' or form.gender.value == 'Female' %}selected{% endif %}>Female</option>
+          <option value="OTHER" {% if form.gender.value == 'OTHER' or form.gender.value == 'Other' %}selected{% endif %}>Other</option>
+        </select>
+        {% if form.gender.errors %}<div class="text-xs text-danger mt-1">{{ form.gender.errors.0 }}</div>{% endif %}
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="id_phone">Phone Number <span class="required">*</span></label>
+        <input type="tel" name="phone" id="id_phone" class="form-control" value="{{ form.phone.value|default:'' }}" required>
+        {% if form.phone.errors %}<div class="text-xs text-danger mt-1">{{ form.phone.errors.0 }}</div>{% endif %}
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="id_email">Email Address <span class="required">*</span></label>
+        <input type="email" name="email" id="id_email" class="form-control" value="{{ form.email.value|default:candidate.user.email }}" required>
+        {% if form.email.errors %}<div class="text-xs text-danger mt-1">{{ form.email.errors.0 }}</div>{% endif %}
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="id_address">Residential Address</label>
+        <input type="text" name="address" id="id_address" class="form-control" value="{{ form.address.value|default:'' }}" placeholder="House / Street / Area">
+        {% if form.address.errors %}<div class="text-xs text-danger mt-1">{{ form.address.errors.0 }}</div>{% endif %}
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="id_city">City</label>
+        <input type="text" name="city" id="id_city" class="form-control" value="{{ form.city.value|default:'' }}" placeholder="e.g. Kochi">
+        {% if form.city.errors %}<div class="text-xs text-danger mt-1">{{ form.city.errors.0 }}</div>{% endif %}
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="id_state">State</label>
+        <input type="text" name="state" id="id_state" class="form-control" value="{{ form.state.value|default:'' }}" placeholder="e.g. Kerala">
+        {% if form.state.errors %}<div class="text-xs text-danger mt-1">{{ form.state.errors.0 }}</div>{% endif %}
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="id_pincode">Pincode</label>
+        <input type="text" name="pincode" id="id_pincode" class="form-control" value="{{ form.pincode.value|default:'' }}" placeholder="e.g. 682011">
+        {% if form.pincode.errors %}<div class="text-xs text-danger mt-1">{{ form.pincode.errors.0 }}</div>{% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- 2. Professional Information & Preferences -->
+  <div class="card mb-4">
+    <div class="card-header">
+      <h3 class="card-title">2. Professional Information & Preferences</h3>
+      <p class="card-subtitle">Work experience and job preferences</p>
+    </div>
+    
+    <div class="grid-2">
+      <div class="form-group">
+        <label class="form-label" for="id_experience_level">Total Experience</label>
+        <input type="text" name="experience_level" id="id_experience_level" class="form-control" value="{{ form.experience_level.value|default:'Fresher / 0-1 Years' }}" placeholder="e.g. Fresher / 0-1 Years or 2 Years">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="id_preferred_job_type">Preferred Job Type</label>
+        <input type="text" name="preferred_job_type" id="id_preferred_job_type" class="form-control" value="{{ form.preferred_job_type.value|default:'Full Time' }}" placeholder="e.g. Full Time / Remote / Hybrid">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="id_preferred_locations">Preferred Locations</label>
+        <input type="text" name="preferred_locations" id="id_preferred_locations" class="form-control" value="{{ form.preferred_locations.value|default:'Kochi, Bangalore, Remote' }}">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="id_notice_period">Notice Period</label>
+        <input type="text" name="notice_period" id="id_notice_period" class="form-control" value="{{ form.notice_period.value|default:'Immediate Joiner (0 Days)' }}">
+      </div>
+      <div class="form-group" style="grid-column: 1 / -1;">
+        <label class="form-label" for="id_skills_comma">Skills (Comma separated list)</label>
+        <input type="text" name="skills_comma" id="id_skills_comma" class="form-control" value="{{ form.skills_comma.value|default:'' }}" placeholder="e.g. Python, Django, PostgreSQL, REST API, HTML5, CSS3, JavaScript, Git">
+        <div class="text-xs text-muted mt-1">Enter skills separated by commas to quickly add, update, or remove skills in bulk.</div>
+      </div>
+    </div>
+
+    <!-- Interactive Skill Chip Manager -->
+    <div class="mt-3 pt-3" style="border-top: 1px solid var(--border-light);">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <label class="form-label font-semibold text-navy m-0">Manage Individual Skills</label>
+        <button type="button" class="btn btn-xs btn-outline" onclick="openAddSkillModal()">+ Add New Skill</button>
+      </div>
+      <div class="d-flex flex-wrap gap-2" id="editProfileSkillsChips">
+        {% for skill in skills %}
+          <div class="badge badge-applied d-flex align-items-center gap-2" style="font-size: 0.813rem; padding: 6px 12px;" id="skill-chip-{{ skill.skill_id }}">
+            <span id="skill-name-{{ skill.skill_id }}">{{ skill.skill_name }}</span>
+            <button type="button" style="background:none;border:none;color:var(--primary-blue);cursor:pointer;padding:0;" onclick="openEditSkillModal('{{ skill.skill_id }}', '{{ skill.skill_name|escapejs }}')" title="Edit Skill">✎</button>
+            <button type="button" style="background:none;border:none;color:var(--danger);cursor:pointer;padding:0;font-weight:bold;" onclick="deleteSkillAjax('{{ skill.skill_id }}')" title="Delete Skill">✕</button>
+          </div>
+        {% empty %}
+          <div class="text-xs text-muted">No individual skills configured yet.</div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- 3. Education Qualifications (10th, 12th, Degree) -->
+  <div class="card mb-4">
+    <div class="card-header">
+      <h3 class="card-title">3. Education & Degree Qualifications</h3>
+      <p class="card-subtitle">Manage your 10th, 12th, and College/University Degree records</p>
+    </div>
+
+    <!-- Degree / Graduation Section -->
+    <div class="mb-4 pb-3" style="border-bottom: 1px solid var(--border-light);">
+      <h4 class="text-navy font-semibold mb-3" style="font-size: 0.95rem;">🎓 College / University Degree</h4>
+      <div class="grid-2">
+        <div class="form-group">
+          <label class="form-label" for="id_degree_qualification">Degree / Qualification Name</label>
+          <input type="text" name="degree_qualification" id="id_degree_qualification" class="form-control" value="{{ form.degree_qualification.value|default:'' }}" placeholder="e.g. Master of Computer Applications (MCA) or B.Tech CS">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="id_degree_institution">College / University</label>
+          <input type="text" name="degree_institution" id="id_degree_institution" class="form-control" value="{{ form.degree_institution.value|default:'' }}" placeholder="e.g. Cochin University of Science and Technology (CUSAT)">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="id_degree_year">Graduation Year / Duration</label>
+          <input type="text" name="degree_year" id="id_degree_year" class="form-control" value="{{ form.degree_year.value|default:'' }}" placeholder="e.g. 2024 - 2026 or 2026">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="id_degree_percentage_or_cgpa">Percentage / CGPA</label>
+          <input type="text" name="degree_percentage_or_cgpa" id="id_degree_percentage_or_cgpa" class="form-control" value="{{ form.degree_percentage_or_cgpa.value|default:'' }}" placeholder="e.g. 8.8 CGPA or 86%">
+        </div>
+      </div>
+    </div>
+
+    <!-- 12th / Higher Secondary Section -->
+    <div class="mb-4 pb-3" style="border-bottom: 1px solid var(--border-light);">
+      <h4 class="text-navy font-semibold mb-3" style="font-size: 0.95rem;">🏫 Higher Secondary (12th Standard)</h4>
+      <div class="grid-2">
+        <div class="form-group">
+          <label class="form-label" for="id_twelfth_institution">School / Junior College</label>
+          <input type="text" name="twelfth_institution" id="id_twelfth_institution" class="form-control" value="{{ form.twelfth_institution.value|default:'' }}" placeholder="e.g. St. Joseph's Higher Secondary School">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="id_twelfth_board">Board / University</label>
+          <input type="text" name="twelfth_board" id="id_twelfth_board" class="form-control" value="{{ form.twelfth_board.value|default:'' }}" placeholder="e.g. State Board / CBSE">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="id_twelfth_year">Passing Year</label>
+          <input type="text" name="twelfth_year" id="id_twelfth_year" class="form-control" value="{{ form.twelfth_year.value|default:'' }}" placeholder="e.g. 2021">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="id_twelfth_percentage_or_cgpa">Percentage / Score</label>
+          <input type="text" name="twelfth_percentage_or_cgpa" id="id_twelfth_percentage_or_cgpa" class="form-control" value="{{ form.twelfth_percentage_or_cgpa.value|default:'' }}" placeholder="e.g. 92.4%">
+        </div>
+      </div>
+    </div>
+
+    <!-- 10th / Secondary Section -->
+    <div>
+      <h4 class="text-navy font-semibold mb-3" style="font-size: 0.95rem;">📚 Secondary School (10th Standard)</h4>
+      <div class="grid-2">
+        <div class="form-group">
+          <label class="form-label" for="id_tenth_institution">School Name</label>
+          <input type="text" name="tenth_institution" id="id_tenth_institution" class="form-control" value="{{ form.tenth_institution.value|default:'' }}" placeholder="e.g. Carmel English Medium School">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="id_tenth_board">Board</label>
+          <input type="text" name="tenth_board" id="id_tenth_board" class="form-control" value="{{ form.tenth_board.value|default:'' }}" placeholder="e.g. State Board / ICSE / CBSE">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="id_tenth_year">Passing Year</label>
+          <input type="text" name="tenth_year" id="id_tenth_year" class="form-control" value="{{ form.tenth_year.value|default:'' }}" placeholder="e.g. 2019">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="id_tenth_percentage_or_cgpa">Percentage / Score</label>
+          <input type="text" name="tenth_percentage_or_cgpa" id="id_tenth_percentage_or_cgpa" class="form-control" value="{{ form.tenth_percentage_or_cgpa.value|default:'' }}" placeholder="e.g. 94.0%">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="d-flex justify-content-end gap-3 mb-5">
+    <a href="{% url 'candidates:profile' %}" class="btn btn-secondary" id="cancelEditBtn">Cancel</a>
+    <button type="submit" class="btn btn-primary" id="saveProfileBtn">
+      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path><polyline points="17 21 17 13 7 13 7 21"></polyline><polyline points="7 3 7 8 15 8"></polyline></svg>
+      <span>Save Changes</span>
+    </button>
+  </div>
+</form>
+
+<!-- Modal: Add Skill -->
+<div class="modal-overlay" id="addSkillModal">
+  <div class="modal-dialog" style="max-width: 440px;">
+    <div class="modal-header">
+      <h3 class="modal-title">Add Technical Skill</h3>
+      <button type="button" class="modal-close-btn" onclick="closeModal('addSkillModal')">✕</button>
+    </div>
+    <form id="addSkillForm" onsubmit="submitAddSkill(event)">
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Skill Name</label>
+          <input type="text" id="addSkillInput" class="form-control" placeholder="e.g. React, PostgreSQL, Docker" required>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('addSkillModal')">Cancel</button>
+        <button type="submit" class="btn btn-primary">Add Skill</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal: Edit Skill -->
+<div class="modal-overlay" id="editSkillModal">
+  <div class="modal-dialog" style="max-width: 440px;">
+    <div class="modal-header">
+      <h3 class="modal-title">Edit Technical Skill</h3>
+      <button type="button" class="modal-close-btn" onclick="closeModal('editSkillModal')">✕</button>
+    </div>
+    <form id="editSkillForm" onsubmit="submitEditSkill(event)">
+      <input type="hidden" id="editSkillId">
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Skill Name</label>
+          <input type="text" id="editSkillInput" class="form-control" required>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('editSkillModal')">Cancel</button>
+        <button type="submit" class="btn btn-primary">Update Skill</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function openAddSkillModal() {
+  document.getElementById('addSkillInput').value = '';
+  document.getElementById('addSkillModal').classList.add('show');
+  document.getElementById('addSkillInput').focus();
+}
+
+function openEditSkillModal(id, name) {
+  document.getElementById('editSkillId').value = id;
+  document.getElementById('editSkillInput').value = name;
+  document.getElementById('editSkillModal').classList.add('show');
+  document.getElementById('editSkillInput').focus();
+}
+
+function closeModal(modalId) {
+  document.getElementById(modalId).classList.remove('show');
+}
+
+function getCsrfToken() {
+  const tokenEl = document.querySelector('[name=csrfmiddlewaretoken]');
+  return tokenEl ? tokenEl.value : '';
+}
+
+function submitAddSkill(e) {
+  e.preventDefault();
+  const name = document.getElementById('addSkillInput').value.trim();
+  if (!name) return;
+
+  const formData = new FormData();
+  formData.append('skill_name', name);
+
+  fetch("{% url 'candidates:skill_add' %}", {
+    method: 'POST',
+    headers: {
+      'X-CSRFToken': getCsrfToken(),
+      'X-Requested-With': 'XMLHttpRequest'
+    },
+    body: formData
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.status === 'success') {
+      closeModal('addSkillModal');
+      // Append to chips container
+      const container = document.getElementById('editProfileSkillsChips');
+      const chip = document.createElement('div');
+      chip.className = 'badge badge-applied d-flex align-items-center gap-2';
+      chip.style.cssText = 'font-size: 0.813rem; padding: 6px 12px;';
+      chip.id = `skill-chip-${data.skill_id}`;
+      chip.innerHTML = `
+        <span id="skill-name-${data.skill_id}">${data.skill_name}</span>
+        <button type="button" style="background:none;border:none;color:var(--primary-blue);cursor:pointer;padding:0;" onclick="openEditSkillModal('${data.skill_id}', '${data.skill_name}')" title="Edit Skill">✎</button>
+        <button type="button" style="background:none;border:none;color:var(--danger);cursor:pointer;padding:0;font-weight:bold;" onclick="deleteSkillAjax('${data.skill_id}')" title="Delete Skill">✕</button>
+      `;
+      container.appendChild(chip);
+
+      // Also append to comma-separated input
+      const commaInput = document.getElementById('id_skills_comma');
+      if (commaInput) {
+        const existing = commaInput.value ? commaInput.value.split(',').map(s=>s.trim()).filter(Boolean) : [];
+        if (!existing.includes(data.skill_name)) {
+          existing.push(data.skill_name);
+          commaInput.value = existing.join(', ');
+        }
+      }
+
+      if (window.showToast) window.showToast('Skill Added', data.message, 'success');
+    }
+  })
+  .catch(err => console.error(err));
+}
+
+function submitEditSkill(e) {
+  e.preventDefault();
+  const id = document.getElementById('editSkillId').value;
+  const newName = document.getElementById('editSkillInput').value.trim();
+  if (!id || !newName) return;
+
+  const formData = new FormData();
+  formData.append('skill_name', newName);
+
+  fetch(`/profile/skills/${id}/edit/`, {
+    method: 'POST',
+    headers: {
+      'X-CSRFToken': getCsrfToken(),
+      'X-Requested-With': 'XMLHttpRequest'
+    },
+    body: formData
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.status === 'success') {
+      closeModal('editSkillModal');
+      const nameEl = document.getElementById(`skill-name-${id}`);
+      if (nameEl) nameEl.textContent = data.skill_name;
+      if (window.showToast) window.showToast('Skill Updated', 'Skill name updated successfully', 'success');
+    }
+  })
+  .catch(err => console.error(err));
+}
+
+function deleteSkillAjax(skillId) {
+  if (!confirm('Are you sure you want to remove this skill?')) return;
+
+  fetch(`/profile/skills/${skillId}/delete/`, {
+    method: 'POST',
+    headers: {
+      'X-CSRFToken': getCsrfToken(),
+      'X-Requested-With': 'XMLHttpRequest'
+    }
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.status === 'success') {
+      const chip = document.getElementById(`skill-chip-${skillId}`);
+      if (chip) chip.remove();
+      if (window.showToast) window.showToast('Skill Removed', data.message, 'info');
+    }
+  })
+  .catch(err => console.error(err));
+}
+</script>
+{% endblock %}

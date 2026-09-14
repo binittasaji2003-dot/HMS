@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{ test.title }} - Aptitude Assessment - HRMS Portal</title>
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'css/base.css' %}">
+  <link rel="stylesheet" href="{% static 'css/components.css' %}">
+  <link rel="stylesheet" href="{% static 'css/pages.css' %}">
+</head>
+<body style="background-color: var(--page-bg);" id="aptitudeTestArea">
+  <!-- Distraction-Free Top Bar -->
+  <header class="test-top-header">
+    <div class="d-flex align-items-center gap-3">
+      <div class="brand-icon" style="width: 32px; height: 32px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 18px; height: 18px;"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
+      </div>
+      <div>
+        <h2 style="font-size: 1.05rem; font-weight: 700; color: var(--dark-navy); margin-bottom: 2px;">{{ test.title }}</h2>
+        <div class="text-xs text-muted">
+          {{ total_questions }} Questions • {{ duration_minutes }} Minutes • Passing Score: {{ passing_percentage }}%
+          {% if test.job %} • Job: {{ test.job.title }}{% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="d-flex align-items-center gap-4">
+      <div class="test-timer-badge">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+        <span>Time Remaining: <span id="timeRemaining">--:--</span></span>
+      </div>
+
+      <button type="button" class="btn btn-sm btn-danger" id="submitTestBtn">Submit Test</button>
+    </div>
+  </header>
+
+  <!-- Main Test Content (Split layout) -->
+  <div class="test-layout">
+    <!-- Left: Question & Options Area -->
+    <div class="card" style="padding: 32px;">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <span class="badge badge-applied" id="currentQuestionNumber">Question 1 of {{ total_questions }}</span>
+        <span class="text-xs text-muted">Single Choice MCQ</span>
+      </div>
+
+      <h3 style="font-size: 1.2rem; font-weight: 700; color: var(--dark-navy); margin-bottom: 24px; line-height: 1.4;" id="currentQuestionText">
+        Loading assessment questions...
+      </h3>
+
+      <div id="questionOptionsList">
+        <!-- Interactive options rendered dynamically by static/js/aptitude.js -->
+      </div>
+
+      <!-- Navigation buttons -->
+      <div class="d-flex justify-content-between align-items-center mt-5 pt-3" style="border-top: 1px solid var(--border-light);">
+        <button type="button" class="btn btn-outline" id="prevQuestionBtn">← Previous</button>
+        <button type="button" class="btn btn-primary" id="nextQuestionBtn">Next Question →</button>
+      </div>
+    </div>
+
+    <!-- Right: Question Palette / Navigator -->
+    <div class="card">
+      <div class="card-header" style="padding-bottom: 12px;">
+        <h4 class="card-title" style="font-size: 0.95rem;">Question Navigator</h4>
+        <span class="text-xs text-muted"><span id="answeredQuestionsCount">0</span> / {{ total_questions }} Answered</span>
+      </div>
+
+      <!-- Legend -->
+      <div class="d-flex gap-3 text-xs mb-3 flex-wrap">
+        <span class="d-flex align-items-center gap-1">
+          <span style="width: 12px; height: 12px; background: var(--primary-blue); border-radius: 2px;"></span> Answered
+        </span>
+        <span class="d-flex align-items-center gap-1">
+          <span style="width: 12px; height: 12px; border: 2px solid var(--primary-blue); border-radius: 2px; background: #FFF;"></span> Current
+        </span>
+        <span class="d-flex align-items-center gap-1">
+          <span style="width: 12px; height: 12px; border: 1px solid var(--border-color); border-radius: 2px; background: #FFF;"></span> Not Answered
+        </span>
+      </div>
+
+      <!-- Question Matrix -->
+      <div class="question-nav-grid" id="questionNavGrid">
+        <!-- Rendered by static/js/aptitude.js -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden Secure Submission Form -->
+  <form id="aptitudeSubmitForm" method="POST" action="{% url 'candidates:aptitude_submit' test.test_id %}" style="display: none;">
+    {% csrf_token %}
+    <input type="hidden" name="answers_json" id="answersJsonInput" value="{}">
+  </form>
+
+  <!-- Submission Confirmation Modal -->
+  <div class="modal-overlay" id="submitConfirmModal">
+    <div class="modal-dialog" style="max-width: 480px; text-align: center;">
+      <div class="modal-body" style="padding: 32px 24px;">
+        <h3 class="modal-title mb-2">Submit Aptitude Assessment?</h3>
+        <p class="text-sm text-muted mb-4" id="submitSummaryText">
+          You have answered questions. Once submitted, your score will be calculated and cannot be changed.
+        </p>
+        <div class="d-flex justify-content-center gap-3">
+          <button type="button" class="btn btn-secondary" data-modal-close>Review Questions</button>
+          <button type="button" class="btn btn-primary" id="confirmFinalSubmitBtn">Confirm & Submit</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Injected Assessment Configuration (NO correct answers included) -->
+  {{ sanitized_questions|json_script:"aptitude-questions-data" }}
+  <script>
+    const parsedQuestionsEl = document.getElementById('aptitude-questions-data');
+    const parsedQuestions = parsedQuestionsEl ? JSON.parse(parsedQuestionsEl.textContent) : [];
+    window.testConfig = {
+      testId: {{ test.test_id }},
+      durationMinutes: {{ duration_minutes }},
+      totalQuestions: {{ total_questions }},
+      submitUrl: "{% url 'candidates:aptitude_submit' test.test_id %}",
+      questions: parsedQuestions
+    };
+  </script>
+  <script src="{% static 'js/main.js' %}"></script>
+  <script src="{% static 'js/aptitude.js' %}"></script>
+</body>
+</html>

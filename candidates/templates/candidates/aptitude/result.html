@@ -1,0 +1,114 @@
+{% extends 'candidates/base.html' %}
+{% load static %}
+
+{% block title %}Result: {{ result.test.title }} - HRMS Portal{% endblock %}
+
+{% block content %}
+<div class="breadcrumb mb-3">
+  <a href="{% url 'candidates:aptitude_list' %}">Aptitude Tests</a>
+  <span class="breadcrumb-separator">/</span>
+  <span class="breadcrumb-current">{{ result.test.title }} Result</span>
+</div>
+
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Aptitude Test Result</h1>
+    <p class="page-subtitle">Detailed scoring performance and verified assessment breakdown</p>
+  </div>
+</div>
+
+<!-- Large Visual Score Card -->
+<div class="result-hero-box card mb-4" style="text-align: center; padding: 40px 24px; background: #FFFFFF;">
+  <div class="score-circle mb-3" style="margin: 0 auto; width: 140px; height: 140px; border-radius: 50%; border: 8px solid {% if result.is_passed %}var(--success){% else %}var(--danger){% endif %}; display: flex; align-items: center; justify-content: center; background: {% if result.is_passed %}var(--success-light){% else %}var(--danger-light){% endif %};">
+    <div class="score-circle-inner">
+      <div class="score-number" style="font-size: 2rem; font-weight: 800; color: {% if result.is_passed %}var(--success){% else %}var(--danger){% endif %};">
+        {{ result.score_percentage }}%
+      </div>
+      <div class="score-total text-xs text-muted" style="text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px;">Score</div>
+    </div>
+  </div>
+
+  <div class="mb-2">
+    {% if result.is_passed %}
+      <span class="badge badge-shortlisted" style="font-size: 0.95rem; padding: 6px 18px;">
+        <span class="badge-dot"></span>STATUS: PASSED
+      </span>
+    {% else %}
+      <span class="badge badge-rejected" style="font-size: 0.95rem; padding: 6px 18px;">
+        <span class="badge-dot"></span>STATUS: FAILED
+      </span>
+    {% endif %}
+  </div>
+
+  <h2 style="font-size: 1.4rem; font-weight: 700; color: var(--dark-navy); margin-bottom: 6px;">{{ result.test.title }}</h2>
+  <p class="text-sm text-muted mb-4">
+    Completed on {{ result.completed_at|date:"d F Y, H:i" }}
+    {% if result.test.job %} • Job: {{ result.test.job.title }}{% endif %}
+  </p>
+
+  <!-- Key Metrics Grid -->
+  <div class="grid-4 mb-4" style="text-align: left; max-width: 760px; margin-left: auto; margin-right: auto;">
+    <div style="background: var(--page-bg); padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+      <div class="text-xs text-muted">Total Questions</div>
+      <div class="font-bold text-navy" style="font-size: 1.3rem;">{{ result.total_questions }}</div>
+    </div>
+    <div style="background: var(--success-light); padding: 14px; border-radius: var(--radius-md); border: 1px solid #B8EBD6;">
+      <div class="text-xs" style="color: var(--success);">Correct Answers</div>
+      <div class="font-bold text-success" style="font-size: 1.3rem;">{{ result.correct_answers }}</div>
+    </div>
+    <div style="background: var(--danger-light); padding: 14px; border-radius: var(--radius-md); border: 1px solid #FFD1D1;">
+      <div class="text-xs" style="color: var(--danger);">Incorrect Answers</div>
+      <div class="font-bold text-danger" style="font-size: 1.3rem;">{{ result.incorrect_answers }}</div>
+    </div>
+    <div style="background: var(--page-bg); padding: 14px; border-radius: var(--radius-md); border: 1px solid var(--border-color);">
+      <div class="text-xs text-muted">Passing Criteria</div>
+      <div class="font-bold text-navy" style="font-size: 1.3rem;">{{ result.test.passing_percentage }}%</div>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="d-flex justify-content-center gap-3">
+    {% if result.application %}
+    <a href="{% url 'candidates:application_details' result.application.application_id %}" class="btn btn-primary">
+      View Job Application
+    </a>
+    {% endif %}
+    <a href="{% url 'candidates:aptitude_list' %}" class="btn btn-outline">
+      Back to All Tests
+    </a>
+  </div>
+</div>
+
+<!-- Performance Assessment Card -->
+<div class="card" style="max-width: 760px; margin: 0 auto 30px;">
+  <h3 class="card-title mb-3">Assessment Summary</h3>
+  <div style="display: flex; flex-direction: column; gap: 16px;">
+    <div>
+      <div class="d-flex justify-content-between text-xs font-semibold mb-1">
+        <span>Overall Performance</span>
+        <span>{{ result.score_percentage }}% ({{ result.correct_answers }}/{{ result.total_questions }})</span>
+      </div>
+      <div class="progress-bar-bg" style="height: 8px; background: #E2E8F0; border-radius: 4px; overflow: hidden;">
+        <div class="progress-bar-fill" style="width: {{ result.score_percentage }}%; height: 100%; background: {% if result.is_passed %}var(--success){% else %}var(--danger){% endif %};"></div>
+      </div>
+    </div>
+
+    <div style="padding: 16px; border-radius: var(--radius-md); background: var(--page-bg); border-left: 4px solid {% if result.is_passed %}var(--success){% else %}var(--danger){% endif %};">
+      <div class="font-semibold text-navy text-sm mb-1">
+        {% if result.is_passed %}
+          Congratulations! You met the passing threshold.
+        {% else %}
+          Passing threshold not reached.
+        {% endif %}
+      </div>
+      <p class="text-xs text-muted mb-0">
+        {% if result.is_passed %}
+          Your verified score has been saved to your profile and submitted to the recruitment team for evaluation.
+        {% else %}
+          The passing score required for this assessment is {{ result.test.passing_percentage }}%. Your result has been logged with the HR department.
+        {% endif %}
+      </p>
+    </div>
+  </div>
+</div>
+{% endblock %}

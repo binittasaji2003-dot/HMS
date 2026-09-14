@@ -1,0 +1,352 @@
+{% extends 'candidates/base.html' %}
+{% load static %}
+
+{% block title %}Candidate Dashboard - HRMS Portal{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="dashboard-hero">
+  <div class="hero-text">
+    <div class="hero-date-chip">
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+      <span>{% now "l, d F Y" %}</span>
+    </div>
+    <h1 class="hero-title">Good Day, {{ candidate.full_name|default:request.user.username }}! 👋</h1>
+    <p class="hero-subtitle">
+      Welcome back to your candidate portal. You have <strong>{{ total_applications_count }} active application{{ total_applications_count|pluralize }}</strong> and <strong>{{ upcoming_interviews_count }} interview{{ upcoming_interviews_count|pluralize }}</strong> scheduled.
+    </p>
+    
+    <div class="hero-metrics">
+      <div class="hero-metric-item">
+        <div class="hero-metric-label">Profile Completion</div>
+        <div class="hero-metric-val">{{ completion_pct|default:"0" }}%</div>
+        <div class="hero-profile-bar">
+          <div class="hero-profile-fill" style="width: {{ completion_pct|default:'0' }}%;"></div>
+        </div>
+      </div>
+
+      <div class="hero-metric-item">
+        <div class="hero-metric-label">Applications</div>
+        <div class="hero-metric-val">{{ total_applications_count }} Active</div>
+      </div>
+      <div class="hero-metric-item">
+        <div class="hero-metric-label">Next Interview</div>
+        <div class="hero-metric-val">
+          {% if next_interview %}
+          {{ next_interview.date|date:"d M" }} • {{ next_interview.time|time:"h:i A" }}
+          {% else %}
+          None Scheduled
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="hero-actions">
+      <a href="{% url 'candidates:job_list' %}" class="btn btn-hero-white">
+        <span>Explore Job Vacancies</span>
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+      </a>
+      <a href="{% url 'candidates:my_applications' %}" class="btn btn-hero-translucent">
+        <span>View My Applications</span>
+      </a>
+    </div>
+  </div>
+
+  <div class="hero-illustration">
+    <svg viewBox="0 0 260 200" fill="none" xmlns="http://www.w3.org/2000/svg" style="max-height: 170px; width: auto;">
+      <rect x="20" y="25" width="220" height="150" rx="16" fill="rgba(255,255,255,0.12)" stroke="rgba(255,255,255,0.3)" stroke-width="2"/>
+      <circle cx="65" cy="70" r="22" fill="#FFFFFF"/>
+      <path d="M53 87 C53 77 59 71 65 71 C71 71 77 77 77 87" fill="#1976F3"/>
+      <circle cx="65" cy="63" r="8" fill="#1976F3"/>
+      <rect x="100" y="58" width="105" height="11" rx="5.5" fill="#FFFFFF"/>
+      <rect x="100" y="76" width="70" height="8" rx="4" fill="rgba(255,255,270,0.7)"/>
+      <rect x="35" y="112" width="190" height="42" rx="10" fill="#FFFFFF" filter="drop-shadow(0 6px 14px rgba(0,0,0,0.18))"/>
+      <circle cx="58" cy="133" r="12" fill="#E8F8F2"/>
+      <path d="M53 133 L57 137 L64 129" stroke="#20A47A" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <rect x="80" y="126" width="75" height="7" rx="3.5" fill="#172033"/>
+      <rect x="80" y="137" width="48" height="5" rx="2.5" fill="#667085"/>
+      <rect x="170" y="124" width="44" height="18" rx="9" fill="#EAF3FF"/>
+      <text x="177" y="136" fill="#1976F3" font-size="8.5" font-family="Inter, sans-serif" font-weight="700">ACTIVE</text>
+    </svg>
+  </div>
+</section>
+
+<!-- Selection / Employee Onboarding Milestone -->
+{% if candidate.is_onboarded %}
+<div class="card mb-4" style="border-left: 5px solid #20A47A; background: #ECFDF5; padding: 18px 24px;">
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+    <div class="d-flex align-items-center gap-3">
+      <div style="width: 42px; height: 42px; border-radius: 50%; background: #20A47A; color: #FFF; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; font-weight: 700;">✓</div>
+      <div>
+        <h4 style="font-size: 1.05rem; font-weight: 700; color: #065F46;">Welcome to the Team! You are officially onboarded.</h4>
+        <p class="text-xs text-navy mt-1">
+          Employee ID: <strong>{{ candidate.employee_record.employee_code }}</strong> • Role: <strong>{{ candidate.employee_record.designation }}</strong> • Status: <span class="badge" style="background:#D1FAE5; color:#065F46; font-size:11px;">{{ candidate.employee_record.employment_status }}</span>
+        </p>
+      </div>
+    </div>
+    <span class="badge" style="background: #20A47A; color: #FFF; padding: 6px 14px; border-radius: 20px; font-weight: 700; font-size: 0.8rem;">
+      Employee Lifecycle Active
+    </span>
+  </div>
+</div>
+{% elif candidate.is_selected %}
+<div class="card mb-4" style="border-left: 5px solid var(--primary-blue); background: #F0F7FF; padding: 18px 24px;">
+  <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+    <div class="d-flex align-items-center gap-3">
+      <div style="width: 42px; height: 42px; border-radius: 50%; background: var(--primary-blue); color: #FFF; display: flex; align-items: center; justify-content: center; font-size: 1.25rem; font-weight: 700;">★</div>
+      <div>
+        <h4 style="font-size: 1.05rem; font-weight: 700; color: var(--primary-blue);">Congratulations! You have been Selected.</h4>
+        <p class="text-xs text-navy mt-1">
+          Your recruitment lifecycle has concluded successfully. HR is preparing your employee onboarding profile.
+        </p>
+      </div>
+    </div>
+    <a href="{% url 'candidates:my_applications' %}?status=SELECTED" class="btn btn-sm btn-primary" style="font-size: 0.8rem;">
+      View Selection Details
+    </a>
+  </div>
+</div>
+{% endif %}
+
+<!-- 4 Statistics Cards -->
+<section class="grid-4 mb-5">
+  <div class="stat-card">
+    <div class="stat-icon blue">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+    </div>
+    <div class="stat-info">
+      <div class="stat-value-row">
+        <span class="stat-value" id="dashboardTotalApps">{{ total_applications_count }}</span>
+        <span class="stat-trend neutral">Active</span>
+      </div>
+      <div class="stat-label">Total Applications</div>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon green">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+    </div>
+    <div class="stat-info">
+      <div class="stat-value-row">
+        <span class="stat-value" id="dashboardShortlisted">{{ shortlisted_count }}</span>
+        <span class="stat-trend positive">Shortlisted</span>
+      </div>
+      <div class="stat-label">Recruiter Shortlisted</div>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon orange">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+    </div>
+    <div class="stat-info">
+      <div class="stat-value-row">
+        <span class="stat-value" id="dashboardInterviews">{{ upcoming_interviews_count }}</span>
+        <span class="stat-trend neutral">Upcoming</span>
+      </div>
+      <div class="stat-label">Interview Rounds</div>
+    </div>
+  </div>
+
+  <div class="stat-card">
+    <div class="stat-icon purple">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+    </div>
+    <div class="stat-info">
+      <div class="stat-value-row">
+        <span class="stat-value" id="dashboardUnreadNotifs">{{ unread_notifications_count }}</span>
+        <span class="stat-trend positive">Unread</span>
+      </div>
+      <div class="stat-label">Notifications</div>
+    </div>
+  </div>
+</section>
+
+<!-- Two Column Section -->
+<section class="dashboard-split mb-5">
+  <!-- LEFT: Recent Applications -->
+  <div class="card">
+    <div class="card-header">
+      <div>
+        <h3 class="card-title">Recent Applications</h3>
+        <p class="card-subtitle">Live recruitment status managed by HR team</p>
+      </div>
+      <a href="{% url 'candidates:my_applications' %}" class="btn btn-sm btn-outline">View All ({{ total_applications_count }})</a>
+    </div>
+
+    <div class="recent-apps-list">
+      {% if recent_applications %}
+        {% for app in recent_applications %}
+        <div class="recent-app-item" style="display: flex; align-items: center; justify-content: space-between; padding: 14px 0; border-bottom: 1px solid var(--border-light);">
+          <div class="d-flex align-items-center gap-3">
+            <div class="app-icon" style="width: 40px; height: 40px; border-radius: var(--radius-sm); background: var(--primary-blue-subtle); color: var(--primary-blue); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.85rem;">
+              {{ app.job.title|slice:":2"|upper }}
+            </div>
+            <div>
+              <h4 class="app-title" style="font-size: 0.95rem; font-weight: 600; color: var(--dark-navy); margin-bottom: 2px;">{{ app.job.title }}</h4>
+              <div class="app-meta text-xs text-muted">
+                <span>{{ app.job.department.name }}</span> • <span>Applied {{ app.applied_at|date:"d M Y" }}</span>
+              </div>
+            </div>
+          </div>
+          <div class="d-flex align-items-center gap-3">
+            {% if app.status == 'APPLIED' %}
+            <span class="badge badge-applied"><span class="badge-dot"></span>Applied</span>
+            {% elif app.status == 'RESUME_REVIEW' %}
+            <span class="badge badge-review"><span class="badge-dot"></span>Resume Under Review</span>
+            {% elif app.status == 'SHORTLISTED' %}
+            <span class="badge badge-shortlisted"><span class="badge-dot"></span>Shortlisted</span>
+            {% elif app.status == 'APTITUDE_TEST' %}
+            <span class="badge badge-aptitude"><span class="badge-dot"></span>Aptitude Test</span>
+            {% elif app.status == 'INTERVIEW_SCHEDULED' %}
+            <span class="badge badge-interview"><span class="badge-dot"></span>Interview Scheduled</span>
+            {% elif app.status == 'SELECTED' %}
+            <span class="badge badge-selected"><span class="badge-dot"></span>Selected</span>
+            {% elif app.status == 'REJECTED' %}
+            <span class="badge badge-rejected"><span class="badge-dot"></span>Rejected</span>
+            {% else %}
+            <span class="badge badge-applied">{{ app.get_status_display }}</span>
+            {% endif %}
+            <a href="{% url 'candidates:application_details' app.application_id %}" class="btn btn-sm btn-outline">Details</a>
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+      <div style="text-align: center; padding: 36px 16px;">
+        <p class="text-sm text-muted mb-3">You haven't submitted any job applications yet.</p>
+        <a href="{% url 'candidates:job_list' %}" class="btn btn-sm btn-primary">Find Your First Job</a>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- RIGHT: Upcoming Interviews & Announcements & Readiness -->
+  <div style="display: flex; flex-direction: column; gap: 24px;">
+    <!-- Upcoming Interviews Card -->
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <h3 class="card-title">Upcoming Interviews</h3>
+          <p class="card-subtitle">Scheduled rounds with the HR team</p>
+        </div>
+        <a href="{% url 'candidates:interview_list' %}" class="btn btn-sm btn-outline">All ({{ upcoming_interviews_count }})</a>
+      </div>
+
+      {% if upcoming_interviews %}
+        {% for interview in upcoming_interviews %}
+        <div class="upcoming-interview-card mb-3" style="background: var(--page-bg); border-radius: var(--radius-md); padding: 16px; border-left: 4px solid var(--primary-blue);">
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <div>
+              <div class="interview-job font-bold text-navy" style="font-size: 0.95rem;">{{ interview.job.title }}</div>
+              <div class="interview-type text-xs text-muted">{{ interview.interview_round }}</div>
+            </div>
+            <span class="badge badge-interview">{{ interview.get_mode_display }}</span>
+          </div>
+
+          <div class="interview-time-box d-flex align-items-center gap-2 text-xs font-semibold text-primary mb-3" style="background: #FFF; padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border-color);">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            <span>{{ interview.date|date:"d M Y" }} &bull; {{ interview.time|time:"h:i A" }}</span>
+          </div>
+
+          <div class="d-flex justify-content-between align-items-center">
+            <span class="text-xs text-muted">{{ interview.interviewer|truncatechars:28 }}</span>
+            <div class="d-flex gap-2">
+              <a href="{% url 'candidates:interview_details' interview.interview_id %}" class="btn btn-xs btn-outline">Details</a>
+              {% if interview.meeting_link %}
+              <a href="{{ interview.meeting_link }}" target="_blank" rel="noopener noreferrer" class="btn btn-xs btn-primary">Join</a>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      {% else %}
+        <div style="text-align: center; padding: 24px 16px;">
+          <p class="text-xs text-muted mb-0">No upcoming interviews scheduled.</p>
+        </div>
+      {% endif %}
+
+      <!-- Announcements Sub-section -->
+      <div class="mt-3 pt-3" style="border-top: 1px solid var(--border-light);">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <h4 style="font-size: 0.875rem; font-weight: 700; color: var(--dark-navy);">Company Announcements</h4>
+          <span class="badge badge-neutral" style="font-size: 0.7rem;">Notice</span>
+        </div>
+        {% if announcements %}
+          {% for ann in announcements %}
+          <div class="announcement-item mb-2" style="padding: 10px 12px; background: var(--page-bg); border-radius: var(--radius-sm); border-left: 3px solid var(--primary-blue);">
+            <div class="announcement-title font-semibold text-navy" style="font-size: 0.85rem;">{{ ann.title }}</div>
+            <div class="announcement-date text-xs text-muted" style="margin-top: 2px;">{{ ann.message|truncatechars:85 }} &bull; {{ ann.created_at|date:"d M Y" }}</div>
+          </div>
+          {% endfor %}
+        {% else %}
+          <p class="text-xs text-muted mb-0">No active company announcements at this time.</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Profile & Readiness -->
+    <div class="card">
+      <h3 class="card-title mb-3">Profile & Readiness</h3>
+      <div style="background: var(--page-bg); border-radius: var(--radius-md); padding: 14px; margin-bottom: 16px;">
+        <div class="d-flex justify-content-between text-xs mb-1">
+          <span class="text-navy font-semibold">Profile Strength</span>
+          <span class="text-primary font-bold">{{ completion_pct }}%</span>
+        </div>
+        <div class="progress-bar-bg">
+          <div class="progress-bar-fill" style="width: {{ completion_pct }}%;"></div>
+        </div>
+        <p class="text-xs text-muted mt-2 mb-0">{{ completion_advice }}</p>
+      </div>
+      <div class="d-flex gap-2">
+        <a href="{% url 'candidates:edit_profile' %}" class="btn btn-sm btn-outline flex-grow-1 text-center">Edit Profile</a>
+        <a href="{% url 'candidates:documents' %}" class="btn btn-sm btn-outline flex-grow-1 text-center">Upload Docs</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Recommended Jobs Section -->
+{% if recommended_jobs %}
+<section class="card mb-4">
+  <div class="card-header">
+    <div>
+      <h3 class="card-title">Recommended Jobs</h3>
+      <p class="card-subtitle">
+        {% if candidate_skills %}
+          Opportunities matching your skills in {{ candidate_skills|slice:":3"|join:", " }}
+        {% else %}
+          Curated opportunities for your career profile
+        {% endif %}
+      </p>
+    </div>
+    <a href="{% url 'candidates:job_list' %}" class="btn btn-sm btn-primary">Explore All Jobs</a>
+  </div>
+
+  <div class="grid-4">
+    {% for job in recommended_jobs %}
+    <div class="job-card" style="display: flex; flex-direction: column; justify-content: space-between;">
+      <div>
+        <div class="job-card-header d-flex justify-content-between align-items-center mb-2">
+          <span class="job-dept-badge">{{ job.department.name }}</span>
+          <span class="text-xs text-muted">{{ job.posted_at|timesince }} ago</span>
+        </div>
+        <h4 class="job-title" style="font-size: 0.98rem; margin-top: 4px; font-weight: 700;">{{ job.title }}</h4>
+        <div class="job-meta-list text-xs text-muted mb-2">
+          <span>{{ job.location }}</span> • <span>{{ job.experience_required }}</span>
+        </div>
+      </div>
+      <div class="job-card-footer mt-auto pt-2 border-top d-flex justify-content-between align-items-center">
+        <span class="job-salary-tag" style="font-size: 0.8rem;">{{ job.salary_display|default:"Competitive" }}</span>
+        {% if job.pk in applied_job_ids %}
+          <span class="badge badge-applied" style="font-size: 0.75rem;">Applied</span>
+        {% else %}
+          <a href="{% url 'candidates:job_details' job.job_id %}" class="btn btn-xs btn-outline">View</a>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+{% endblock %}

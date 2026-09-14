@@ -1,0 +1,190 @@
+{% extends 'candidates/base.html' %}
+{% load static %}
+
+{% block title %}Aptitude & Technical Assessments - HRMS Portal{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Aptitude & Technical Assessments</h1>
+    <p class="page-subtitle">Take assigned skill evaluations and view verified scores</p>
+  </div>
+</div>
+
+<!-- Filter Tabs -->
+<div class="nav-tabs mb-4">
+  <a href="?tab=available" class="nav-tab-btn {% if current_tab == 'available' %}active{% endif %}" style="text-decoration: none;">
+    Available Tests ({{ available_count }})
+  </a>
+  <a href="?tab=upcoming" class="nav-tab-btn {% if current_tab == 'upcoming' %}active{% endif %}" style="text-decoration: none;">
+    Upcoming Tests ({{ upcoming_count }})
+  </a>
+  <a href="?tab=completed" class="nav-tab-btn {% if current_tab == 'completed' %}active{% endif %}" style="text-decoration: none;">
+    Completed Tests ({{ completed_count }})
+  </a>
+</div>
+
+{% if current_tab == 'available' %}
+  <!-- AVAILABLE TESTS TAB -->
+  {% if available_tests %}
+    <div class="grid-3 mb-4">
+      {% for test in available_tests %}
+      <div class="card" style="border-top: 4px solid var(--primary-blue); display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <span class="badge badge-applied">Available Now</span>
+            <span class="text-xs text-muted">{{ test.created_at|date:"d M Y" }}</span>
+          </div>
+          <h3 class="card-title" style="font-size: 1.1rem; margin-top: 4px;">{{ test.title }}</h3>
+          <p class="text-xs text-muted mb-3">
+            {% if test.job %}
+              Job: {{ test.job.title }} ({{ test.job.job_code|default:"Vacancy" }})
+            {% else %}
+              Assessment: General Skill Evaluation
+            {% endif %}
+          </p>
+
+          <div style="background: var(--page-bg); border-radius: var(--radius-md); padding: 12px; margin-bottom: 20px;">
+            <div class="d-flex justify-content-between text-xs mb-1">
+              <span class="text-muted">Questions:</span>
+              <span class="font-semibold text-navy">{{ test.questions.count|default:test.total_questions }} MCQs</span>
+            </div>
+            <div class="d-flex justify-content-between text-xs mb-1">
+              <span class="text-muted">Duration:</span>
+              <span class="font-semibold text-navy">{{ test.duration_minutes }} Minutes</span>
+            </div>
+            <div class="d-flex justify-content-between text-xs">
+              <span class="text-muted">Passing Score:</span>
+              <span class="font-semibold text-success">{{ test.passing_percentage }}%</span>
+            </div>
+          </div>
+        </div>
+
+        <a href="{% url 'candidates:aptitude_test' test.test_id %}" class="btn btn-primary btn-block">
+          <span>Start Assessment</span>
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="card" style="text-align: center; padding: 48px 24px;">
+      <div style="width: 56px; height: 56px; border-radius: 50%; background: var(--page-bg); color: var(--secondary-text); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+      </div>
+      <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--dark-navy); margin-bottom: 6px;">No Available Tests</h3>
+      <p class="text-xs text-muted mb-0">You do not have any pending tests right now. When HR assigns or schedules an assessment for your application, it will appear here.</p>
+    </div>
+  {% endif %}
+
+{% elif current_tab == 'upcoming' %}
+  <!-- UPCOMING TESTS TAB -->
+  {% if upcoming_tests %}
+    <div class="grid-3 mb-4">
+      {% for test in upcoming_tests %}
+      <div class="card" style="border-top: 4px solid var(--warning); display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            <span class="badge badge-review">Upcoming</span>
+            <span class="text-xs text-muted">Scheduled</span>
+          </div>
+          <h3 class="card-title" style="font-size: 1.1rem; margin-top: 4px;">{{ test.title }}</h3>
+          <p class="text-xs text-muted mb-3">
+            {% if test.job %}
+              Job: {{ test.job.title }}
+            {% else %}
+              General Technical Assessment
+            {% endif %}
+          </p>
+
+          <div style="background: var(--page-bg); border-radius: var(--radius-md); padding: 12px; margin-bottom: 20px;">
+            <div class="d-flex justify-content-between text-xs mb-1">
+              <span class="text-muted">Questions:</span>
+              <span class="font-semibold text-navy">{{ test.questions.count|default:test.total_questions }} MCQs</span>
+            </div>
+            <div class="d-flex justify-content-between text-xs mb-1">
+              <span class="text-muted">Duration:</span>
+              <span class="font-semibold text-navy">{{ test.duration_minutes }} Minutes</span>
+            </div>
+            <div class="d-flex justify-content-between text-xs">
+              <span class="text-muted">Passing Score:</span>
+              <span class="font-semibold text-success">{{ test.passing_percentage }}%</span>
+            </div>
+          </div>
+        </div>
+
+        <button class="btn btn-secondary btn-block" disabled>Assessment Scheduled</button>
+      </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="card" style="text-align: center; padding: 48px 24px;">
+      <div style="width: 56px; height: 56px; border-radius: 50%; background: var(--page-bg); color: var(--secondary-text); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+      </div>
+      <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--dark-navy); margin-bottom: 6px;">No Upcoming Tests</h3>
+      <p class="text-xs text-muted mb-0">There are no future assessments scheduled at this time.</p>
+    </div>
+  {% endif %}
+
+{% elif current_tab == 'completed' %}
+  <!-- COMPLETED TESTS TAB -->
+  {% if completed_results %}
+    <div class="grid-3 mb-4">
+      {% for result in completed_results %}
+      <div class="card" style="border-top: 4px solid {% if result.is_passed %}var(--success){% else %}var(--danger){% endif %}; display: flex; flex-direction: column; justify-content: space-between;">
+        <div>
+          <div class="d-flex justify-content-between align-items-start mb-2">
+            {% if result.is_passed %}
+              <span class="badge badge-shortlisted">Passed</span>
+            {% else %}
+              <span class="badge badge-rejected">Failed</span>
+            {% endif %}
+            <span class="text-xs text-muted">{{ result.completed_at|date:"d M Y" }}</span>
+          </div>
+          <h3 class="card-title" style="font-size: 1.1rem; margin-top: 4px;">{{ result.test.title }}</h3>
+          <p class="text-xs text-muted mb-3">
+            {% if result.test.job %}
+              Job: {{ result.test.job.title }}
+            {% else %}
+              General Assessment
+            {% endif %}
+          </p>
+
+          <div style="background: var(--page-bg); border-radius: var(--radius-md); padding: 12px; margin-bottom: 20px;">
+            <div class="d-flex justify-content-between text-xs mb-1">
+              <span class="text-muted">Score:</span>
+              <span class="font-bold {% if result.is_passed %}text-success{% else %}text-danger{% endif %}">
+                {{ result.score_percentage }}% ({{ result.correct_answers }}/{{ result.total_questions }} Correct)
+              </span>
+            </div>
+            <div class="d-flex justify-content-between text-xs mb-1">
+              <span class="text-muted">Result:</span>
+              <span class="badge {% if result.is_passed %}badge-shortlisted{% else %}badge-rejected{% endif %}">
+                {% if result.is_passed %}PASSED{% else %}FAILED{% endif %}
+              </span>
+            </div>
+            <div class="d-flex justify-content-between text-xs">
+              <span class="text-muted">Passing Criteria:</span>
+              <span class="font-semibold text-navy">{{ result.test.passing_percentage }}%</span>
+            </div>
+          </div>
+        </div>
+
+        <a href="{% url 'candidates:aptitude_result' result.result_id %}" class="btn btn-outline-primary btn-block">
+          View Result Card
+        </a>
+      </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <div class="card" style="text-align: center; padding: 48px 24px;">
+      <div style="width: 56px; height: 56px; border-radius: 50%; background: var(--page-bg); color: var(--secondary-text); display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+      </div>
+      <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--dark-navy); margin-bottom: 6px;">No Completed Tests</h3>
+      <p class="text-xs text-muted mb-0">You have not completed any aptitude assessments yet.</p>
+    </div>
+  {% endif %}
+{% endif %}
+{% endblock %}

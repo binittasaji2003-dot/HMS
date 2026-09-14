@@ -1,0 +1,207 @@
+{% extends 'candidates/base.html' %}
+{% load static %}
+
+{% block title %}My Documents - HRMS Portal{% endblock %}
+
+{% block content %}
+<div class="breadcrumb">
+  <a href="{% url 'candidates:dashboard' %}">Dashboard</a>
+  <span class="breadcrumb-separator">/</span>
+  <a href="{% url 'candidates:profile' %}">My Profile</a>
+  <span class="breadcrumb-separator">/</span>
+  <span class="breadcrumb-current">My Documents</span>
+</div>
+
+<div class="page-header">
+  <div>
+    <h1 class="page-title">My Documents</h1>
+    <p class="page-subtitle">Upload, view, and manage your verification certificates and resume</p>
+  </div>
+  <div>
+    <span class="badge badge-applied" style="font-size: 0.85rem; padding: 8px 14px;">
+      Uploaded: {{ uploaded_count }} / {{ total_documents }} Documents
+    </span>
+  </div>
+</div>
+
+<!-- Upload / Dropzone Card -->
+<form action="{% url 'candidates:document_upload' %}" method="POST" enctype="multipart/form-data" id="documentUploadMainForm">
+  {% csrf_token %}
+  
+  <div class="card mb-4" style="padding: 20px;">
+    <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+      <div>
+        <label class="form-label font-bold text-navy m-0" for="id_document_type">Select Document Category to Upload</label>
+        <div class="text-xs text-muted">Select category, then browse or drag-and-drop your file below</div>
+      </div>
+      <div style="min-width: 280px;">
+        <select name="document_type" id="id_document_type" class="form-select font-semibold" required>
+          <option value="resume" selected>Resume / Curriculum Vitae</option>
+          <option value="id_proof">Identity Proof (Aadhaar / Passport)</option>
+          <option value="tenth_certificate">10th Standard Certificate</option>
+          <option value="tenth_marklist">10th Standard Marksheet</option>
+          <option value="twelfth_certificate">12th Standard Certificate</option>
+          <option value="twelfth_marklist">12th Standard Marksheet</option>
+          <option value="degree_certificate">Degree Certificate / Provisional</option>
+          <option value="graduation_certificate">Graduation Certificate / Consolidated</option>
+          <option value="experience_certificate">Experience Certificate / Relieving Letter</option>
+          <option value="other_document">Other Supporting Document / Certifications</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="dropzone" id="documentDropzone" style="cursor: pointer;">
+      <svg class="dropzone-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+      <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--dark-navy); margin-bottom: 4px;">Drag and drop your document here</h3>
+      <p class="text-sm text-muted mb-3">Allowed types: PDF, JPG, JPEG, PNG (Max 10MB). Executable files are prohibited.</p>
+      <button type="button" class="btn btn-primary btn-sm" onclick="document.getElementById('documentFileInput').click();">Browse Files</button>
+      <input type="file" name="document_file" id="documentFileInput" accept=".pdf,.jpg,.jpeg,.png" style="display: none;" required onchange="handleFileSelected(this)">
+    </div>
+
+    <div id="uploadPreviewBox" style="display: none; align-items: center; justify-content: space-between; background: #FFF; border: 1px solid var(--border-color); border-radius: var(--radius-md); padding: 14px 20px; margin-top: 16px;">
+      <div class="d-flex align-items-center gap-3">
+        <div style="width: 40px; height: 40px; border-radius: var(--radius-sm); background: var(--primary-blue-light); color: var(--primary-blue); display: flex; align-items: center; justify-content: center; font-weight: 700;" id="previewFileExtBadge">FILE</div>
+        <div>
+          <div class="preview-file-name font-semibold text-navy" id="previewFileName">Document.pdf</div>
+          <div class="preview-file-size text-xs text-muted" id="previewFileSize">0 MB</div>
+        </div>
+      </div>
+      <div class="d-flex gap-2">
+        <button type="button" class="btn btn-sm btn-secondary" onclick="cancelUploadSelection()">Cancel</button>
+        <button type="submit" class="btn btn-sm btn-success" id="uploadNowBtn">
+          <span>Upload Document</span>
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</form>
+
+<!-- Uploaded Documents List -->
+<section>
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--dark-navy);">
+      Required & Uploaded Documents ({{ uploaded_count }}/{{ total_documents }})
+    </h3>
+    <span class="text-xs text-muted">All documents are stored securely with restricted access</span>
+  </div>
+
+  <div class="d-flex flex-column gap-3" id="documentsListContainer">
+    {% for item in document_items %}
+      <div class="document-card" id="doc-card-{{ item.field_name }}">
+        <div class="doc-info-group">
+          <div class="doc-icon" {% if item.file_ext == 'JPG' or item.file_ext == 'JPEG' or item.file_ext == 'PNG' %}style="background: var(--primary-blue-light); color: var(--primary-blue);"{% endif %}>
+            {{ item.file_ext|default:"DOC" }}
+          </div>
+          <div>
+            <div class="font-semibold text-navy">{{ item.label }}</div>
+            {% if item.has_file %}
+              <div class="text-xs text-muted">
+                {{ item.filename }} • {{ item.file_size }} • Uploaded on {{ item.uploaded_at|date:"d M Y" }}
+              </div>
+            {% else %}
+              <div class="text-xs text-muted">
+                Not uploaded yet • Allowed formats: {{ item.allowed_types }}
+              </div>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+          {% if item.has_file %}
+            {% if item.verification_status == 'VERIFIED' %}
+              <span class="badge badge-shortlisted"><span class="badge-dot"></span>Verified</span>
+            {% elif item.verification_status == 'REJECTED' %}
+              <span class="badge badge-rejected"><span class="badge-dot"></span>Rejected</span>
+            {% else %}
+              <span class="badge badge-review"><span class="badge-dot"></span>Pending Review</span>
+            {% endif %}
+
+            <a href="{% url 'candidates:view_document' item.field_name %}" target="_blank" class="btn btn-sm btn-outline" title="View Document">View</a>
+            <a href="{% url 'candidates:download_document' item.field_name %}" class="btn btn-sm btn-outline" title="Download Document">Download</a>
+            <button type="button" class="btn btn-sm btn-secondary" onclick="triggerUploadModal('{{ item.field_name }}', '{{ item.label|escapejs }}')">Replace</button>
+            <form action="{% url 'candidates:delete_document' item.field_name %}" method="POST" onsubmit="return confirm('Are you sure you want to delete this document?');" style="display:inline;">
+              {% csrf_token %}
+              <button type="submit" class="btn btn-sm btn-outline" style="color: var(--danger); border-color: var(--danger);" title="Delete Document">Delete</button>
+            </form>
+          {% else %}
+            <button type="button" class="btn btn-sm btn-primary" onclick="triggerUploadModal('{{ item.field_name }}', '{{ item.label|escapejs }}')">
+              <span>Upload</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>
+            </button>
+          {% endif %}
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</section>
+
+<!-- Single Document Upload / Replace Modal -->
+<div class="modal-overlay" id="uploadDocumentModal">
+  <div class="modal-dialog" style="max-width: 480px;">
+    <div class="modal-header">
+      <div>
+        <h3 class="modal-title" id="modalDocTitle">Upload Document</h3>
+        <p class="text-xs text-muted" id="modalDocSubtitle">Choose a file to upload or replace</p>
+      </div>
+      <button type="button" class="modal-close-btn" onclick="closeModal('uploadDocumentModal')">✕</button>
+    </div>
+    <form action="{% url 'candidates:document_upload' %}" method="POST" enctype="multipart/form-data">
+      {% csrf_token %}
+      <input type="hidden" name="document_type" id="modalDocumentTypeInput">
+      
+      <div class="modal-body">
+        <div class="form-group">
+          <label class="form-label">Select File <span class="required">*</span></label>
+          <input type="file" name="document_file" class="form-control" accept=".pdf,.jpg,.jpeg,.png" required>
+          <div class="text-xs text-muted mt-1">Permitted: PDF, JPG, JPEG, PNG (Up to 10MB). Executables will be rejected.</div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('uploadDocumentModal')">Cancel</button>
+        <button type="submit" class="btn btn-primary">Upload Document</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function handleFileSelected(input) {
+  if (input.files && input.files[0]) {
+    const file = input.files[0];
+    const previewBox = document.getElementById('uploadPreviewBox');
+    const nameEl = document.getElementById('previewFileName');
+    const sizeEl = document.getElementById('previewFileSize');
+    const extEl = document.getElementById('previewFileExtBadge');
+
+    if (nameEl) nameEl.textContent = file.name;
+    if (sizeEl) sizeEl.textContent = (file.size / (1024 * 1024)).toFixed(2) + ' MB';
+    
+    const ext = file.name.split('.').pop().toUpperCase();
+    if (extEl) extEl.textContent = ext || 'FILE';
+
+    previewBox.style.display = 'flex';
+  }
+}
+
+function cancelUploadSelection() {
+  const fileInput = document.getElementById('documentFileInput');
+  if (fileInput) fileInput.value = '';
+  const previewBox = document.getElementById('uploadPreviewBox');
+  if (previewBox) previewBox.style.display = 'none';
+}
+
+function triggerUploadModal(docType, label) {
+  document.getElementById('modalDocumentTypeInput').value = docType;
+  document.getElementById('modalDocTitle').textContent = label;
+  document.getElementById('modalDocSubtitle').textContent = 'Upload or replace file for ' + label;
+  document.getElementById('uploadDocumentModal').classList.add('show');
+}
+
+function closeModal(modalId) {
+  document.getElementById(modalId).classList.remove('show');
+}
+</script>
+{% endblock %}
