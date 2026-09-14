@@ -1,0 +1,277 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Login - HRMS</title>
+    <link rel="icon" href="{% static 'images/favicons/favicon.ico' %}">
+
+    <!-- Google Fonts & Tailwind CSS CDN -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                    },
+                    colors: {
+                        hrms: {
+                            blue: '#1677ff',
+                            hover: '#0958d9',
+                            bg: '#ebf4ff',
+                            light: '#f0f7ff',
+                            dark: '#0f172a',
+                            muted: '#64748b'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #ebf4ff;
+            background-image: 
+                radial-gradient(circle at 100% 0%, rgba(219, 234, 254, 0.8) 0%, transparent 50%),
+                radial-gradient(circle at 100% 100%, rgba(191, 219, 254, 0.7) 0%, transparent 60%);
+            background-attachment: fixed;
+        }
+    </style>
+</head>
+<body class="min-h-screen w-full flex items-center justify-center font-sans antialiased text-slate-800 p-4 lg:p-8">
+
+    <!-- Main Card Container -->
+    <div class="w-full max-w-[1140px] min-h-[660px] bg-white rounded-3xl shadow-xl shadow-blue-900/5 overflow-hidden grid grid-cols-1 lg:grid-cols-12 border border-blue-100/60">
+        
+        <!-- Left Side: Branding & Illustration (7 columns on desktop) -->
+        <div class="lg:col-span-7 bg-gradient-to-b from-[#f4f9ff] to-[#ebf4ff] p-8 lg:p-12 flex flex-col justify-between relative border-b lg:border-b-0 lg:border-r border-blue-100/80">
+            
+            <div>
+                <!-- Top Brand Nav -->
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <div class="w-11 h-11 bg-hrms-blue text-white rounded-xl flex items-center justify-center text-xl shadow-md shadow-blue-500/20">
+                            <i class="bi bi-people-fill"></i>
+                        </div>
+                        <div>
+                            <h1 class="text-2xl font-extrabold text-slate-900 leading-none tracking-tight">HRMS</h1>
+                            <p class="text-[11px] font-semibold text-slate-500 mt-1">Human Resource Management System</p>
+                        </div>
+                    </div>
+                    <div class="hidden sm:block text-xs font-semibold text-slate-500 tracking-wide">
+                        People &nbsp;|&nbsp; Process &nbsp;|&nbsp; Progress
+                    </div>
+                </div>
+
+                <!-- Hero Section -->
+                <div class="mt-8">
+                    <h2 class="text-3xl lg:text-4xl font-extrabold text-slate-900 leading-[1.18] tracking-tight">
+                        Empowering<br>
+                        People, Building<br>
+                        <span class="text-hrms-blue">Better Workplace</span>
+                    </h2>
+                    <p class="text-sm font-medium text-slate-500 mt-3 max-w-md">
+                        A smarter way to manage your work, growth and opportunities.
+                    </p>
+                </div>
+
+                <!-- Feature Badges -->
+                <div class="mt-7 flex flex-col gap-4">
+                    <div class="flex items-center gap-3.5">
+                        <div class="w-10 h-10 rounded-full bg-white text-hrms-blue flex items-center justify-center text-lg shadow-sm border border-blue-100 shrink-0">
+                            <i class="bi bi-graph-up-arrow"></i>
+                        </div>
+                        <div class="text-xs text-slate-600">
+                            <strong class="text-slate-900 font-bold block text-sm">Grow</strong>
+                            Your Career
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-3.5">
+                        <div class="w-10 h-10 rounded-full bg-white text-hrms-blue flex items-center justify-center text-lg shadow-sm border border-blue-100 shrink-0">
+                            <i class="bi bi-shield-check"></i>
+                        </div>
+                        <div class="text-xs text-slate-600">
+                            <strong class="text-slate-900 font-bold block text-sm">Stay</strong>
+                            Productive
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-3.5">
+                        <div class="w-10 h-10 rounded-full bg-white text-hrms-blue flex items-center justify-center text-lg shadow-sm border border-blue-100 shrink-0">
+                            <i class="bi bi-people"></i>
+                        </div>
+                        <div class="text-xs text-slate-600">
+                            <strong class="text-slate-900 font-bold block text-sm">Be Part of</strong>
+                            a Great Team
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vector Illustration & Bottom Tagline -->
+            <div class="mt-8 pt-4 flex items-end justify-between">
+                <div class="text-[10px] font-extrabold text-slate-400 tracking-[0.18em] uppercase leading-tight">
+                    PEOPLE MAKE<br>
+                    ORGANIZATIONS<br>
+                    GREAT
+                </div>
+                <img src="{% static 'images/login_hero.png' %}" alt="HRMS Office Team" class="w-full max-w-[380px] h-auto object-contain">
+            </div>
+
+        </div>
+
+        <!-- Right Side: Login Form (5 columns on desktop) -->
+        <div class="lg:col-span-5 p-8 lg:p-12 flex flex-col justify-center bg-white">
+            
+            <div class="text-center mb-8">
+                <h3 class="text-2xl lg:text-3xl font-extrabold text-slate-900 tracking-tight">Welcome Back!</h3>
+                <h4 class="text-base font-bold text-slate-700 mt-1">Employee Login</h4>
+                <p class="text-xs font-medium text-slate-500 mt-1">Sign in to access your employee portal</p>
+            </div>
+
+            <!-- Django Alert Messages -->
+            {% if messages %}
+                <div class="mb-5 space-y-2">
+                    {% for message in messages %}
+                        <div class="flex items-center gap-2 p-3 text-xs rounded-xl bg-red-50 text-red-700 border border-red-200">
+                            <i class="bi bi-exclamation-triangle-fill text-sm shrink-0"></i>
+                            <span>{{ message }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <form method="POST" action="{% url 'employees:login' %}" class="space-y-5">
+                {% csrf_token %}
+
+                <!-- Quick AutoFill / 1-Click Demo Login -->
+                <div class="p-3 bg-blue-50/70 border border-blue-200/70 rounded-xl space-y-2.5">
+                    <div class="text-[11px] font-bold text-slate-700 flex items-center justify-between">
+                        <span><i class="bi bi-key-fill text-hrms-blue"></i> Quick Demo Access:</span>
+                        <span class="text-[10px] text-slate-500 font-normal">Click to test</span>
+                    </div>
+
+                    <!-- 1-Click Instant Login -->
+                    <a href="{% url 'employees:login' %}?demo=true" class="w-full py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs font-bold rounded-lg flex items-center justify-center gap-2 shadow-sm transition">
+                        <i class="bi bi-lightning-charge-fill text-amber-300"></i> Instant 1-Click Login to Dashboard
+                    </a>
+
+                    <div class="grid grid-cols-2 gap-2">
+                        <button type="button" onclick="fillCredentials('binitta.saji@company.com', 'password123')" class="px-2.5 py-1.5 bg-white hover:bg-blue-100/50 border border-blue-200 text-[11px] font-semibold text-slate-700 rounded-lg text-left transition truncate">
+                            👤 <strong>Employee</strong><br><span class="text-[10px] text-slate-500">binitta.saji@company.com</span>
+                        </button>
+                        <button type="button" onclick="fillCredentials('binittasaji2003@gmail.com', 'password123')" class="px-2.5 py-1.5 bg-white hover:bg-blue-100/50 border border-blue-200 text-[11px] font-semibold text-slate-700 rounded-lg text-left transition truncate">
+                            ⚡ <strong>Admin</strong><br><span class="text-[10px] text-slate-500">binittasaji2003@gmail.com</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Email / Employee Code Field -->
+                <div>
+                    <label for="email" class="block text-xs font-bold text-slate-700 mb-1.5">Email / Employee ID</label>
+                    <div class="relative flex items-center">
+                        <i class="bi bi-person absolute left-4 text-slate-400 text-base pointer-events-none"></i>
+                        <input 
+                            type="text" 
+                            id="email" 
+                            name="email" 
+                            required 
+                            autofocus
+                            placeholder="Enter email (e.g. binitta.saji@company.com) or EMP1024" 
+                            class="w-full h-11 pl-11 pr-4 text-sm bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-hrms-blue focus:ring-4 focus:ring-blue-500/10 outline-none transition-all"
+                        >
+                    </div>
+                </div>
+
+                <!-- Password Field -->
+                <div>
+                    <div class="flex items-center justify-between mb-1.5">
+                        <label for="password" class="block text-xs font-bold text-slate-700">Password</label>
+                        <a href="{% url 'employees:forgot_password' %}" class="text-xs font-semibold text-hrms-blue hover:underline">Forgot Password?</a>
+                    </div>
+                    <div class="relative flex items-center">
+                        <i class="bi bi-lock absolute left-4 text-slate-400 text-base pointer-events-none"></i>
+                        <input 
+                            type="password" 
+                            id="password" 
+                            name="password" 
+                            required
+                            placeholder="Enter your password" 
+                            class="w-full h-11 pl-11 pr-11 text-sm bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-hrms-blue focus:ring-4 focus:ring-blue-500/10 outline-none transition-all"
+                        >
+                        <button type="button" id="togglePasswordBtn" class="absolute right-4 text-slate-400 hover:text-slate-700 text-base">
+                            <i class="bi bi-eye" id="togglePasswordIcon"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Remember Me Checkbox -->
+                <div class="flex items-center gap-2 pt-1">
+                    <input type="checkbox" id="remember_me" name="remember_me" class="w-4 h-4 rounded border-slate-300 text-hrms-blue focus:ring-hrms-blue cursor-pointer">
+                    <label for="remember_me" class="text-xs font-medium text-slate-600 cursor-pointer select-none">Remember me</label>
+                </div>
+
+                <!-- Submit Button -->
+                <button type="submit" class="w-full h-11 bg-hrms-blue hover:bg-hrms-hover text-white text-sm font-bold rounded-xl shadow-md shadow-blue-500/25 flex items-center justify-center gap-2 transition-all active:scale-[0.99]">
+                    Login <i class="bi bi-arrow-right"></i>
+                </button>
+
+                <!-- Divider -->
+                <div class="relative flex items-center justify-center my-4">
+                    <div class="w-full border-t border-slate-200"></div>
+                    <span class="absolute bg-white px-3 text-[10px] font-extrabold text-slate-400 tracking-wider uppercase">OR</span>
+                </div>
+
+                <!-- SSO Button -->
+                <button type="button" onclick="fillCredentials('binitta.saji@company.com', 'password123');" class="w-full h-11 bg-blue-50/80 hover:bg-blue-100/70 border border-blue-200/80 text-hrms-blue text-xs font-bold rounded-xl flex items-center justify-center gap-2 transition-all">
+                    <i class="bi bi-building"></i> Login with Company Email
+                </button>
+
+                <!-- Contact HR Link -->
+                <div class="text-center pt-2 text-xs font-medium text-slate-500">
+                    Need help? <a href="mailto:hr@company.com" class="font-bold text-hrms-blue hover:underline">Contact HR</a>
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+    <!-- Password Visibility & Quick Fill Script -->
+    <script>
+        function fillCredentials(email, pwd) {
+            const emailInput = document.getElementById('email');
+            const pwdInput = document.getElementById('password');
+            if (emailInput && pwdInput) {
+                emailInput.value = email;
+                pwdInput.value = pwd;
+                emailInput.focus();
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const toggleBtn = document.getElementById('togglePasswordBtn');
+            const pwdInput = document.getElementById('password');
+            const pwdIcon = document.getElementById('togglePasswordIcon');
+
+            if (toggleBtn && pwdInput && pwdIcon) {
+                toggleBtn.addEventListener('click', function() {
+                    const isPwd = pwdInput.getAttribute('type') === 'password';
+                    pwdInput.setAttribute('type', isPwd ? 'text' : 'password');
+                    pwdIcon.className = isPwd ? 'bi bi-eye-slash' : 'bi bi-eye';
+                });
+            }
+        });
+    </script>
+</body>
+</html>

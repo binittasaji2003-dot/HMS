@@ -1,0 +1,595 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Employee Dashboard - HRMS</title>
+    <link rel="icon" href="{% static 'images/favicons/favicon.ico' %}">
+
+    <!-- Tailwind CSS CDN & Bootstrap Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                    },
+                    colors: {
+                        hrms: {
+                            blue: '#1677ff',
+                            hover: '#0958d9',
+                            bg: '#f8fafc',
+                            card: '#ffffff'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-slate-50 font-sans antialiased text-slate-800 min-h-screen flex">
+
+    <!-- Left Sidebar -->
+    <aside class="w-64 bg-white border-r border-slate-200/80 flex flex-col justify-between hidden md:flex shrink-0 min-h-screen">
+        <div>
+            <!-- Sidebar Header -->
+            <div class="h-20 flex items-center px-6 border-b border-slate-100">
+                <a href="{% url 'employees:dashboard' %}" class="flex items-center gap-3 text-hrms-blue">
+                    <div class="w-9 h-9 bg-hrms-blue text-white rounded-xl flex items-center justify-center text-lg shadow-sm">
+                        <i class="bi bi-people-fill"></i>
+                    </div>
+                    <span class="text-xl font-extrabold tracking-tight text-slate-900">HRMS</span>
+                </a>
+            </div>
+
+            <!-- Navigation Links -->
+            <nav class="p-4 space-y-1.5">
+                <a href="{% url 'employees:dashboard' %}" class="flex items-center gap-3 px-4 py-3 text-sm font-bold text-white bg-hrms-blue rounded-xl shadow-md shadow-blue-500/20">
+                    <i class="bi bi-grid-fill text-base"></i>
+                    <span>Dashboard</span>
+                </a>
+
+                <a href="{% url 'employees:profile' %}" class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-600 hover:text-hrms-blue hover:bg-blue-50/60 rounded-xl transition-all">
+                    <i class="bi bi-person text-base"></i>
+                    <span>My Profile</span>
+                </a>
+
+                <a href="{% url 'employees:reports_list' %}" class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-600 hover:text-hrms-blue hover:bg-blue-50/60 rounded-xl transition-all">
+                    <i class="bi bi-file-earmark-text text-base"></i>
+                    <span>Reports</span>
+                </a>
+
+                <a href="{% url 'employees:performance' %}" class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-600 hover:text-hrms-blue hover:bg-blue-50/60 rounded-xl transition-all">
+                    <i class="bi bi-bar-chart-line text-base"></i>
+                    <span>Performance</span>
+                </a>
+
+                <a href="{% url 'employees:announcements' %}" class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-600 hover:text-hrms-blue hover:bg-blue-50/60 rounded-xl transition-all">
+                    <i class="bi bi-megaphone text-base"></i>
+                    <span>Announcements</span>
+                </a>
+
+                <a href="{% url 'employees:notifications' %}" class="flex items-center justify-between px-4 py-3 text-sm font-semibold text-slate-600 hover:text-hrms-blue hover:bg-blue-50/60 rounded-xl transition-all">
+                    <div class="flex items-center gap-3">
+                        <i class="bi bi-bell text-base"></i>
+                        <span>Notifications</span>
+                    </div>
+                    <span class="w-5 h-5 bg-hrms-blue text-white text-[11px] font-bold rounded-full flex items-center justify-center">
+                        {{ unread_notifications_count }}
+                    </span>
+                </a>
+
+                <div class="pt-4 mt-4 border-t border-slate-100 space-y-1.5">
+                    <a href="{% url 'employees:profile' %}" class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-600 hover:text-hrms-blue hover:bg-blue-50/60 rounded-xl transition-all">
+                        <i class="bi bi-gear text-base"></i>
+                        <span>Settings</span>
+                    </a>
+
+                    <a href="#" onclick="alert('HR Support: hr@company.com');" class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-600 hover:text-hrms-blue hover:bg-blue-50/60 rounded-xl transition-all">
+                        <i class="bi bi-question-circle text-base"></i>
+                        <span>Help & Support</span>
+                    </a>
+                </div>
+            </nav>
+        </div>
+
+        <!-- Sidebar Footer -->
+        <div class="p-4 border-t border-slate-100">
+            <a href="{% url 'employees:logout' %}" class="flex items-center gap-3 px-4 py-3 text-sm font-bold text-slate-700 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all">
+                <i class="bi bi-box-arrow-right text-base"></i>
+                <span>Logout</span>
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Right Content Area -->
+    <div class="flex-1 flex flex-col min-w-0 min-h-screen">
+        
+        <!-- Top Navbar -->
+        <header class="h-20 bg-white border-b border-slate-200/80 px-6 lg:px-10 flex items-center justify-between gap-4 sticky top-0 z-20">
+            <div class="flex items-center gap-4 flex-1 max-w-md">
+                <button class="md:hidden text-slate-600 text-xl">
+                    <i class="bi bi-list"></i>
+                </button>
+                <div class="relative w-full">
+                    <i class="bi bi-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+                    <input type="text" placeholder="Search anything..." class="w-full h-10 pl-10 pr-4 text-xs font-medium bg-slate-100/80 border-0 rounded-xl text-slate-800 placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-hrms-blue/20 outline-none transition-all">
+                </div>
+            </div>
+
+            <!-- Top Right Profile -->
+            <div class="flex items-center gap-5">
+                <a href="{% url 'employees:notifications' %}" class="relative p-2 text-slate-600 hover:text-hrms-blue transition-colors">
+                    <i class="bi bi-bell text-lg"></i>
+                    <span class="absolute top-1.5 right-1.5 w-4 h-4 bg-hrms-blue text-white text-[9px] font-bold rounded-full flex items-center justify-center border-2 border-white">
+                        {{ unread_notifications_count }}
+                    </span>
+                </a>
+
+                <div class="h-8 w-px bg-slate-200"></div>
+
+                <a href="{% url 'employees:profile' %}" class="flex items-center gap-3 text-left group">
+                    {% if employee.profile_photo %}
+                        <img src="{{ employee.profile_photo.url }}" alt="Profile Photo" class="w-10 h-10 rounded-full object-cover border border-slate-200">
+                    {% else %}
+                        <div class="w-10 h-10 rounded-full bg-blue-100 text-hrms-blue font-bold flex items-center justify-center text-sm border border-blue-200">
+                            {{ employee.user.get_full_name|default:employee.user.email|slice:":1"|upper }}
+                        </div>
+                    {% endif %}
+                    <div class="hidden sm:block">
+                        <div class="text-sm font-bold text-slate-900 group-hover:text-hrms-blue transition-colors leading-tight">
+                            {{ employee.user.get_full_name|default:employee.user.email }}
+                        </div>
+                        <div class="text-xs font-medium text-slate-500">Employee</div>
+                    </div>
+                    <i class="bi bi-chevron-down text-xs text-slate-400"></i>
+                </a>
+            </div>
+        </header>
+
+        <!-- Main Body -->
+        <main class="flex-1 p-6 lg:p-10 space-y-8 max-w-[1400px] w-full mx-auto">
+
+            <!-- Django Alert Messages -->
+            {% if messages %}
+                <div class="space-y-2">
+                    {% for message in messages %}
+                        <div class="flex items-center gap-2 p-4 text-xs font-semibold rounded-xl bg-blue-50 text-blue-800 border border-blue-200">
+                            <i class="bi bi-info-circle-fill text-base text-hrms-blue shrink-0"></i>
+                            <span>{{ message }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <!-- Hero Banner Greeting -->
+            <div class="bg-gradient-to-r from-[#edf4ff] via-[#e2edff] to-[#f0f6ff] rounded-3xl p-8 lg:p-10 flex flex-col md:flex-row items-center justify-between gap-8 border border-blue-100 shadow-sm relative overflow-hidden">
+                <div class="z-10 space-y-4 max-w-xl">
+                    <div>
+                        <h1 class="text-3xl lg:text-4xl font-extrabold text-slate-900 tracking-tight">
+                            Good Morning, {{ employee.user.name|default:employee.user.email }}! 👋
+                        </h1>
+                        <p class="text-sm font-medium text-slate-500 mt-1">Welcome back to your employee portal.</p>
+                    </div>
+
+                    <!-- Details Grid -->
+                    <div class="grid grid-cols-2 gap-4 pt-2">
+                        <div class="flex items-start gap-3">
+                            <div class="w-8 h-8 rounded-lg bg-white/80 text-hrms-blue flex items-center justify-center text-sm shrink-0 border border-blue-100">
+                                <i class="bi bi-building"></i>
+                            </div>
+                            <div>
+                                <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">Department</div>
+                                <div class="text-xs font-bold text-slate-800">{{ employee.department.name|default:"Information Technology" }}</div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start gap-3">
+                            <div class="w-8 h-8 rounded-lg bg-white/80 text-hrms-blue flex items-center justify-center text-sm shrink-0 border border-blue-100">
+                                <i class="bi bi-person-badge"></i>
+                            </div>
+                            <div>
+                                <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">Designation</div>
+                                <div class="text-xs font-bold text-slate-800">{{ employee.designation|default:"Software Developer" }}</div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start gap-3">
+                            <div class="w-8 h-8 rounded-lg bg-white/80 text-hrms-blue flex items-center justify-center text-sm shrink-0 border border-blue-100">
+                                <i class="bi bi-card-text"></i>
+                            </div>
+                            <div>
+                                <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">Employee ID</div>
+                                <div class="text-xs font-bold text-slate-800">{{ employee.employee_code|default:"EMP1024" }}</div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-start gap-3">
+                            <div class="w-8 h-8 rounded-lg bg-white/80 text-hrms-blue flex items-center justify-center text-sm shrink-0 border border-blue-100">
+                                <i class="bi bi-envelope"></i>
+                            </div>
+                            <div>
+                                <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">Email</div>
+                                <div class="text-xs font-bold text-slate-800 truncate max-w-[150px]">{{ employee.user.email }}</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Illustration Image -->
+                <div class="z-10 shrink-0">
+                    <img src="{% static 'images/login_hero.png' %}" alt="HRMS Portal" class="w-full max-w-[340px] h-auto object-contain drop-shadow-md">
+                </div>
+            </div>
+
+            <!-- 4 Stat Metric Cards Row -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Stat 1: Monthly Report -->
+                <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-xl bg-blue-50 text-hrms-blue flex items-center justify-center text-xl shrink-0">
+                        <i class="bi bi-file-earmark-text"></i>
+                    </div>
+                    <div>
+                        <div class="text-xs font-bold text-slate-400 uppercase tracking-wide">Monthly Report</div>
+                        <div class="text-base font-extrabold text-emerald-600 mt-0.5">{{ monthly_report_status }}</div>
+                        <div class="text-[11px] font-medium text-slate-400 mt-0.5">April 2025</div>
+                    </div>
+                </div>
+
+                <!-- Stat 2: Performance Rating -->
+                <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center text-xl shrink-0">
+                        <i class="bi bi-star-fill"></i>
+                    </div>
+                    <div>
+                        <div class="text-xs font-bold text-slate-400 uppercase tracking-wide">Performance Rating</div>
+                        <div class="text-base font-extrabold text-slate-900 mt-0.5">{{ perf_score }} <span class="text-xs font-semibold text-slate-400">/ 5</span></div>
+                        <div class="text-[11px] font-medium text-slate-400 mt-0.5">{{ perf_rating }}</div>
+                    </div>
+                </div>
+
+                <!-- Stat 3: Pending Tasks -->
+                <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl shrink-0">
+                        <i class="bi bi-bell"></i>
+                    </div>
+                    <div>
+                        <div class="text-xs font-bold text-slate-400 uppercase tracking-wide">Pending Tasks</div>
+                        <div class="text-base font-extrabold text-slate-900 mt-0.5">{{ pending_tasks }}</div>
+                        <a href="{% url 'employees:reports_list' %}" class="text-[11px] font-semibold text-hrms-blue hover:underline mt-0.5 block">View Details</a>
+                    </div>
+                </div>
+
+                <!-- Stat 4: Unread Notifications -->
+                <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex items-center gap-4">
+                    <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-xl shrink-0">
+                        <i class="bi bi-bag"></i>
+                    </div>
+                    <div>
+                        <div class="text-xs font-bold text-slate-400 uppercase tracking-wide">Unread Notifications</div>
+                        <div class="text-base font-extrabold text-slate-900 mt-0.5">{{ unread_notifications_count }}</div>
+                        <a href="{% url 'employees:notifications' %}" class="text-[11px] font-semibold text-hrms-blue hover:underline mt-0.5 block">View All</a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main Content Split Grid -->
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                
+                <!-- Left Column (8 Columns) -->
+                <div class="lg:col-span-8 space-y-8">
+                    
+                    <!-- My Reports Card -->
+                    <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm space-y-5">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-base font-bold text-slate-900">My Reports</h3>
+                            <a href="{% url 'employees:reports_list' %}" class="text-xs font-bold text-hrms-blue hover:underline flex items-center gap-1">
+                                View All <i class="bi bi-chevron-right text-[10px]"></i>
+                            </a>
+                        </div>
+
+                        <!-- Table -->
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-xs">
+                                <thead>
+                                    <tr class="border-b border-slate-100 text-slate-400 font-bold uppercase tracking-wider">
+                                        <th class="pb-3">Report Title</th>
+                                        <th class="pb-3">Submitted On</th>
+                                        <th class="pb-3">Status</th>
+                                        <th class="pb-3 text-right">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-slate-100 text-slate-700">
+                                    {% if reports %}
+                                        {% for report in reports %}
+                                            <tr class="hover:bg-slate-50/60 transition-colors">
+                                                <td class="py-3.5 font-bold text-slate-900">{{ report.title }}</td>
+                                                <td class="py-3.5 text-slate-500">{{ report.submitted_at|date:"d M Y" }}</td>
+                                                <td class="py-3.5">
+                                                    {% if report.status == 'SUBMITTED' %}
+                                                        <span class="px-2.5 py-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 rounded-full">Submitted</span>
+                                                    {% elif report.status == 'REVIEWED' %}
+                                                        <span class="px-2.5 py-1 text-[11px] font-bold text-blue-700 bg-blue-50 rounded-full">Reviewed</span>
+                                                    {% else %}
+                                                        <span class="px-2.5 py-1 text-[11px] font-bold text-amber-700 bg-amber-50 rounded-full">{{ report.get_status_display }}</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td class="py-3.5 text-right">
+                                                    <a href="{% url 'employees:edit_report' report.report_id %}" class="w-7 h-7 inline-flex items-center justify-center rounded-lg text-hrms-blue bg-blue-50 hover:bg-blue-100 transition-colors">
+                                                        <i class="bi bi-eye"></i>
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    {% else %}
+                                        <!-- Sample Mockup Rows matching screenshot -->
+                                        <tr class="hover:bg-slate-50/60 transition-colors">
+                                            <td class="py-3.5 font-bold text-slate-900">Weekly Report - Week 4</td>
+                                            <td class="py-3.5 text-slate-500">30 Apr 2025</td>
+                                            <td class="py-3.5"><span class="px-2.5 py-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 rounded-full">Submitted</span></td>
+                                            <td class="py-3.5 text-right"><a href="#" class="w-7 h-7 inline-flex items-center justify-center rounded-lg text-hrms-blue bg-blue-50"><i class="bi bi-eye"></i></a></td>
+                                        </tr>
+                                        <tr class="hover:bg-slate-50/60 transition-colors">
+                                            <td class="py-3.5 font-bold text-slate-900">Weekly Report - Week 3</td>
+                                            <td class="py-3.5 text-slate-500">23 Apr 2025</td>
+                                            <td class="py-3.5"><span class="px-2.5 py-1 text-[11px] font-bold text-blue-700 bg-blue-50 rounded-full">Reviewed</span></td>
+                                            <td class="py-3.5 text-right"><a href="#" class="w-7 h-7 inline-flex items-center justify-center rounded-lg text-hrms-blue bg-blue-50"><i class="bi bi-eye"></i></a></td>
+                                        </tr>
+                                        <tr class="hover:bg-slate-50/60 transition-colors">
+                                            <td class="py-3.5 font-bold text-slate-900">Weekly Report - Week 2</td>
+                                            <td class="py-3.5 text-slate-500">16 Apr 2025</td>
+                                            <td class="py-3.5"><span class="px-2.5 py-1 text-[11px] font-bold text-blue-700 bg-blue-50 rounded-full">Reviewed</span></td>
+                                            <td class="py-3.5 text-right"><a href="#" class="w-7 h-7 inline-flex items-center justify-center rounded-lg text-hrms-blue bg-blue-50"><i class="bi bi-eye"></i></a></td>
+                                        </tr>
+                                        <tr class="hover:bg-slate-50/60 transition-colors">
+                                            <td class="py-3.5 font-bold text-slate-900">Weekly Report - Week 1</td>
+                                            <td class="py-3.5 text-slate-500">09 Apr 2025</td>
+                                            <td class="py-3.5"><span class="px-2.5 py-1 text-[11px] font-bold text-blue-700 bg-blue-50 rounded-full">Reviewed</span></td>
+                                            <td class="py-3.5 text-right"><a href="#" class="w-7 h-7 inline-flex items-center justify-center rounded-lg text-hrms-blue bg-blue-50"><i class="bi bi-eye"></i></a></td>
+                                        </tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Button -->
+                        <div class="pt-2">
+                            <a href="{% url 'employees:submit_report' %}" class="inline-flex items-center gap-2 px-5 py-2.5 bg-hrms-blue hover:bg-hrms-hover text-white text-xs font-bold rounded-xl shadow-md shadow-blue-500/20 transition-all">
+                                <i class="bi bi-plus-lg"></i> Submit New Report
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Performance Overview Card -->
+                    <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm space-y-5">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-base font-bold text-slate-900">Performance Overview</h3>
+                            <a href="{% url 'employees:performance' %}" class="text-xs font-bold text-hrms-blue hover:underline flex items-center gap-1">
+                                View All <i class="bi bi-chevron-right text-[10px]"></i>
+                            </a>
+                        </div>
+
+                        <div class="flex flex-col sm:flex-row items-center gap-8 pt-2">
+                            <!-- Circular Rating Gauge -->
+                            <div class="relative w-36 h-36 flex items-center justify-center shrink-0">
+                                <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                                    <path class="text-slate-100" stroke-width="3" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                    <path class="text-hrms-blue" stroke-width="3.5" stroke-dasharray="86, 100" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                                </svg>
+                                <div class="absolute text-center">
+                                    <div class="text-2xl font-extrabold text-slate-900 leading-none">{{ perf_score }}</div>
+                                    <div class="text-[11px] font-semibold text-slate-400 mt-1">/ 5</div>
+                                </div>
+                            </div>
+
+                            <!-- Comment & Details -->
+                            <div class="space-y-3 text-center sm:text-left flex-1">
+                                <div>
+                                    <div class="text-xs font-semibold text-slate-400">Rating</div>
+                                    <div class="text-lg font-bold text-slate-900">{{ perf_score }} <span class="text-xs font-medium text-slate-400">/ 5</span></div>
+                                    <div class="text-xs font-bold text-slate-700">{{ perf_rating }}</div>
+                                </div>
+
+                                <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-100">
+                                    <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wide mb-0.5">HR Comment</div>
+                                    <div class="text-xs text-slate-600 font-medium">"{{ perf_comments }}"</div>
+                                </div>
+
+                                <div class="pt-1">
+                                    <a href="{% url 'employees:performance' %}" class="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 text-hrms-blue text-xs font-bold rounded-xl hover:bg-blue-100 transition-colors border border-blue-100">
+                                        View Performance Details
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Actions Card -->
+                    <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm space-y-4">
+                        <h3 class="text-base font-bold text-slate-900">Quick Actions</h3>
+
+                        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+                            <a href="{% url 'employees:profile' %}" class="p-4 rounded-2xl bg-blue-50/60 hover:bg-blue-100/80 border border-blue-100 flex flex-col items-center justify-center text-center transition-all group">
+                                <div class="w-10 h-10 rounded-xl bg-white text-hrms-blue flex items-center justify-center text-lg shadow-sm mb-2 group-hover:scale-110 transition-transform">
+                                    <i class="bi bi-person"></i>
+                                </div>
+                                <span class="text-xs font-bold text-slate-700">My Profile</span>
+                            </a>
+
+                            <a href="{% url 'employees:submit_report' %}" class="p-4 rounded-2xl bg-blue-50/60 hover:bg-blue-100/80 border border-blue-100 flex flex-col items-center justify-center text-center transition-all group">
+                                <div class="w-10 h-10 rounded-xl bg-white text-hrms-blue flex items-center justify-center text-lg shadow-sm mb-2 group-hover:scale-110 transition-transform">
+                                    <i class="bi bi-file-earmark-plus"></i>
+                                </div>
+                                <span class="text-xs font-bold text-slate-700">Submit Report</span>
+                            </a>
+
+                            <a href="{% url 'employees:reports_list' %}" class="p-4 rounded-2xl bg-blue-50/60 hover:bg-blue-100/80 border border-blue-100 flex flex-col items-center justify-center text-center transition-all group">
+                                <div class="w-10 h-10 rounded-xl bg-white text-hrms-blue flex items-center justify-center text-lg shadow-sm mb-2 group-hover:scale-110 transition-transform">
+                                    <i class="bi bi-file-earmark-text"></i>
+                                </div>
+                                <span class="text-xs font-bold text-slate-700">View Reports</span>
+                            </a>
+
+                            <a href="{% url 'employees:performance' %}" class="p-4 rounded-2xl bg-blue-50/60 hover:bg-blue-100/80 border border-blue-100 flex flex-col items-center justify-center text-center transition-all group">
+                                <div class="w-10 h-10 rounded-xl bg-white text-hrms-blue flex items-center justify-center text-lg shadow-sm mb-2 group-hover:scale-110 transition-transform">
+                                    <i class="bi bi-star"></i>
+                                </div>
+                                <span class="text-xs font-bold text-slate-700">Performance</span>
+                            </a>
+
+                            <a href="{% url 'employees:announcements' %}" class="p-4 rounded-2xl bg-blue-50/60 hover:bg-blue-100/80 border border-blue-100 flex flex-col items-center justify-center text-center transition-all group">
+                                <div class="w-10 h-10 rounded-xl bg-white text-hrms-blue flex items-center justify-center text-lg shadow-sm mb-2 group-hover:scale-110 transition-transform">
+                                    <i class="bi bi-megaphone"></i>
+                                </div>
+                                <span class="text-xs font-bold text-slate-700">Announcements</span>
+                            </a>
+
+                            <a href="{% url 'employees:notifications' %}" class="p-4 rounded-2xl bg-blue-50/60 hover:bg-blue-100/80 border border-blue-100 flex flex-col items-center justify-center text-center transition-all group">
+                                <div class="w-10 h-10 rounded-xl bg-white text-hrms-blue flex items-center justify-center text-lg shadow-sm mb-2 group-hover:scale-110 transition-transform">
+                                    <i class="bi bi-bell"></i>
+                                </div>
+                                <span class="text-xs font-bold text-slate-700">Notifications</span>
+                            </a>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Right Column (4 Columns) -->
+                <div class="lg:col-span-4 space-y-8">
+                    
+                    <!-- Company Announcements Widget -->
+                    <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm space-y-5">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                                <i class="bi bi-megaphone text-hrms-blue"></i> Company Announcements
+                            </h3>
+                            <a href="{% url 'employees:announcements' %}" class="text-xs font-bold text-hrms-blue hover:underline">View All</a>
+                        </div>
+
+                        <div class="space-y-4">
+                            {% if announcements %}
+                                {% for anc in announcements %}
+                                    <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
+                                        <div class="flex items-center justify-between text-xs font-bold text-slate-900">
+                                            <span>• {{ anc.title }}</span>
+                                            <span class="text-[10px] text-slate-400 font-normal">{{ anc.created_at|date:"d M Y" }}</span>
+                                        </div>
+                                        <p class="text-xs text-slate-500 line-clamp-2">{{ anc.content }}</p>
+                                    </div>
+                                {% endfor %}
+                            {% else %}
+                                <!-- Mockup Samples -->
+                                <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
+                                    <div class="flex items-center justify-between text-xs font-bold text-slate-900">
+                                        <span>• Annual Day Celebration</span>
+                                        <span class="text-[10px] text-slate-400 font-normal">01 May 2025</span>
+                                    </div>
+                                    <p class="text-xs text-slate-500">All employees are invited to the Annual Day Celebration.</p>
+                                </div>
+
+                                <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
+                                    <div class="flex items-center justify-between text-xs font-bold text-slate-900">
+                                        <span>• New Leave Policy Updates</span>
+                                        <span class="text-[10px] text-slate-400 font-normal">28 Apr 2025</span>
+                                    </div>
+                                    <p class="text-xs text-slate-500">Please review the updated leave policy guidelines.</p>
+                                </div>
+
+                                <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
+                                    <div class="flex items-center justify-between text-xs font-bold text-slate-900">
+                                        <span>• Office Holiday - May Day</span>
+                                        <span class="text-[10px] text-slate-400 font-normal">26 Apr 2025</span>
+                                    </div>
+                                    <p class="text-xs text-slate-500">The office will be closed on 1st May 2025.</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Recent Notifications Widget -->
+                    <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm space-y-5">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-base font-bold text-slate-900">Recent Notifications</h3>
+                            <a href="{% url 'employees:notifications' %}" class="text-xs font-bold text-hrms-blue hover:underline">View All</a>
+                        </div>
+
+                        <div class="space-y-4">
+                            <div class="flex items-start gap-3 p-2.5 rounded-xl hover:bg-slate-50 transition-colors">
+                                <div class="w-8 h-8 rounded-lg bg-blue-50 text-hrms-blue flex items-center justify-center text-sm shrink-0">
+                                    <i class="bi bi-calendar-event"></i>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="text-xs font-bold text-slate-900 truncate">Weekly Report Reminder</div>
+                                    <div class="text-[11px] text-slate-500">Please submit your weekly report.</div>
+                                </div>
+                                <span class="text-[10px] font-semibold text-slate-400">2 hours ago</span>
+                            </div>
+
+                            <div class="flex items-start gap-3 p-2.5 rounded-xl hover:bg-slate-50 transition-colors">
+                                <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center text-sm shrink-0">
+                                    <i class="bi bi-chat-text"></i>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="text-xs font-bold text-slate-900 truncate">HR Feedback</div>
+                                    <div class="text-[11px] text-slate-500">Your report has been reviewed.</div>
+                                </div>
+                                <span class="text-[10px] font-semibold text-slate-400">1 day ago</span>
+                            </div>
+
+                            <div class="flex items-start gap-3 p-2.5 rounded-xl hover:bg-slate-50 transition-colors">
+                                <div class="w-8 h-8 rounded-lg bg-red-50 text-red-600 flex items-center justify-center text-sm shrink-0">
+                                    <i class="bi bi-exclamation-triangle"></i>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="text-xs font-bold text-slate-900 truncate">Performance Warning</div>
+                                    <div class="text-[11px] text-slate-500">Please improve your punctuality.</div>
+                                </div>
+                                <span class="text-[10px] font-semibold text-slate-400">2 days ago</span>
+                            </div>
+
+                            <div class="flex items-start gap-3 p-2.5 rounded-xl hover:bg-slate-50 transition-colors">
+                                <div class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center text-sm shrink-0">
+                                    <i class="bi bi-megaphone"></i>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="text-xs font-bold text-slate-900 truncate">Company Announcement</div>
+                                    <div class="text-[11px] text-slate-500">New company policy announced.</div>
+                                </div>
+                                <span class="text-[10px] font-semibold text-slate-400">3 days ago</span>
+                            </div>
+
+                            <div class="flex items-start gap-3 p-2.5 rounded-xl hover:bg-slate-50 transition-colors">
+                                <div class="w-8 h-8 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center text-sm shrink-0">
+                                    <i class="bi bi-person-check"></i>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <div class="text-xs font-bold text-slate-900 truncate">Profile Update</div>
+                                    <div class="text-[11px] text-slate-500">Your profile has been updated.</div>
+                                </div>
+                                <span class="text-[10px] font-semibold text-slate-400">1 week ago</span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+            <!-- Footer -->
+            <footer class="pt-8 border-t border-slate-200/80 text-center text-xs font-medium text-slate-400">
+                © 2025 HRMS. All rights reserved.
+            </footer>
+
+        </main>
+    </div>
+
+</body>
+</html>
