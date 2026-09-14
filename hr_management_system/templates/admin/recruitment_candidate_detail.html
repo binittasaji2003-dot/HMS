@@ -1,0 +1,248 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}{{ page_title|default:candidate.full_name }}{% endblock title %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+  <div>
+    <h1 class="h3 mb-1 fw-bold">Candidate Application <span class="badge-status badge-status-info align-middle ms-1" style="font-size: 0.7rem;"><i class="bi bi-eye me-1"></i>Read-only</span></h1>
+    <p class="text-secondary mb-0 small">Review the candidate profile and their recruitment application details.</p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'hrms:recruitment_job_status' candidate.job_vacancy.pk %}" class="btn-secondary-admin">
+      <i class="bi bi-funnel"></i> Posting Pipeline
+    </a>
+    <a href="{% url 'hrms:recruitment_selected' %}" class="btn-secondary-admin">
+      <i class="bi bi-arrow-left"></i> Selected Candidates
+    </a>
+  </div>
+</div>
+
+<!-- Candidate Hero Card -->
+<div class="saas-card mb-4 p-4">
+  <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
+    <div class="d-flex align-items-center gap-3">
+      <div class="emp-table-avatar" style="width: 64px; height: 64px; font-size: 1.6rem; border-radius: 16px; background: linear-gradient(135deg, #059669, #10b981);">
+        {{ candidate.full_name|slice:":1"|upper }}
+      </div>
+      <div>
+        <h2 class="h4 mb-1 text-dark fw-bold">{{ candidate.full_name }}</h2>
+        <div class="text-secondary small d-flex align-items-center gap-2 flex-wrap">
+          <span><i class="bi bi-envelope me-1"></i>{{ candidate.email }}</span>
+          {% if candidate.phone %}
+            <span>&bull;</span>
+            <span><i class="bi bi-telephone me-1"></i>{{ candidate.phone }}</span>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <div>
+      {% if candidate.status == "Selected" or candidate.status == "Hired" %}
+        <span class="badge-status badge-status-active" style="font-size: 0.85rem; padding: 0.35rem 0.85rem;">
+          <i class="bi bi-check-circle-fill me-1"></i> {{ candidate.status }}
+        </span>
+      {% elif candidate.status == "Rejected" %}
+        <span class="badge-status badge-status-danger" style="font-size: 0.85rem; padding: 0.35rem 0.85rem;">
+          <i class="bi bi-x-circle-fill me-1"></i> Rejected
+        </span>
+      {% else %}
+        <span class="badge-status badge-status-pending" style="font-size: 0.85rem; padding: 0.35rem 0.85rem;">
+          <i class="bi bi-hourglass-split me-1"></i> {{ candidate.status }}
+        </span>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Quick Metrics Ribbon -->
+  <div class="row g-2">
+    <div class="col-6 col-md-3">
+      <div class="profile-stat-box" style="background-color: var(--bg-main); border: 1px solid var(--border-color); border-radius: 10px; padding: 0.75rem;">
+        <span class="profile-stat-label">Position</span>
+        <span class="profile-stat-val text-dark text-truncate">{{ candidate.job_vacancy.title|default:"—" }}</span>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="profile-stat-box" style="background-color: var(--bg-main); border: 1px solid var(--border-color); border-radius: 10px; padding: 0.75rem;">
+        <span class="profile-stat-label">Department</span>
+        <span class="profile-stat-val text-dark text-truncate">{{ candidate.job_vacancy.department.name|default:"Unassigned" }}</span>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="profile-stat-box" style="background-color: var(--bg-main); border: 1px solid var(--border-color); border-radius: 10px; padding: 0.75rem;">
+        <span class="profile-stat-label">Applied</span>
+        <span class="profile-stat-val text-primary" style="font-size: 0.9rem;">{{ candidate.applied_at|date:"M d, Y" }}</span>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="profile-stat-box" style="background-color: var(--bg-main); border: 1px solid var(--border-color); border-radius: 10px; padding: 0.75rem;">
+        <span class="profile-stat-label">Stage Updated</span>
+        <span class="profile-stat-val text-primary" style="font-size: 0.9rem;">{{ candidate.updated_at|date:"M d, Y" }}</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Candidate Profile + Application -->
+  <div class="col-12 col-xl-7">
+    <div class="d-flex flex-column gap-4">
+      <!-- Candidate Contact Profile -->
+      <div class="saas-card p-4">
+        <h2 class="card-title pb-3 mb-3 border-bottom"><i class="bi bi-person-lines-fill text-primary"></i> Candidate Profile</h2>
+        <div class="row g-3">
+          <div class="col-6">
+            <label class="form-label">Full Name</label>
+            <div class="text-dark fw-medium">{{ candidate.full_name }}</div>
+          </div>
+          <div class="col-6">
+            <label class="form-label">Email Address</label>
+            <div class="text-dark fw-medium">{{ candidate.email }}</div>
+          </div>
+          <div class="col-6">
+            <label class="form-label">Phone Number</label>
+            <div class="text-dark fw-medium">{{ candidate.phone|default:"—" }}</div>
+          </div>
+          <div class="col-6">
+            <label class="form-label">Experience</label>
+            <div class="text-dark fw-medium">{{ candidate.experience_years|default:"0" }} years</div>
+          </div>
+          {% if candidate.resume %}
+            <div class="col-12">
+              <label class="form-label">Resume Document</label>
+              <div>
+                <a href="{{ candidate.resume.url }}" class="btn-pill-action" target="_blank" rel="noopener">
+                  <i class="bi bi-file-earmark-arrow-down me-1"></i> Download Resume
+                </a>
+              </div>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Application & Job Details -->
+      <div class="saas-card p-4">
+        <h2 class="card-title pb-3 mb-3 border-bottom"><i class="bi bi-briefcase-fill text-primary"></i> Application &amp; Job Details</h2>
+        <div class="row g-3">
+          <div class="col-6">
+            <label class="form-label">Applied Position</label>
+            <div class="text-dark fw-medium">{{ candidate.job_vacancy.title }}</div>
+          </div>
+          <div class="col-6">
+            <label class="form-label">Department</label>
+            <div class="text-dark fw-medium">{{ candidate.job_vacancy.department.name|default:"Unassigned" }}</div>
+          </div>
+          <div class="col-6">
+            <label class="form-label">Posting Owner</label>
+            <div class="text-dark fw-medium">{{ owner_name }}</div>
+            <div class="text-secondary" style="font-size: 0.75rem;">{{ owner_role }}</div>
+          </div>
+          <div class="col-6">
+            <label class="form-label">Posting Status</label>
+            <div class="text-dark fw-medium">{{ candidate.job_vacancy.get_status_display }}</div>
+          </div>
+          <div class="col-6">
+            <label class="form-label">Application Status</label>
+            <div class="text-dark fw-medium">{{ candidate.get_status_display }}</div>
+          </div>
+          <div class="col-6">
+            <label class="form-label">Date Applied</label>
+            <div class="text-dark fw-medium">{{ candidate.applied_at|date:"M d, Y g:i A" }}</div>
+          </div>
+          <div class="col-6">
+            <label class="form-label">Last Updated</label>
+            <div class="text-dark fw-medium">{{ candidate.updated_at|date:"M d, Y g:i A" }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Column: Linked Account + Other Applications -->
+  <div class="col-12 col-xl-5">
+    <div class="d-flex flex-column gap-4">
+      <!-- Linked Account -->
+      <div class="saas-card p-4">
+        <h2 class="card-title pb-3 mb-3 border-bottom"><i class="bi bi-person-badge text-primary"></i> Linked Account</h2>
+        {% if candidate.user %}
+          <div class="d-flex align-items-center gap-3 mb-3">
+            <div class="emp-table-avatar" style="width: 44px; height: 44px; font-size: 1.1rem;">{{ candidate.user.name|default:candidate.user.email|slice:":1"|upper }}</div>
+            <div>
+              <div class="emp-table-name text-dark fw-semibold">{{ candidate.user.name|default:candidate.user.email }}</div>
+              <div class="emp-table-dept text-muted">{{ candidate.user.email }}</div>
+            </div>
+          </div>
+          <div class="row g-3">
+            <div class="col-6">
+              <label class="form-label">Role</label>
+              <div class="text-dark fw-medium">{{ candidate.user.role|default:"—" }}</div>
+            </div>
+            <div class="col-6">
+              <label class="form-label">Status</label>
+              <div>
+                {% if candidate.user.status == "Active" %}
+                  <span class="badge-status badge-status-active">Active</span>
+                {% else %}
+                  <span class="badge-status badge-status-pending">{{ candidate.user.status }}</span>
+                {% endif %}
+              </div>
+            </div>
+            <div class="col-6">
+              <label class="form-label">Account Created</label>
+              <div class="text-dark fw-medium">{{ candidate.user.date_joined|date:"M d, Y" }}</div>
+            </div>
+            <div class="col-6">
+              <label class="form-label">Sign-in Enabled</label>
+              <div class="text-dark fw-medium">{{ candidate.user.is_active|yesno:"Yes,No" }}</div>
+            </div>
+          </div>
+        {% else %}
+          <div class="text-center py-4">
+            <i class="bi bi-person text-muted fs-3 d-block mb-2"></i>
+            <p class="text-secondary small mb-0">No linked login account for this application.</p>
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Other Applications -->
+      <div class="saas-card p-4">
+        <div class="d-flex justify-content-between align-items-center pb-3 mb-3 border-bottom">
+          <h2 class="card-title mb-0"><i class="bi bi-collection text-primary"></i> Other Applications</h2>
+          <span class="btn-pill-action">{{ other_applications|length }}</span>
+        </div>
+        {% if other_applications %}
+          <div class="d-flex flex-column gap-2">
+            {% for app in other_applications %}
+              <div class="p-2 px-3 rounded-3 d-flex justify-content-between align-items-center" style="background-color: var(--bg-main); border: 1px solid var(--border-color);">
+                <div>
+                  <div class="text-dark fw-medium small">{{ app.job_vacancy.title }}</div>
+                  <div class="text-secondary" style="font-size: 0.72rem;">
+                    {{ app.job_vacancy.department.name|default:"Unassigned" }} · {{ app.applied_at|date:"M d, Y" }}
+                  </div>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                  {% if app.status == "Selected" or app.status == "Hired" %}
+                    <span class="badge-status badge-status-active" style="font-size: 0.68rem;">{{ app.status }}</span>
+                  {% elif app.status == "Rejected" %}
+                    <span class="badge-status badge-status-danger" style="font-size: 0.68rem;">Rejected</span>
+                  {% else %}
+                    <span class="badge-status badge-status-pending" style="font-size: 0.68rem;">{{ app.status }}</span>
+                  {% endif %}
+                  <a href="{% url 'hrms:recruitment_candidate_detail' app.pk %}" class="table-action-btn btn-action-view" title="View Application" style="width: 28px; height: 28px;">
+                    <i class="bi bi-eye" style="font-size: 0.75rem;"></i>
+                  </a>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="text-center py-4">
+            <i class="bi bi-folder2-open text-muted fs-3 d-block mb-2"></i>
+            <p class="text-secondary small mb-0">No other applications found for this candidate.</p>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}

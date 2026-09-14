@@ -18,20 +18,18 @@
   <!-- Bootstrap 5 CSS -->
   <link rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css"
-        integrity="sha512-jnSuA4Ss2PkkupMQBQtgASvhzBIzBRbRNftzKPtxkJ5H7VMKRmWflEV22EUbxyNCL1CWBHz6f5T6J5PYhxOiqw=="
-        crossorigin="anonymous"
-        referrerpolicy="no-referrer" />
+        crossorigin="anonymous" />
 
   <!-- Bootstrap Icons -->
   <link rel="stylesheet"
         href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
-  <!-- Custom Dark Enterprise HRMS CSS -->
+  <!-- Custom Enterprise HRMS CSS -->
   <link href="{% static 'css/admin_theme.css' %}" rel="stylesheet" />
 </head>
 <body class="admin-body">
   <div class="auth-page-wrapper">
-    <div class="auth-card" style="max-width: 500px;">
+    <div class="auth-card" style="max-width: 480px;">
       <!-- HRMS Brand / Logo -->
       <div class="auth-brand">
         <div class="auth-brand-logo">
@@ -45,9 +43,9 @@
       {% if messages %}
         <div class="mb-3">
           {% for message in messages %}
-            <div class="alert alert-dark-dismissible alert-{{ message.tags|default:'info' }} alert-dismissible fade show d-flex align-items-center justify-content-between p-2 px-3" role="alert">
+            <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show d-flex align-items-center justify-content-between p-2 px-3" role="alert">
               <span class="small">{{ message }}</span>
-              <button type="button" class="btn-close btn-close-white small" data-bs-dismiss="alert" aria-label="Close"></button>
+              <button type="button" class="btn-close small" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
           {% endfor %}
         </div>
@@ -55,7 +53,7 @@
 
       <!-- Non-field Errors -->
       {% if form.non_field_errors %}
-        <div class="alert alert-dark-dismissible alert-danger mb-3 p-2 px-3 small">
+        <div class="alert alert-danger mb-3 p-2 px-3 small">
           {% for error in form.non_field_errors %}
             <div class="d-flex align-items-center gap-2">
               <i class="bi bi-exclamation-circle-fill"></i>
@@ -125,7 +123,7 @@
         </div>
 
         <!-- Submit Button -->
-        <button type="submit" class="btn btn-primary-admin mb-3" id="admin-register-btn">
+        <button type="submit" class="btn btn-primary-admin w-100 py-2 mb-3" id="admin-register-btn">
           <i class="bi bi-person-check-fill me-2"></i> Register as Administrator
         </button>
       </form>
@@ -149,8 +147,6 @@
 
   <!-- Bootstrap JS -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"
-          integrity="sha512-7Pi/otdlbbCR+LnW+RMwiJMnPmCAWmVoj9VNzS5PX920PxfcxCgk122wc6SuP6ULypz01PUeyCBthQRvg=="
-          crossorigin="anonymous"
-          referrerpolicy="no-referrer"></script>
+          crossorigin="anonymous"></script>
 </body>
 </html>

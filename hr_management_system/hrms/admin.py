@@ -61,6 +61,7 @@ class PerformanceWarningAdmin(admin.ModelAdmin):
 
 @admin.register(Announcement)
 class AnnouncementAdmin(admin.ModelAdmin):
-    list_display = ("title", "target_audience", "is_active", "created_by", "created_at")
-    list_filter = ("target_audience", "is_active")
+    list_display = ("title", "announcement_type", "target_audience", "is_published", "is_active", "created_by", "created_at")
+    list_filter = ("announcement_type", "target_audience", "is_published", "is_active")
     search_fields = ("title", "content")
+

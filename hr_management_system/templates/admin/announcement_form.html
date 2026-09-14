@@ -1,0 +1,186 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}{{ page_title|default:title }}{% endblock title %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+  <div>
+    <div class="d-flex align-items-center gap-2 mb-1">
+      <a href="{% url 'hrms:announcements_list' %}" class="text-muted small text-decoration-none">Announcements</a>
+      <span class="text-muted small">/</span>
+      <span class="text-dark small fw-medium">{{ title }}</span>
+    </div>
+    <h1 class="h3 mb-0 fw-bold">{{ title }}</h1>
+  </div>
+  <a href="{% url back_url %}" class="btn-secondary-admin">
+    <i class="bi bi-arrow-left"></i> Back to Announcements
+  </a>
+</div>
+
+<!-- Full-Width Workspace Layout -->
+<form method="post" novalidate id="announcementMainForm">
+  {% csrf_token %}
+
+  {% if form.non_field_errors %}
+    <div class="alert alert-danger mb-4 p-3">
+      {% for error in form.non_field_errors %}
+        <div class="d-flex align-items-center gap-2">
+          <i class="bi bi-exclamation-circle-fill text-danger"></i>
+          <span>{{ error }}</span>
+        </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+
+  <div class="row g-4">
+    <!-- Left Column: Primary Content Editor (8 Columns) -->
+    <div class="col-12 col-lg-8">
+      <div class="saas-card p-4 h-100">
+        <div class="d-flex align-items-center gap-2 pb-3 mb-4 border-bottom">
+          <div class="kpi-icon-circle icon-circle-blue" style="width: 38px; height: 38px; font-size: 1.1rem;">
+            <i class="bi bi-pencil-square"></i>
+          </div>
+          <div>
+            <h2 class="h5 text-dark fw-bold mb-0">Message Composition</h2>
+            <div class="text-secondary small">Draft your headline and announcement body for distribution</div>
+          </div>
+        </div>
+
+        <!-- Announcement Title -->
+        <div class="mb-4">
+          <label for="{{ form.title.id_for_label }}" class="form-label fw-semibold fs-6 mb-2">
+            Announcement Headline {% if form.title.field.required %}<span class="text-danger">*</span>{% endif %}
+          </label>
+          {{ form.title }}
+          {% if form.title.errors %}
+            <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ form.title.errors.0 }}</div>
+          {% else %}
+            <div class="text-muted small mt-1">Keep headline concise and descriptive so employees understand the subject immediately.</div>
+          {% endif %}
+        </div>
+
+        <!-- Announcement Content Body -->
+        <div class="mb-3">
+          <label for="{{ form.content.id_for_label }}" class="form-label fw-semibold fs-6 mb-2">
+            Announcement Body / Notice Text {% if form.content.field.required %}<span class="text-danger">*</span>{% endif %}
+          </label>
+          <div style="min-height: 280px;">
+            {{ form.content }}
+          </div>
+          {% if form.content.errors %}
+            <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ form.content.errors.0 }}</div>
+          {% else %}
+            <div class="text-muted small mt-1">Provide all relevant context, dates, instructions, or policy notes.</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Column: Publishing Controls & Targeting (4 Columns) -->
+    <div class="col-12 col-lg-4">
+      <div class="d-flex flex-column gap-4">
+        
+        <!-- 1. Publication & Actions Card -->
+        <div class="saas-card p-4">
+          <div class="d-flex align-items-center gap-2 pb-3 mb-3 border-bottom">
+            <div class="kpi-icon-circle icon-circle-emerald" style="width: 36px; height: 36px; font-size: 1rem;">
+              <i class="bi bi-send-check-fill"></i>
+            </div>
+            <div>
+              <h2 class="h6 text-dark fw-bold mb-0">Publishing Actions</h2>
+              <div class="text-secondary small">Control broadcast status</div>
+            </div>
+          </div>
+
+          <!-- Current State Indicator -->
+          <div class="p-3 mb-3 rounded-3" style="background-color: var(--bg-main); border: 1px solid var(--border-color);">
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="text-secondary small">Status:</span>
+              {% if form.instance.pk and form.instance.is_published %}
+                <span class="badge-status badge-status-active">
+                  <i class="bi bi-broadcast-pin me-1"></i> Published
+                </span>
+              {% else %}
+                <span class="badge-status badge-status-pending">
+                  <i class="bi bi-clock-history me-1"></i> Draft Mode
+                </span>
+              {% endif %}
+            </div>
+            {% if form.instance.published_at %}
+              <div class="text-muted small mt-2" style="font-size: 0.72rem;">
+                Last published: {{ form.instance.published_at|date:"M d, Y H:i" }}
+              </div>
+            {% endif %}
+          </div>
+
+          <!-- Explicit Publish / Save Actions -->
+          <div class="d-flex flex-column gap-2 mt-2">
+            <!-- Publish Immediately Button -->
+            <button type="submit" name="action" value="publish" class="btn btn-success-admin py-2 px-3 fw-semibold w-100" id="btnPublishAction">
+              <i class="bi bi-send-check-fill"></i>
+              <span>Publish Announcement Now</span>
+            </button>
+
+            <!-- Save as Draft Button -->
+            <button type="submit" name="action" value="draft" class="btn btn-secondary-admin py-2 px-3 fw-semibold w-100" id="btnDraftAction">
+              <i class="bi bi-file-earmark-arrow-down"></i>
+              <span>Save as Draft</span>
+            </button>
+
+            <!-- Cancel Button -->
+            <a href="{% url back_url %}" class="btn btn-secondary-admin py-2 px-3 w-100">
+              <i class="bi bi-x-lg"></i>
+              <span>Cancel</span>
+            </a>
+          </div>
+
+          <!-- Hidden Checkbox matching ModelForm field -->
+          <div class="d-none">
+            {{ form.is_published }}
+          </div>
+        </div>
+
+        <!-- 2. Targeting & Category Card -->
+        <div class="saas-card p-4">
+          <div class="d-flex align-items-center gap-2 pb-3 mb-3 border-bottom">
+            <div class="kpi-icon-circle icon-circle-purple" style="width: 36px; height: 36px; font-size: 1rem;">
+              <i class="bi bi-sliders"></i>
+            </div>
+            <div>
+              <h2 class="h6 text-dark fw-bold mb-0">Audience & Category</h2>
+              <div class="text-secondary small">Configure distribution scope</div>
+            </div>
+          </div>
+
+          <!-- Announcement Type -->
+          <div class="mb-3">
+            <label for="{{ form.announcement_type.id_for_label }}" class="form-label fw-medium small mb-1">
+              Category / Notice Type
+            </label>
+            {{ form.announcement_type }}
+            {% if form.announcement_type.errors %}
+              <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ form.announcement_type.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <!-- Target Audience -->
+          <div class="mb-2">
+            <label for="{{ form.target_audience.id_for_label }}" class="form-label fw-medium small mb-1">
+              Target Audience
+            </label>
+            {{ form.target_audience }}
+            {% if form.target_audience.errors %}
+              <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ form.target_audience.errors.0 }}</div>
+            {% endif %}
+            <div class="text-muted small mt-2" style="font-size: 0.75rem;">
+              <i class="bi bi-info-circle me-1"></i> Defines who will receive this broadcast notice across their portals.
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</form>
+{% endblock content %}

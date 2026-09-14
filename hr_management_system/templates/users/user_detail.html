@@ -1,41 +1,64 @@
 {% extends "base.html" %}
+{% load static i18n %}
 
-{% load static %}
+{% block title %}User Profile: {{ object.name|default:object.email }}{% endblock title %}
 
-{% block title %}
-  User: 
-  
-    {{ object.name }}
-  
-  
-{% endblock title %}
 {% block content %}
-  <div class="container">
-    <div class="row">
-      <div class="col-sm-12">
-        <h2>
-        
-        
-          {{ object.name }}
-        
-      </h2>
+<div class="row justify-content-center py-4">
+  <div class="col-lg-8">
+    <div class="public-card">
+      <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3 pb-3 mb-4 border-bottom border-secondary border-opacity-25">
+        <div class="d-flex align-items-center gap-3">
+          <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold text-white fs-4"
+               style="width: 56px; height: 56px; background: linear-gradient(135deg, #4f46e5, #3b82f6); box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35);">
+            {% if object.name %}{{ object.name|slice:":1"|upper }}{% else %}U{% endif %}
+          </div>
+          <div>
+            <h3 class="text-white fw-bold mb-0">{{ object.name|default:object.email }}</h3>
+            <span class="badge-status badge-status-active mt-1">
+              <i class="bi bi-patch-check-fill"></i> Verified Account
+            </span>
+          </div>
+        </div>
+        <div>
+          <a href="{% url 'home' %}" class="btn btn-sm btn-outline-secondary">
+            <i class="bi bi-arrow-left me-1"></i> Back
+          </a>
+        </div>
+      </div>
+
+      <div class="row g-3 mb-4">
+        <div class="col-sm-6">
+          <div class="p-3 rounded border border-secondary border-opacity-25" style="background: rgba(255, 255, 255, 0.02);">
+            <div class="text-muted small text-uppercase fw-semibold mb-1">Display Name</div>
+            <div class="text-white fw-medium">{{ object.name|default:"Not specified" }}</div>
+          </div>
+        </div>
+        <div class="col-sm-6">
+          <div class="p-3 rounded border border-secondary border-opacity-25" style="background: rgba(255, 255, 255, 0.02);">
+            <div class="text-muted small text-uppercase fw-semibold mb-1">Email Address</div>
+            <div class="text-white fw-medium">{{ object.email }}</div>
+          </div>
+        </div>
+      </div>
+
+      {% if object == request.user %}
+        <div class="pt-3 border-top border-secondary border-opacity-25">
+          <h6 class="text-white text-uppercase fs-7 fw-semibold mb-3">Account Security & Management</h6>
+          <div class="d-flex flex-wrap gap-2">
+            <a class="btn btn-primary d-inline-flex align-items-center gap-2" href="{% url 'users:update' %}" role="button">
+              <i class="bi bi-pencil-square"></i> My Info
+            </a>
+            <a class="btn btn-outline-light d-inline-flex align-items-center gap-2" href="{% url 'account_email' %}" role="button">
+              <i class="bi bi-envelope"></i> E-Mail
+            </a>
+            <a class="btn btn-outline-light d-inline-flex align-items-center gap-2" href="{% url 'mfa_index' %}" role="button">
+              <i class="bi bi-shield-lock"></i> MFA
+            </a>
+          </div>
+        </div>
+      {% endif %}
     </div>
   </div>
-  {% if object == request.user %}
-    <!-- Action buttons -->
-    <div class="row">
-      <div class="col-sm-12">
-        <a class="btn btn-primary" href="{% url 'users:update' %}" role="button">My Info</a>
-        <a class="btn btn-primary"
-           href="{% url 'account_email' %}"
-           role="button">E-Mail</a>
-        <a class="btn btn-primary"
-           href="{% url 'mfa_index' %}"
-           role="button">MFA</a>
-        <!-- Your Stuff: Custom user template urls -->
-      </div>
-    </div>
-    <!-- End Action buttons -->
-  {% endif %}
 </div>
 {% endblock content %}

@@ -6,67 +6,133 @@
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
   <div>
-    <h1 class="h3 mb-1 fw-bold text-white">Manage Employees</h1>
-    <p class="text-secondary mb-0 small">Create and maintain employee records for the organization.</p>
+    <h1 class="h3 mb-1 fw-bold">Manage Employees</h1>
+    <p class="text-secondary mb-0 small">Create, track, and maintain employee records across departments.</p>
   </div>
   <div class="d-flex gap-2">
-    <a href="{% url 'hrms:employee_create' %}" class="btn btn-primary-admin">
-      <i class="bi bi-person-plus-fill me-1"></i> Add Employee
+    <a href="{% url 'hrms:employee_create' %}" class="btn-primary-admin">
+      <i class="bi bi-person-plus-fill"></i> Add Employee
     </a>
-    <a href="{% url 'hrms:admin_dashboard' %}" class="btn btn-outline-secondary btn-sm">Back to Dashboard</a>
+    <a href="{% url 'hrms:admin_dashboard' %}" class="btn-secondary-admin">
+      <i class="bi bi-arrow-left"></i> Dashboard
+    </a>
   </div>
 </div>
 
-<div class="dark-card">
-  <div class="dark-card-header">
-    <h2 class="dark-card-title"><i class="bi bi-person-workspace text-primary"></i> Existing Employees</h2>
-    <span class="badge-status badge-status-info small">{{ employees|length }} records</span>
+<div class="saas-card">
+  <div class="card-header flex-wrap gap-3">
+    <div class="d-flex align-items-center gap-2">
+      <h2 class="card-title">
+        <i class="bi bi-person-workspace text-primary"></i> Organization Workforce
+      </h2>
+      <span class="btn-pill-action">{{ employees|length }} Records</span>
+    </div>
+
+    <!-- Live Search Filter -->
+    <div class="d-flex align-items-center gap-2">
+      <div class="topbar-search-box" style="width: 260px;">
+        <i class="bi bi-search"></i>
+        <input type="text" id="employeeSearchInput" placeholder="Filter employees...">
+      </div>
+    </div>
   </div>
-  <div class="table-responsive">
-    <table class="dark-table align-middle">
-      <thead>
-        <tr>
-          <th>Employee</th>
-          <th>Department</th>
-          <th>Designation</th>
-          <th>Status</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for employee in employees %}
+
+  {% if employees %}
+    <div class="table-responsive">
+      <table class="table-saas align-middle" id="employeesTable">
+        <thead>
           <tr>
-            <td>
-              <div class="fw-semibold text-light">{{ employee.user.name|default:employee.user.email }}</div>
-              <div class="text-muted small">{{ employee.user.email }}</div>
-            </td>
-            <td>{{ employee.department.name|default:"Unassigned" }}</td>
-            <td>{{ employee.designation }}</td>
-            <td>
-              {% if employee.status == 'Active' %}
-                <span class="badge-status badge-status-active small">Active</span>
-              {% elif employee.status == 'Pending Approval' %}
-                <span class="badge-status badge-status-pending small">Pending Approval</span>
-              {% else %}
-                <span class="badge-status badge-status-danger small">{{ employee.status }}</span>
-              {% endif %}
-            </td>
-            <td>
-              <div class="d-flex gap-2">
-                <a href="{% url 'hrms:employee_detail' employee.pk %}" class="btn btn-sm btn-outline-primary">View</a>
-                <a href="{% url 'hrms:employee_detail' employee.pk %}" class="btn btn-sm btn-outline-warning">Edit</a>
-              </div>
-            </td>
+            <th>Employee</th>
+            <th>Department</th>
+            <th>Designation</th>
+            <th>Status</th>
+            <th class="text-end pe-4">Actions</th>
           </tr>
-        {% empty %}
-          <tr>
-            <td colspan="5" class="text-center py-4 text-muted">
-              No employees have been created yet.
-            </td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+        </thead>
+        <tbody>
+          {% for employee in employees %}
+            <tr class="emp-row">
+              <td>
+                <div class="d-flex align-items-center gap-2">
+                  <div class="sidebar-user-avatar" style="width: 36px; height: 36px; font-size: 0.85rem;">
+                    {% if employee.user.name %}{{ employee.user.name|slice:":1"|upper }}{% else %}E{% endif %}
+                  </div>
+                  <div>
+                    <div class="fw-semibold text-dark emp-name">{{ employee.user.name|default:employee.user.email }}</div>
+                    <div class="text-muted small">{{ employee.user.email }}</div>
+                  </div>
+                </div>
+              </td>
+              <td>
+                {% if employee.department %}
+                  <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2 py-1">
+                    {{ employee.department.name }}
+                  </span>
+                {% else %}
+                  <span class="text-muted small">Unassigned</span>
+                {% endif %}
+              </td>
+              <td>
+                <span class="text-dark small fw-medium">{{ employee.designation }}</span>
+              </td>
+              <td>
+                {% if employee.status == 'Active' %}
+                  <span class="badge-status badge-status-active small">Active</span>
+                {% elif employee.status == 'Pending Approval' %}
+                  <span class="badge-status badge-status-pending small">Pending Approval</span>
+                {% else %}
+                  <span class="badge-status badge-status-danger small">{{ employee.status }}</span>
+                {% endif %}
+              </td>
+              <td class="text-end pe-4">
+                <div class="d-inline-flex align-items-center gap-1">
+                  <a href="{% url 'hrms:employee_detail' employee.pk %}" class="table-action-btn btn-action-view" title="View Profile">
+                    <i class="bi bi-eye"></i>
+                  </a>
+                  <a href="{% url 'hrms:employee_edit' employee.pk %}" class="table-action-btn btn-action-edit" title="Edit Employee">
+                    <i class="bi bi-pencil-square"></i>
+                  </a>
+                  <a href="{% url 'hrms:employee_delete' employee.pk %}" class="table-action-btn btn-action-delete" title="Delete Employee">
+                    <i class="bi bi-trash"></i>
+                  </a>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="empty-state-box">
+      <i class="bi bi-person-workspace empty-state-icon"></i>
+      <h5 class="empty-state-title">No Employees Found</h5>
+      <p class="empty-state-desc">No employees have been created yet. Add your first employee to populate the workforce directory.</p>
+      <a href="{% url 'hrms:employee_create' %}" class="btn-primary-admin">
+        <i class="bi bi-person-plus-fill"></i> Add First Employee
+      </a>
+    </div>
+  {% endif %}
 </div>
 {% endblock content %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const searchInput = document.getElementById('employeeSearchInput');
+    if (searchInput) {
+      searchInput.addEventListener('input', function (e) {
+        const query = e.target.value.toLowerCase().trim();
+        const rows = document.querySelectorAll('#employeesTable .emp-row');
+        rows.forEach(row => {
+          const text = row.textContent.toLowerCase();
+          if (text.includes(query)) {
+            row.style.display = '';
+          } else {
+            row.style.display = 'none';
+          }
+        });
+      });
+    }
+  });
+</script>
+{% endblock extra_js %}

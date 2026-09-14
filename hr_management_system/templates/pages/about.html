@@ -1,3 +1,114 @@
 {% extends "base.html" %}
+{% load static %}
 
+{% block title %}About - Smart HR Management System{% endblock title %}
 
+{% block content %}
+<div class="row justify-content-center py-4">
+  <div class="col-lg-10">
+    <!-- Header Card -->
+    <div class="public-card mb-4">
+      <div class="d-flex align-items-center gap-3 mb-3">
+        <div class="public-brand-icon">
+          <i class="bi bi-info-circle-fill"></i>
+        </div>
+        <div>
+          <h2 class="text-white fw-bold mb-1">About Smart HRMS</h2>
+          <p class="text-muted mb-0 small">Automated Human Resource Management Platform</p>
+        </div>
+      </div>
+      <p class="text-secondary lead fs-6 mb-0">
+        Smart HR Management System is an enterprise-grade Django web application engineered to solve end-to-end human resource operations. It features strict role-based access control (RBAC), automated recruitment pipelines, workforce oversight, performance tracking, HR advisory workflows, and executive analytics.
+      </p>
+    </div>
+
+    <!-- Modules Architecture Grid -->
+    <div class="row g-4 mb-4">
+      <div class="col-md-6">
+        <div class="public-card h-100">
+          <h5 class="text-white fw-semibold mb-3 d-flex align-items-center gap-2">
+            <i class="bi bi-shield-check text-primary"></i> System Roles & RBAC
+          </h5>
+          <ul class="list-unstyled d-flex flex-column gap-2 small text-secondary mb-0">
+            <li class="d-flex align-items-start gap-2">
+              <i class="bi bi-person-fill-gear text-primary mt-1"></i>
+              <div><strong class="text-white">Administrator:</strong> Global authority across all workforce data, recruitment approvals, disciplinary rulings, and department structures.</div>
+            </li>
+            <li class="d-flex align-items-start gap-2">
+              <i class="bi bi-person-badge text-info mt-1"></i>
+              <div><strong class="text-white">HR Manager:</strong> Manages recruitment postings, candidate interviews, employee onboarding, performance evaluations, and advisory recommendations.</div>
+            </li>
+            <li class="d-flex align-items-start gap-2">
+              <i class="bi bi-person-workspace text-success mt-1"></i>
+              <div><strong class="text-white">Employee:</strong> Submits weekly work reports, reviews performance feedback, and tracks company notifications.</div>
+            </li>
+            <li class="d-flex align-items-start gap-2">
+              <i class="bi bi-person-lines-fill text-warning mt-1"></i>
+              <div><strong class="text-white">Candidate:</strong> Explores vacancies, submits applications, and tracks hiring status.</div>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="public-card h-100">
+          <h5 class="text-white fw-semibold mb-3 d-flex align-items-center gap-2">
+            <i class="bi bi-cpu text-info"></i> Core Modules
+          </h5>
+          <div class="d-flex flex-column gap-2 small text-secondary">
+            <div class="p-2 rounded" style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color);">
+              <strong class="text-white d-block">1. Recruitment Lifecycle</strong>
+              From job vacancy creation, applicant pipeline, to administrative hiring approvals and offer dispatches.
+            </div>
+            <div class="p-2 rounded" style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color);">
+              <strong class="text-white d-block">2. Workforce Directory</strong>
+              Department-based hierarchy, employee codes, designations, joining dates, and employment status management.
+            </div>
+            <div class="p-2 rounded" style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-color);">
+              <strong class="text-white d-block">3. Governance & Adjudication</strong>
+              HR recommendation reviews, performance warnings, PIP escalation, and termination workflows with full confirmation safeguards.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Technology Stack Card -->
+    <div class="public-card">
+      <h5 class="text-white fw-semibold mb-3 d-flex align-items-center gap-2">
+        <i class="bi bi-layers text-cyan"></i> Technology Architecture
+      </h5>
+      <div class="row g-3 text-center">
+        <div class="col-6 col-md-3">
+          <div class="p-3 rounded border border-secondary border-opacity-25" style="background: rgba(255,255,255,0.02);">
+            <i class="bi bi-filetype-py fs-3 text-primary mb-1 d-block"></i>
+            <span class="text-white fw-semibold d-block small">Django 4.2+</span>
+            <span class="text-muted smaller" style="font-size: 0.75rem;">Backend Engine</span>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="p-3 rounded border border-secondary border-opacity-25" style="background: rgba(255,255,255,0.02);">
+            <i class="bi bi-database fs-3 text-info mb-1 d-block"></i>
+            <span class="text-white fw-semibold d-block small">PostgreSQL / SQLite</span>
+            <span class="text-muted smaller" style="font-size: 0.75rem;">Relational Database</span>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="p-3 rounded border border-secondary border-opacity-25" style="background: rgba(255,255,255,0.02);">
+            <i class="bi bi-bootstrap fs-3 text-purple mb-1 d-block"></i>
+            <span class="text-white fw-semibold d-block small">Bootstrap 5 + Custom CSS</span>
+            <span class="text-muted smaller" style="font-size: 0.75rem;">Responsive Interface</span>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="p-3 rounded border border-secondary border-opacity-25" style="background: rgba(255,255,255,0.02);">
+            <i class="bi bi-shield-lock fs-3 text-success mb-1 d-block"></i>
+            <span class="text-white fw-semibold d-block small">Allauth & RBAC</span>
+            <span class="text-muted smaller" style="font-size: 0.75rem;">Security & Auth</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}

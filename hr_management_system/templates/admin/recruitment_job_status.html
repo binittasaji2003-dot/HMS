@@ -1,0 +1,178 @@
+{% extends "admin/base_admin.html" %}
+{% load recruitment_extras %}
+
+{% block title %}Pipeline: {{ vacancy.title }}{% endblock title %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+  <div>
+    <h1 class="h3 mb-1 fw-bold">{{ vacancy.title }}</h1>
+    <p class="text-secondary mb-0 small">Full recruitment pipeline for this posting — read-only monitoring of applicant applications.</p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'hrms:recruitment_status' %}" class="btn-secondary-admin">
+      <i class="bi bi-funnel"></i> All Postings
+    </a>
+    <a href="{% url 'hrms:admin_dashboard' %}" class="btn-secondary-admin">
+      <i class="bi bi-arrow-left"></i> Dashboard
+    </a>
+  </div>
+</div>
+
+<!-- Vacancy Overview Hero -->
+<div class="saas-card mb-4 p-4">
+  <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
+    <div class="d-flex align-items-center gap-3">
+      <div class="kpi-icon-circle icon-circle-amber" style="width: 56px; height: 56px; border-radius: 14px; font-size: 1.5rem;">
+        <i class="bi bi-briefcase-fill"></i>
+      </div>
+      <div>
+        <h2 class="h4 mb-1 text-dark fw-bold">{{ vacancy.title }}</h2>
+        <div class="text-secondary small d-flex align-items-center gap-2 flex-wrap">
+          <span><i class="bi bi-building me-1"></i>{{ vacancy.department.name|default:"Unassigned" }}</span>
+          <span>&bull;</span>
+          <span><i class="bi bi-person-badge me-1"></i>{{ owner_name }} · {{ owner_role }}</span>
+        </div>
+      </div>
+    </div>
+    <div>
+      {% if vacancy.status == "Open" %}
+        <span class="badge-status badge-status-active" style="font-size: 0.85rem; padding: 0.35rem 0.85rem;">
+          <i class="bi bi-check-circle-fill me-1"></i> Open
+        </span>
+      {% elif vacancy.status == "Closed" %}
+        <span class="badge-status badge-status-danger" style="font-size: 0.85rem; padding: 0.35rem 0.85rem;">
+          <i class="bi bi-x-circle-fill me-1"></i> Closed
+        </span>
+      {% else %}
+        <span class="badge-status badge-status-pending" style="font-size: 0.85rem; padding: 0.35rem 0.85rem;">
+          <i class="bi bi-hourglass-split me-1"></i> {{ vacancy.get_status_display }}
+        </span>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if vacancy.description %}
+    <p class="text-secondary small mb-3">{{ vacancy.description|truncatewords:40 }}</p>
+  {% endif %}
+
+  <div class="row g-2">
+    <div class="col-6 col-md-2">
+      <div class="profile-stat-box" style="background-color: var(--bg-main); border: 1px solid var(--border-color); border-radius: 10px; padding: 0.75rem;">
+        <span class="profile-stat-label">Posted</span>
+        <span class="profile-stat-val text-primary" style="font-size: 0.9rem;">{{ vacancy.created_at|date:"M d, Y" }}</span>
+      </div>
+    </div>
+    <div class="col-6 col-md-2">
+      <div class="profile-stat-box" style="background-color: var(--bg-main); border: 1px solid var(--border-color); border-radius: 10px; padding: 0.75rem;">
+        <span class="profile-stat-label">Openings</span>
+        <span class="profile-stat-val text-dark" style="font-size: 0.9rem;">{{ vacancy.openings_count|default:"1" }}</span>
+      </div>
+    </div>
+    <div class="col-6 col-md-2">
+      <div class="profile-stat-box" style="background-color: var(--bg-main); border: 1px solid var(--border-color); border-radius: 10px; padding: 0.75rem;">
+        <span class="profile-stat-label">Applicants</span>
+        <span class="profile-stat-val text-dark" style="font-size: 0.9rem;">{{ total_applicants }}</span>
+      </div>
+    </div>
+    {% for stage in stages %}
+      <div class="col-6 col-md-2">
+        <div class="profile-stat-box" style="background-color: var(--bg-main); border: 1px solid var(--border-color); border-radius: 10px; padding: 0.75rem;">
+          <span class="profile-stat-label">{{ stage }}</span>
+          <span class="profile-stat-val {% if stage == 'Selected' or stage == 'Hired' %}text-success{% elif stage == 'Rejected' %}text-danger{% else %}text-dark{% endif %}" style="font-size: 0.9rem;">
+            {{ stage_counts|get_item:stage }}
+          </span>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- Applicants Card -->
+<div class="saas-card">
+  <div class="card-header flex-wrap gap-3">
+    <div class="d-flex align-items-center gap-2">
+      <h2 class="card-title">
+        <i class="bi bi-person-lines-fill text-primary"></i> Applicant Pipeline
+      </h2>
+      <span class="btn-pill-action">{{ candidates|length }} Applicant{{ candidates|length|pluralize }}</span>
+    </div>
+
+    <form method="get" class="d-flex align-items-center gap-2 flex-wrap">
+      <div class="topbar-search-box" style="width: 220px;">
+        <i class="bi bi-search"></i>
+        <input type="text" name="q" value="{{ search }}" placeholder="Search applicants...">
+      </div>
+      <select name="stage" class="form-select form-select-sm" style="width: 190px; min-height: 36px;">
+        <option value="">All Stages</option>
+        {% for value, label in status_choices %}
+          <option value="{{ value }}" {% if stage_filter == value %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit" class="btn-pill-action"><i class="bi bi-funnel me-1"></i>Filter</button>
+      {% if search or stage_filter %}
+        <a href="{% url 'hrms:recruitment_job_status' vacancy.pk %}" class="btn-pill-action"><i class="bi bi-x-lg me-1"></i>Clear</a>
+      {% endif %}
+    </form>
+  </div>
+
+  {% if candidates %}
+    <div class="table-responsive">
+      <table class="table-saas" id="pipelineTable">
+        <caption class="visually-hidden">Applicants for this posting</caption>
+        <thead>
+          <tr>
+            <th scope="col" style="width: 30%;">Applicant</th>
+            <th scope="col" style="width: 18%;">Contact</th>
+            <th scope="col" style="width: 14%;">Experience</th>
+            <th scope="col" style="width: 14%;">Stage</th>
+            <th scope="col" style="width: 12%;">Applied</th>
+            <th scope="col" style="width: 12%; text-align: right;">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for cand in candidates %}
+            <tr>
+              <td>
+                <div class="emp-table-profile">
+                  <div class="emp-table-avatar" style="background: linear-gradient(135deg, #059669, #10b981);">
+                    {{ cand.full_name|slice:":1"|upper }}
+                  </div>
+                  <div>
+                    <div class="emp-table-name text-dark fw-semibold">{{ cand.full_name }}</div>
+                    <div class="emp-table-dept text-muted">{{ cand.email }}</div>
+                  </div>
+                </div>
+              </td>
+              <td><span class="text-secondary small">{{ cand.phone|default:"—" }}</span></td>
+              <td><span class="text-secondary small">{{ cand.experience_years|default:"0" }} yrs</span></td>
+              <td>
+                {% if cand.status == "Selected" or cand.status == "Hired" %}
+                  <span class="badge-status badge-status-active"><i class="bi bi-check-circle-fill me-1"></i>{{ cand.status }}</span>
+                {% elif cand.status == "Rejected" %}
+                  <span class="badge-status badge-status-danger"><i class="bi bi-x-circle-fill me-1"></i>Rejected</span>
+                {% else %}
+                  <span class="badge-status badge-status-pending"><i class="bi bi-hourglass-split me-1"></i>{{ cand.status }}</span>
+                {% endif %}
+              </td>
+              <td><span class="text-secondary small">{{ cand.applied_at|date:"M d, Y" }}</span></td>
+              <td style="text-align: right;">
+                <a href="{% url 'hrms:recruitment_candidate_detail' cand.pk %}" class="table-action-btn btn-action-view" title="View Application">
+                  <i class="bi bi-eye"></i>
+                </a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="empty-state-box">
+      <i class="bi bi-person-lines-fill empty-state-icon"></i>
+      <h5 class="empty-state-title">No Applicants Found</h5>
+      <p class="empty-state-desc">No candidate applications match the current filters for this posting.</p>
+    </div>
+  {% endif %}
+</div>
+{% endblock content %}

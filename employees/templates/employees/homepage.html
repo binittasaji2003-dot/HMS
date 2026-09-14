@@ -1,50 +1,121 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Employee Database</title>
-</head>
+{% extends "base.html" %}
+{% load static %}
 
-<body>
+{% block title %}Employee Directory - Smart HRMS{% endblock title %}
 
-    <h1>Employee Module</h1>
+{% block content %}
+<div class="row justify-content-center py-4">
+  <div class="col-12">
+    <!-- Header Card -->
+    <div class="public-card mb-4">
+      <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+        <div class="d-flex align-items-center gap-3">
+          <div class="public-brand-icon">
+            <i class="bi bi-people-fill"></i>
+          </div>
+          <div>
+            <h2 class="text-white fw-bold mb-1">Employee Directory</h2>
+            <p class="text-muted mb-0 small">Official workforce records and departmental allocations</p>
+          </div>
+        </div>
+        <div class="d-flex align-items-center gap-2">
+          <span class="badge px-3 py-2 rounded-pill" style="background: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.35); font-weight: 600;">
+            <i class="bi bi-person-check-fill me-1"></i> Total Staff: {{ employees|length }}
+          </span>
+          <a href="{% url 'hrms:employees_list' %}" class="btn btn-sm btn-primary">
+            <i class="bi bi-sliders me-1"></i> Admin Directory
+          </a>
+        </div>
+      </div>
+    </div>
 
-    <h2>Employees from Database</h2>
-
-    {% if employees %}
-
-        <table border="1" cellpadding="10">
+    <!-- Employee Table Card -->
+    <div class="public-card p-0 overflow-hidden">
+      {% if employees %}
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
             <thead>
-    <tr>
-        <th>ID</th>
-        <th>Employee Name</th>
-        <th>Employee Code</th>
-        <th>Designation</th>
-        <th>Department</th>
-        <th>Joining Date</th>
-        <th>Status</th>
-    </tr>
-</thead>
-
+              <tr>
+                <th class="ps-4">ID</th>
+                <th>Employee Name</th>
+                <th>Employee Code</th>
+                <th>Designation</th>
+                <th>Department</th>
+                <th>Joining Date</th>
+                <th class="pe-4 text-end">Status</th>
+              </tr>
+            </thead>
             <tbody>
-    {% for employee in employees %}
-    <tr>
-        <td>{{ employee.employee_id }}</td>
-        <td>{{ employee.user.name }}</td>
-        <td>{{ employee.employee_code }}</td>
-        <td>{{ employee.designation }}</td>
-        <td>{{ employee.department.name }}</td>
-        <td>{{ employee.joining_date }}</td>
-        <td>{{ employee.employment_status }}</td>
-    </tr>
-    {% endfor %}
-</tbody>
-        </table>
-
-    {% else %}
-
-        <p>No employees found in the database.</p>
-
-    {% endif %}
-
-</body>
-</html>
+              {% for employee in employees %}
+                <tr>
+                  <td class="ps-4 text-muted small fw-mono">#{{ employee.employee_id }}</td>
+                  <td>
+                    <div class="d-flex align-items-center gap-2">
+                      <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold text-white small"
+                           style="width: 34px; height: 34px; background: linear-gradient(135deg, #4f46e5, #3b82f6);">
+                        {% if employee.user.name %}{{ employee.user.name|slice:":1"|upper }}{% else %}E{% endif %}
+                      </div>
+                      <div>
+                        <div class="fw-semibold text-white">{{ employee.user.name|default:employee.user.email }}</div>
+                        <div class="small text-muted">{{ employee.user.email }}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="badge bg-secondary bg-opacity-25 text-light border border-secondary border-opacity-25 px-2 py-1 font-monospace">
+                      {{ employee.employee_code }}
+                    </span>
+                  </td>
+                  <td class="text-white">{{ employee.designation|default:"Staff" }}</td>
+                  <td>
+                    {% if employee.department %}
+                      <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2 py-1">
+                        {{ employee.department.name }}
+                      </span>
+                    {% else %}
+                      <span class="text-muted small">Unassigned</span>
+                    {% endif %}
+                  </td>
+                  <td class="text-muted small">
+                    {{ employee.joining_date|default:"N/A" }}
+                  </td>
+                  <td class="pe-4 text-end">
+                    {% if employee.employment_status|lower == 'active' %}
+                      <span class="badge-status badge-status-active">
+                        <i class="bi bi-circle-fill" style="font-size: 6px;"></i> Active
+                      </span>
+                    {% elif employee.employment_status|lower == 'probation' %}
+                      <span class="badge-status badge-status-pending">
+                        <i class="bi bi-hourglass-split"></i> Probation
+                      </span>
+                    {% elif employee.employment_status|lower == 'terminated' or employee.employment_status|lower == 'suspended' %}
+                      <span class="badge-status badge-status-danger">
+                        <i class="bi bi-x-circle-fill"></i> {{ employee.employment_status|title }}
+                      </span>
+                    {% else %}
+                      <span class="badge-status badge-status-active">
+                        {{ employee.employment_status|default:"Active" }}
+                      </span>
+                    {% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="p-5 text-center">
+          <div class="public-brand-icon mx-auto mb-3" style="width: 50px; height: 50px; font-size: 1.5rem; opacity: 0.6;">
+            <i class="bi bi-people"></i>
+          </div>
+          <h5 class="text-white fw-bold mb-1">No Employees Found</h5>
+          <p class="text-muted small mb-3">There are currently no employee records available in the database.</p>
+          <a href="{% url 'hrms:employee_create' %}" class="btn btn-sm btn-primary">
+            <i class="bi bi-plus-lg me-1"></i> Add First Employee
+          </a>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock content %}

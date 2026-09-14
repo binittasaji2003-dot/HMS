@@ -1,0 +1,440 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}{{ page_title|default:"Review Recommendation - Admin Responsibilities" }}{% endblock title %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+  <div>
+    <h1 class="page-title-saas mb-1">Review HR Recommendation &amp; Final Decision</h1>
+    <p class="page-subtitle-saas mb-0">
+      Conduct administrative review of HR findings, examine employee history, and record the Administrator's binding final decision.
+    </p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'hrms:admin_responsibilities_warning_detail' warning.warning_id %}" class="btn-secondary-admin">
+      <i class="bi bi-eye me-1"></i> Warning Details
+    </a>
+    <a href="{% url 'hrms:admin_responsibilities_recommendations' %}" class="btn-secondary-admin">
+      <i class="bi bi-arrow-left"></i> Back to Recommendations
+    </a>
+  </div>
+</div>
+
+<!-- Decision Progression Workflow Stepper -->
+<div class="saas-card p-4 mb-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <span class="text-secondary small fw-bold text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.5px;">Decision Progression Lifecycle</span>
+    <span class="badge bg-primary-subtle text-primary border border-primary-subtle rounded-pill">Admin Authority Level</span>
+  </div>
+  <div class="row g-2 text-center">
+    <!-- Step 1: Warning -->
+    <div class="col-12 col-md-3">
+      <div class="p-3 rounded-3 h-100 bg-light border border-light-subtle">
+        <div class="text-muted fw-bold mb-1" style="font-size: 0.7rem;">STEP 1</div>
+        <div class="fw-bold text-dark mb-1"><i class="bi bi-exclamation-triangle text-warning me-1"></i> Warning Issued</div>
+        <div class="text-secondary small" style="font-size: 0.8rem;">
+          {% if warning.issued_by %}
+            {{ warning.issued_by.user.name|default:warning.issued_by.user.email }}
+          {% else %}
+            HR Manager
+          {% endif %}
+        </div>
+        <div class="text-muted small" style="font-size: 0.72rem;">{{ warning.warning_date|date:"M d, Y" }}</div>
+      </div>
+    </div>
+
+    <!-- Step 2: HR Recommendation -->
+    <div class="col-12 col-md-3">
+      <div class="p-3 rounded-3 h-100 bg-light border {% if warning.hr_recommendation %}border-warning{% else %}border-light-subtle{% endif %}">
+        <div class="text-warning fw-bold mb-1" style="font-size: 0.7rem;">STEP 2</div>
+        <div class="fw-bold text-dark mb-1"><i class="bi bi-chat-quote text-warning me-1"></i> HR Recommendation</div>
+        <div class="text-secondary small" style="font-size: 0.8rem;">
+          {% if warning.hr_recommendation %}
+            Recommendation Logged
+          {% else %}
+            None Submitted
+          {% endif %}
+        </div>
+        <div class="text-muted small" style="font-size: 0.72rem;">Advisory Finding</div>
+      </div>
+    </div>
+
+    <!-- Step 3: Admin Review -->
+    <div class="col-12 col-md-3">
+      <div class="p-3 rounded-3 h-100 border border-primary shadow-sm" style="background-color: #eff6ff;">
+        <div class="text-primary fw-bold mb-1" style="font-size: 0.7rem;">STEP 3</div>
+        <div class="fw-bold text-primary mb-1"><i class="bi bi-search me-1"></i> Admin Review</div>
+        <div class="text-dark small fw-semibold" style="font-size: 0.8rem;">Active Review in Progress</div>
+        <div class="text-secondary small" style="font-size: 0.72rem;">{{ request.user.name|default:request.user.email }}</div>
+      </div>
+    </div>
+
+    <!-- Step 4: Admin Decision -->
+    <div class="col-12 col-md-3">
+      <div class="p-3 rounded-3 h-100 bg-light border {% if warning.admin_decision %}border-success{% else %}border-light-subtle{% endif %}">
+        <div class="text-muted fw-bold mb-1" style="font-size: 0.7rem;">STEP 4</div>
+        <div class="fw-bold {% if warning.admin_decision %}text-success{% else %}text-secondary{% endif %} mb-1">
+          <i class="bi bi-check-circle me-1"></i> Admin Decision
+        </div>
+        <div class="text-secondary small" style="font-size: 0.8rem;">
+          {% if warning.admin_decision %}
+            {{ warning.get_admin_decision_display }}
+          {% else %}
+            Pending Submission
+          {% endif %}
+        </div>
+        <div class="text-muted small" style="font-size: 0.72rem;">
+          {% if warning.decision_date %}{{ warning.decision_date|date:"M d, Y" }}{% else %}Awaiting Decision{% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Left Column: Employee Info & Evidence History -->
+  <div class="col-12 col-lg-5">
+    <!-- Employee Profile Summary -->
+    <div class="saas-card p-4 mb-4">
+      <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+        <div class="d-flex align-items-center gap-3">
+          <div class="avatar-saas-lg rounded-circle" style="width: 50px; height: 50px; font-size: 1.25rem; background: rgba(245, 158, 11, 0.15); color: #d97706; font-weight: 700; display: flex; align-items: center; justify-content: center;">
+            {{ employee.user.name|default:employee.user.email|slice:":1"|upper }}
+          </div>
+          <div>
+            <h3 class="h5 mb-0 text-dark fw-bold">{{ employee.user.name|default:employee.user.email }}</h3>
+            <span class="text-secondary small">{{ employee.designation }}</span>
+          </div>
+        </div>
+        <div>
+          {% if employee.employment_status == "ACTIVE" %}
+            <span class="badge-status-saas badge-success-saas">Active</span>
+          {% elif employee.employment_status == "TERMINATED" %}
+            <span class="badge-status-saas badge-danger-saas">Terminated</span>
+          {% else %}
+            <span class="badge-status-saas badge-neutral-saas">{{ employee.employment_status }}</span>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="d-flex flex-column gap-2 mb-2">
+        <div class="p-2 px-3 rounded-3 bg-light border border-light-subtle d-flex justify-content-between">
+          <span class="text-secondary small">Employee Code</span>
+          <span class="text-dark fw-bold small">{{ employee.employee_code }}</span>
+        </div>
+        <div class="p-2 px-3 rounded-3 bg-light border border-light-subtle d-flex justify-content-between">
+          <span class="text-secondary small">Department</span>
+          <span class="text-primary fw-semibold small">{{ employee.department.name|default:"Unassigned" }}</span>
+        </div>
+        <div class="p-2 px-3 rounded-3 bg-light border border-light-subtle d-flex justify-content-between">
+          <span class="text-secondary small">Email</span>
+          <span class="text-dark fw-semibold small">{{ employee.user.email }}</span>
+        </div>
+        <div class="p-2 px-3 rounded-3 bg-light border border-light-subtle d-flex justify-content-between">
+          <span class="text-secondary small">Joining Date</span>
+          <span class="text-dark fw-semibold small">{{ employee.joining_date|date:"M d, Y"|default:"Not recorded" }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Complete Warning & Decision History -->
+    <div class="saas-card overflow-hidden mb-4">
+      <div class="p-3 border-bottom border-light-subtle d-flex align-items-center justify-content-between">
+        <h2 class="h6 mb-0 fw-bold text-dark"><i class="bi bi-clock-history text-primary me-2"></i>Warning &amp; Decision History</h2>
+        <span class="badge bg-light text-secondary border border-light-subtle rounded-pill">{{ warning_history|length }} Total</span>
+      </div>
+      {% if warning_history %}
+        <div class="table-responsive">
+          <table class="table-saas mb-0">
+            <thead>
+              <tr>
+                <th scope="col" style="width: 25%;">Date</th>
+                <th scope="col" style="width: 35%;">Reason</th>
+                <th scope="col" style="width: 20%;">Status</th>
+                <th scope="col" style="width: 20%;">Decision</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for h in warning_history %}
+                <tr {% if h.pk == warning.pk %}class="table-primary"{% endif %}>
+                  <td class="text-secondary small">
+                    {{ h.warning_date|date:"M d, Y" }}
+                    {% if h.pk == warning.pk %}<span class="badge bg-primary ms-1" style="font-size: 0.6rem;">Current</span>{% endif %}
+                  </td>
+                  <td>
+                    <span class="text-dark small d-inline-block text-truncate" style="max-width: 130px;" title="{{ h.reason }}">{{ h.reason }}</span>
+                  </td>
+                  <td>
+                    <span class="badge-status-saas {% if h.status == 'RESOLVED' %}badge-success-saas{% else %}badge-warning-saas{% endif %}" style="font-size: 0.68rem;">{{ h.status }}</span>
+                  </td>
+                  <td>
+                    {% if h.admin_decision %}
+                      <span class="text-dark small fw-semibold">{{ h.get_admin_decision_display }}</span>
+                    {% else %}
+                      <span class="text-secondary small">Pending</span>
+                    {% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="text-center py-4">
+          <p class="text-secondary small mb-0">No prior warnings recorded.</p>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Performance Appraisals on Record (if any) -->
+    {% if performance_reviews %}
+      <div class="saas-card overflow-hidden">
+        <div class="p-3 border-bottom border-light-subtle d-flex align-items-center justify-content-between">
+          <h2 class="h6 mb-0 fw-bold text-dark"><i class="bi bi-graph-up-arrow text-success me-2"></i>Performance Reviews</h2>
+          <span class="badge bg-light text-secondary border border-light-subtle rounded-pill">{{ performance_reviews|length }}</span>
+        </div>
+        <div class="p-3 d-flex flex-column gap-2">
+          {% for rev in performance_reviews %}
+            <div class="p-2 px-3 rounded-2 bg-light border border-light-subtle">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <span class="fw-semibold text-dark small">{{ rev.review_period }}</span>
+                <span class="badge-status-saas badge-warning-saas" style="font-size: 0.7rem;">Rating: {{ rev.get_rating_display|default:rev.rating }}</span>
+              </div>
+              <p class="text-secondary small mb-0">{{ rev.comments|default:"No written comments."|truncatewords:18 }}</p>
+            </div>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+  </div>
+
+  <!-- Right Column: Evidence & Decision Form -->
+  <div class="col-12 col-lg-7">
+    <!-- Section A: Warning Reason -->
+    <div class="saas-card p-4 mb-4">
+      <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom border-light-subtle">
+        <h2 class="h5 mb-0 fw-bold text-dark"><i class="bi bi-file-earmark-text text-primary me-2"></i>Warning Infraction Details</h2>
+        <span class="text-secondary small">Issued by: {{ warning.issued_by.user.name|default:warning.issued_by.user.email|default:"HR Manager" }}</span>
+      </div>
+      <div>
+        <div class="p-3 rounded-3 bg-light border border-light-subtle text-dark" style="line-height: 1.6; font-size: 0.92rem; white-space: pre-wrap;">{{ warning.reason }}</div>
+      </div>
+    </div>
+
+    <!-- Section B: HR Recommendation (Clearly Distinguished) -->
+    <div class="saas-card p-4 mb-4 border-start border-4 border-warning" style="background-color: #fffbeb;">
+      <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom border-warning border-opacity-25 flex-wrap gap-2">
+        <div class="d-flex align-items-center gap-2">
+          <i class="bi bi-chat-quote-fill text-warning fs-5"></i>
+          <div>
+            <h2 class="h5 mb-0 fw-bold text-dark">HR Recommendation on Record</h2>
+            <span class="text-secondary small" style="font-size: 0.75rem;">Advisory recommendation submitted by Human Resources</span>
+          </div>
+        </div>
+        <span class="badge bg-warning text-dark px-3 py-1 fw-bold" style="font-size: 0.75rem;">
+          HR ADVISORY
+        </span>
+      </div>
+      <div>
+        <div class="p-3 rounded-3 mb-3 text-dark bg-white border border-warning border-opacity-50" style="font-size: 0.95rem; line-height: 1.6; font-weight: 500; white-space: pre-wrap;">{{ warning.hr_recommendation|default:"No specific recommendation text was submitted." }}</div>
+        <div class="d-flex align-items-center gap-2 text-secondary small">
+          <i class="bi bi-shield-lock-fill text-primary"></i>
+          <span>The Administrator may accept, adjust, or override this HR recommendation per company policy.</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section C: Administrator Final Decision Form -->
+    <div class="saas-card p-4 border border-primary">
+      <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom border-light-subtle flex-wrap gap-2">
+        <div class="d-flex align-items-center gap-2">
+          <i class="bi bi-hammer text-primary fs-5"></i>
+          <div>
+            <h2 class="h5 mb-0 fw-bold text-dark">Administrator Final Decision</h2>
+            <span class="text-secondary small" style="font-size: 0.75rem;">Binding ruling executed under Administrator authority</span>
+          </div>
+        </div>
+        <span class="badge bg-primary text-white px-3 py-1 fw-bold" style="font-size: 0.75rem;">
+          ADMIN RULING
+        </span>
+      </div>
+
+      <div>
+        <form method="post" action="{% url 'hrms:admin_responsibilities_decision' warning.warning_id %}" id="adminDecisionForm">
+          {% csrf_token %}
+
+          {% if form.non_field_errors %}
+            <div class="alert alert-danger mb-4">
+              {% for error in form.non_field_errors %}
+                <div>{{ error }}</div>
+              {% endfor %}
+            </div>
+          {% endif %}
+
+          <!-- Decision Options Selection -->
+          <div class="mb-4">
+            <label class="form-label fw-bold text-dark mb-2">Select Admin Decision <span class="text-danger">*</span></label>
+            <div class="d-flex flex-column gap-3">
+              <!-- Option 1: Continue Employment -->
+              <label class="p-3 rounded-3 d-flex align-items-start gap-3 cursor-pointer decision-option-box" 
+                     style="border: 1px solid #e2e8f0; background-color: #ffffff; cursor: pointer;"
+                     id="box-continue">
+                <input type="radio" name="decision" value="CONTINUE" class="form-check-input mt-1 decision-radio" 
+                       {% if form.decision.value == "CONTINUE" %}checked{% endif %} required>
+                <div>
+                  <div class="fw-bold text-success"><i class="bi bi-check-circle-fill me-1"></i> Continue Employment</div>
+                  <div class="text-secondary small">Acknowledge HR advice, maintain employee's active records, and resolve the warning without disciplinary escalation.</div>
+                </div>
+              </label>
+
+              <!-- Option 2: Give Another Warning -->
+              <label class="p-3 rounded-3 d-flex align-items-start gap-3 cursor-pointer decision-option-box" 
+                     style="border: 1px solid #e2e8f0; background-color: #ffffff; cursor: pointer;"
+                     id="box-warning">
+                <input type="radio" name="decision" value="ANOTHER_WARNING" class="form-check-input mt-1 decision-radio" 
+                       {% if form.decision.value == "ANOTHER_WARNING" %}checked{% endif %}>
+                <div>
+                  <div class="fw-bold text-warning"><i class="bi bi-exclamation-octagon-fill me-1"></i> Give Another Warning</div>
+                  <div class="text-secondary small">Resolve current warning with finding and spawn a subsequent warning record to preserve disciplinary escalation history.</div>
+                </div>
+              </label>
+
+              <!-- Option 3: Issue Termination Letter -->
+              <label class="p-3 rounded-3 d-flex align-items-start gap-3 cursor-pointer decision-option-box" 
+                     style="border: 1px solid #e2e8f0; background-color: #ffffff; cursor: pointer;"
+                     id="box-termination">
+                <input type="radio" name="decision" value="TERMINATION" class="form-check-input mt-1 decision-radio" 
+                       {% if form.decision.value == "TERMINATION" %}checked{% endif %}>
+                <div>
+                  <div class="fw-bold text-danger"><i class="bi bi-x-octagon-fill me-1"></i> Issue Termination Letter</div>
+                  <div class="text-secondary small">Update employee status to Terminated, disable login access, generate termination document, and preserve all history.</div>
+                </div>
+              </label>
+            </div>
+            {% if form.decision.errors %}
+              <div class="text-danger small mt-1">{{ form.decision.errors }}</div>
+            {% endif %}
+          </div>
+
+          <!-- New Warning Reason (Conditional) -->
+          <div class="mb-4" id="newWarningReasonSection" style="display: none;">
+            <label class="form-label fw-bold text-warning mb-1">
+              Reason / Specifics for the Subsequent Warning <span class="text-danger">*</span>
+            </label>
+            {{ form.new_warning_reason }}
+            <div class="form-text text-secondary small">Specify the renewed requirements and expectations for the newly created warning.</div>
+            {% if form.new_warning_reason.errors %}
+              <div class="text-danger small mt-1">{{ form.new_warning_reason.errors }}</div>
+            {% endif %}
+          </div>
+
+          <!-- Admin Comments / Rationale -->
+          <div class="mb-4">
+            <label class="form-label fw-bold text-dark mb-1">
+              Admin Comments / Rationale <span class="text-danger">*</span>
+            </label>
+            {{ form.admin_comments }}
+            <div class="form-text text-secondary small">This explanation is recorded in the permanent audit trail alongside your decision.</div>
+            {% if form.admin_comments.errors %}
+              <div class="text-danger small mt-1">{{ form.admin_comments.errors }}</div>
+            {% endif %}
+          </div>
+
+          <!-- Termination Confirmation Section (Conditional) -->
+          <div class="mb-4 p-3 rounded-3" id="terminationConfirmSection" 
+               style="display: none; background-color: #fef2f2; border: 1px solid #fecaca;">
+            <div class="d-flex align-items-center gap-2 text-danger mb-2 fw-bold">
+              <i class="bi bi-exclamation-triangle-fill fs-5"></i>
+              <span>High-Impact Action: Confirmation Required</span>
+            </div>
+            <p class="text-secondary small mb-3">
+              Terminating an employee will change their status to <strong>Terminated</strong>, instantly deactivate their user account to block login, and record an official termination notice in their document archive. <strong>The employee record will NEVER be deleted.</strong>
+            </p>
+            <div class="form-check">
+              {{ form.confirm_termination }}
+              <label class="form-check-label text-dark small fw-medium" for="confirmTerminationCheckbox">
+                {{ form.confirm_termination.label }}
+              </label>
+            </div>
+            {% if form.confirm_termination.errors %}
+              <div class="text-danger small mt-2 fw-bold">{{ form.confirm_termination.errors }}</div>
+            {% endif %}
+          </div>
+
+          <!-- Submit Buttons -->
+          <div class="d-flex align-items-center justify-content-between pt-3 border-top border-light-subtle">
+            <a href="{% url 'hrms:admin_responsibilities_recommendations' %}" class="btn-secondary-admin">
+              Cancel
+            </a>
+            <button type="submit" class="btn-primary-admin px-4 py-2" id="submitDecisionBtn">
+              <i class="bi bi-check2-circle me-1"></i> Commit Final Decision
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Inline JavaScript for Decision UI Reactivity -->
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  const radios = document.querySelectorAll(".decision-radio");
+  const newWarningSection = document.getElementById("newWarningReasonSection");
+  const terminationSection = document.getElementById("terminationConfirmSection");
+  const submitBtn = document.getElementById("submitDecisionBtn");
+
+  function updateFormState() {
+    let selected = "";
+    radios.forEach(r => {
+      if (r.checked) selected = r.value;
+    });
+
+    // Reset box styles
+    document.querySelectorAll(".decision-option-box").forEach(b => {
+      b.style.borderColor = "#e2e8f0";
+      b.style.backgroundColor = "#ffffff";
+    });
+
+    if (selected === "CONTINUE") {
+      const box = document.getElementById("box-continue");
+      if (box) {
+        box.style.borderColor = "#10b981";
+        box.style.backgroundColor = "#ecfdf5";
+      }
+      newWarningSection.style.display = "none";
+      terminationSection.style.display = "none";
+      submitBtn.className = "btn btn-success px-4 py-2 fw-semibold";
+      submitBtn.innerHTML = '<i class="bi bi-check2-circle me-1"></i> Continue Employment';
+    } else if (selected === "ANOTHER_WARNING") {
+      const box = document.getElementById("box-warning");
+      if (box) {
+        box.style.borderColor = "#f59e0b";
+        box.style.backgroundColor = "#fffbeb";
+      }
+      newWarningSection.style.display = "block";
+      terminationSection.style.display = "none";
+      submitBtn.className = "btn btn-warning text-dark px-4 py-2 fw-semibold";
+      submitBtn.innerHTML = '<i class="bi bi-exclamation-octagon me-1"></i> Issue Subsequent Warning';
+    } else if (selected === "TERMINATION") {
+      const box = document.getElementById("box-termination");
+      if (box) {
+        box.style.borderColor = "#ef4444";
+        box.style.backgroundColor = "#fef2f2";
+      }
+      newWarningSection.style.display = "none";
+      terminationSection.style.display = "block";
+      submitBtn.className = "btn btn-danger px-4 py-2 fw-semibold";
+      submitBtn.innerHTML = '<i class="bi bi-x-octagon me-1"></i> Execute Termination Notice';
+    }
+  }
+
+  radios.forEach(r => {
+    r.addEventListener("change", updateFormState);
+  });
+
+  updateFormState();
+});
+</script>
+{% endblock content %}

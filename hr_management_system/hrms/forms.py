@@ -5,9 +5,12 @@ from django.contrib.auth.password_validation import validate_password
 from django.core.exceptions import ValidationError
 from django.utils.translation import gettext_lazy as _
 
+from .models import Announcement
+from .models import Candidate
 from .models import Department
 from .models import Employee
 from .models import HRManager
+from .models import JobVacancy
 
 User = get_user_model()
 
@@ -437,7 +440,8 @@ class EmployeeProfileForm(forms.Form):
         if employee:
             self.fields["full_name"].initial = employee.user.name
             self.fields["email"].initial = employee.user.email
-            self.fields["phone"].initial = employee.user.email
+            # Phone is not stored on the User model for Employee; use empty string
+            self.fields["phone"].initial = ""
             self.fields["department"].initial = employee.department
             self.fields["designation"].initial = employee.designation
             self.fields["status"].initial = employee.status
@@ -513,3 +517,262 @@ class HRManagerProfileForm(forms.Form):
         self.manager.phone = self.cleaned_data["phone"]
         self.manager.save(update_fields=["department", "phone"])
         return self.manager
+
+
+class DepartmentForm(forms.ModelForm):
+    """Form for creating and editing departments."""
+
+    name = forms.CharField(
+        label=_("Department Name"),
+        max_length=150,
+        required=True,
+        widget=forms.TextInput(
+            attrs={
+                "class": "form-control custom-input",
+                "placeholder": "e.g., Engineering, Sales, HR",
+                "autocomplete": "off",
+            }
+        ),
+    )
+    description = forms.CharField(
+        label=_("Description"),
+        required=False,
+        widget=forms.Textarea(
+            attrs={
+                "class": "form-control custom-input",
+                "placeholder": "Brief description of the department",
+                "rows": 4,
+            }
+        ),
+    )
+    status = forms.ChoiceField(
+        label=_("Status"),
+        choices=[("Active", "Active"), ("Inactive", "Inactive")],
+        widget=forms.Select(attrs={"class": "form-select custom-input"}),
+    )
+
+    class Meta:
+        model = Department
+        fields = ("name", "description", "status")
+
+    def clean_name(self):
+        name = self.cleaned_data.get("name", "").strip()
+        if not name:
+            raise ValidationError(_("Department name is required."))
+        
+        # Check for duplicate names (case-insensitive)
+        if self.instance.pk:
+            # Editing existing department
+            qs = Department.objects.filter(name__iexact=name).exclude(pk=self.instance.pk)
+        else:
+            # Creating new department
+            qs = Department.objects.filter(name__iexact=name)
+        
+        if qs.exists():
+            raise ValidationError(_("A department with this name already exists."))
+        
+        return name
+
+
+def ensure_default_vacancies():
+    """Populate baseline vacancies if empty so candidate application forms are immediately usable."""
+    departments = ensure_default_departments()
+    default_dept = departments.first()
+    defaults = [
+        ("Senior Full-Stack Engineer", default_dept),
+        ("HR Operations Specialist", departments.filter(name="Human Resources").first() or default_dept),
+        ("Financial Analyst", departments.filter(name="Finance").first() or default_dept),
+    ]
+    for title, dept in defaults:
+        JobVacancy.objects.get_or_create(
+            title=title,
+            department=dept,
+            defaults={"description": f"Position for {title}.", "status": JobVacancy.StatusChoices.OPEN},
+        )
+    return JobVacancy.objects.filter(status=JobVacancy.StatusChoices.OPEN).order_by("title")
+
+
+class CandidateForm(forms.ModelForm):
+    """Standardized form for creating and updating candidate applications."""
+
+    full_name = forms.CharField(
+        label=_("Full Name"),
+        max_length=200,
+        required=True,
+        widget=forms.TextInput(
+            attrs={"class": "form-control custom-input", "placeholder": "Candidate full name"}
+        ),
+    )
+    email = forms.EmailField(
+        label=_("Email Address"),
+        required=True,
+        widget=forms.EmailInput(
+            attrs={"class": "form-control custom-input", "placeholder": "candidate@example.com"}
+        ),
+    )
+    phone = forms.CharField(
+        label=_("Phone Number"),
+        max_length=30,
+        required=False,
+        widget=forms.TextInput(
+            attrs={"class": "form-control custom-input", "placeholder": "+1 (555) 000-0000"}
+        ),
+    )
+    experience_years = forms.DecimalField(
+        label=_("Experience (Years)"),
+        max_digits=4,
+        decimal_places=1,
+        required=False,
+        initial=0.0,
+        widget=forms.NumberInput(
+            attrs={"class": "form-control custom-input", "placeholder": "e.g. 3.5", "step": "0.5"}
+        ),
+    )
+    job_vacancy = forms.ModelChoiceField(
+        label=_("Applied Position"),
+        queryset=JobVacancy.objects.none(),
+        required=True,
+        widget=forms.Select(attrs={"class": "form-select custom-input"}),
+    )
+    status = forms.ChoiceField(
+        label=_("Application Status"),
+        choices=Candidate.StatusChoices.choices,
+        required=True,
+        widget=forms.Select(attrs={"class": "form-select custom-input"}),
+    )
+
+    class Meta:
+        model = Candidate
+        fields = ("full_name", "email", "phone", "job_vacancy", "experience_years", "status")
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["job_vacancy"].queryset = ensure_default_vacancies()
+
+
+class AdminDecisionForm(forms.Form):
+    """Form for recording the Administrator's final decision on an employee's HR recommendation."""
+
+    DECISION_CHOICES = [
+        ("CONTINUE", _("Continue Employment")),
+        ("ANOTHER_WARNING", _("Give Another Warning")),
+        ("TERMINATION", _("Issue Termination Letter")),
+    ]
+
+    decision = forms.ChoiceField(
+        label=_("Admin Final Decision"),
+        choices=DECISION_CHOICES,
+        widget=forms.RadioSelect(attrs={"class": "form-check-input"}),
+        required=True,
+    )
+    admin_comments = forms.CharField(
+        label=_("Admin Comments / Rationale"),
+        required=True,
+        widget=forms.Textarea(
+            attrs={
+                "class": "form-control custom-input",
+                "rows": 4,
+                "placeholder": _("Enter the rationale, observations, or directives regarding this decision..."),
+            }
+        ),
+    )
+    new_warning_reason = forms.CharField(
+        label=_("Reason for New Warning"),
+        required=False,
+        widget=forms.Textarea(
+            attrs={
+                "class": "form-control custom-input",
+                "rows": 3,
+                "placeholder": _("State the updated expectations, infractions, and consequences..."),
+            }
+        ),
+        help_text=_("Specify the warning reason if issuing another warning."),
+    )
+    confirm_termination = forms.BooleanField(
+        label=_("I confirm the termination of this employee. This updates their employment status to Terminated, disables login credentials, and records the termination letter in their profile."),
+        required=False,
+        widget=forms.CheckboxInput(attrs={"class": "form-check-input", "id": "confirmTerminationCheckbox"}),
+    )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        decision = cleaned_data.get("decision")
+        confirm_termination = cleaned_data.get("confirm_termination")
+        new_warning_reason = (cleaned_data.get("new_warning_reason") or "").strip()
+
+        if decision == "TERMINATION" and not confirm_termination:
+            self.add_error(
+                "confirm_termination",
+                _("Confirmation is required before issuing a termination letter.")
+            )
+
+        if decision == "ANOTHER_WARNING" and not new_warning_reason:
+            cleaned_data["new_warning_reason"] = (cleaned_data.get("admin_comments") or "").strip()
+
+        return cleaned_data
+
+
+class AnnouncementForm(forms.ModelForm):
+    """Form for creating and editing announcements in the Admin Portal."""
+
+    title = forms.CharField(
+        label=_("Announcement Title"),
+        max_length=200,
+        required=True,
+        widget=forms.TextInput(
+            attrs={
+                "class": "form-control custom-input",
+                "placeholder": _("e.g., Annual Company Retreat 2026"),
+                "autocomplete": "off",
+            }
+        ),
+    )
+    announcement_type = forms.ChoiceField(
+        label=_("Announcement Type"),
+        choices=Announcement.TypeChoices.choices,
+        initial=Announcement.TypeChoices.GENERAL,
+        required=True,
+        widget=forms.Select(attrs={"class": "form-select custom-input"}),
+    )
+    target_audience = forms.ChoiceField(
+        label=_("Target Audience"),
+        choices=Announcement.AudienceChoices.choices,
+        initial=Announcement.AudienceChoices.ALL,
+        required=True,
+        widget=forms.Select(attrs={"class": "form-select custom-input"}),
+    )
+    content = forms.CharField(
+        label=_("Announcement Content"),
+        required=True,
+        widget=forms.Textarea(
+            attrs={
+                "class": "form-control custom-input",
+                "rows": 6,
+                "placeholder": _("Compose your announcement message here..."),
+            }
+        ),
+    )
+    is_published = forms.BooleanField(
+        label=_("Publish Immediately"),
+        required=False,
+        widget=forms.CheckboxInput(attrs={"class": "form-check-input", "id": "isPublishedCheckbox"}),
+        help_text=_("If checked, this announcement will be published and broadcast immediately."),
+    )
+
+    class Meta:
+        model = Announcement
+        fields = ("title", "announcement_type", "target_audience", "content", "is_published")
+
+    def clean_title(self):
+        title = self.cleaned_data.get("title", "").strip()
+        if not title:
+            raise ValidationError(_("Announcement title cannot be blank."))
+        return title
+
+    def clean_content(self):
+        content = self.cleaned_data.get("content", "").strip()
+        if not content:
+            raise ValidationError(_("Announcement content cannot be blank."))
+        return content
+
+

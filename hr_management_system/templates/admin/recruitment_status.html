@@ -1,0 +1,182 @@
+{% extends "admin/base_admin.html" %}
+{% load recruitment_extras %}
+
+{% block title %}Recruitment Status - Recruitment Monitoring{% endblock title %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+  <div>
+    <h1 class="h3 mb-1 fw-bold">Recruitment Status</h1>
+    <p class="text-secondary mb-0 small">
+      Recruitment progress for every job posting, computed from live candidate applications and their pipeline stage.
+    </p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'hrms:recruitment_jobs' %}" class="btn-secondary-admin">
+      <i class="bi bi-briefcase"></i> Job Postings
+    </a>
+    <a href="{% url 'hrms:admin_dashboard' %}" class="btn-secondary-admin">
+      <i class="bi bi-arrow-left"></i> Dashboard
+    </a>
+  </div>
+</div>
+
+<!-- Stage Summary KPI Cards -->
+<div class="kpi-grid-5 mb-4">
+  <div class="kpi-card kpi-card-compact">
+    <div class="kpi-header">
+      <span class="kpi-title">Applications</span>
+      <div class="kpi-icon-circle icon-circle-blue"><i class="bi bi-person-lines-fill"></i></div>
+    </div>
+    <div class="kpi-value">{{ total_applications|default:"0" }}</div>
+    <div class="kpi-trend trend-subtext"><span>Total pipeline</span></div>
+  </div>
+  <div class="kpi-card kpi-card-compact">
+    <div class="kpi-header">
+      <span class="kpi-title">Applied</span>
+      <div class="kpi-icon-circle icon-circle-purple"><i class="bi bi-file-earmark-person"></i></div>
+    </div>
+    <div class="kpi-value">{{ global_totals.Applied|default:"0" }}</div>
+    <div class="kpi-trend trend-subtext"><span>In review queue</span></div>
+  </div>
+  <div class="kpi-card kpi-card-compact">
+    <div class="kpi-header">
+      <span class="kpi-title">Shortlisted</span>
+      <div class="kpi-icon-circle icon-circle-amber"><i class="bi bi-person-check"></i></div>
+    </div>
+    <div class="kpi-value">{{ global_totals.Shortlisted|default:"0" }}</div>
+    <div class="kpi-trend trend-subtext"><span>Moved forward</span></div>
+  </div>
+  <div class="kpi-card kpi-card-compact">
+    <div class="kpi-header">
+      <span class="kpi-title">Interviewing</span>
+      <div class="kpi-icon-circle icon-circle-cyan"><i class="bi bi-chat-square-text"></i></div>
+    </div>
+    <div class="kpi-value">{{ global_totals.Interviewing|default:"0" }}</div>
+    <div class="kpi-trend trend-subtext"><span>Interview stage</span></div>
+  </div>
+  <div class="kpi-card kpi-card-compact">
+    <div class="kpi-header">
+      <span class="kpi-title">Selected</span>
+      <div class="kpi-icon-circle icon-circle-emerald"><i class="bi bi-patch-check-fill"></i></div>
+    </div>
+    <div class="kpi-value">{{ global_totals.Selected|default:"0" }}</div>
+    <div class="kpi-trend trend-positive"><i class="bi bi-person-check-fill"></i><span>Offers extended</span></div>
+  </div>
+  <div class="kpi-card kpi-card-compact">
+    <div class="kpi-header">
+      <span class="kpi-title">Hired</span>
+      <div class="kpi-icon-circle icon-circle-blue"><i class="bi bi-briefcase-fill"></i></div>
+    </div>
+    <div class="kpi-value">{{ global_totals.Hired|default:"0" }}</div>
+    <div class="kpi-trend trend-positive"><i class="bi bi-person-check"></i><span>Onboarding started</span></div>
+  </div>
+  <div class="kpi-card kpi-card-compact">
+    <div class="kpi-header">
+      <span class="kpi-title">Rejected</span>
+      <div class="kpi-icon-circle icon-circle-rose"><i class="bi bi-x-circle-fill"></i></div>
+    </div>
+    <div class="kpi-value">{{ global_totals.Rejected|default:"0" }}</div>
+    <div class="kpi-trend trend-negative"><i class="bi bi-x-circle"></i><span>Not progressed</span></div>
+  </div>
+</div>
+
+<!-- Per Job Progress Card -->
+<div class="saas-card">
+  <div class="card-header flex-wrap gap-3">
+    <div class="d-flex align-items-center gap-2">
+      <h2 class="card-title">
+        <i class="bi bi-funnel-fill text-primary"></i> Recruitment Progress by Job
+      </h2>
+      <span class="btn-pill-action">{{ job_rows|length }} Posting{{ job_rows|length|pluralize }}</span>
+    </div>
+
+    <!-- Server-side filters -->
+    <form method="get" class="d-flex align-items-center gap-2 flex-wrap">
+      <div class="topbar-search-box" style="width: 240px;">
+        <i class="bi bi-search"></i>
+        <input type="text" name="q" value="{{ search }}" placeholder="Search title or department...">
+      </div>
+      <select name="status" class="form-select form-select-sm" style="width: 150px; min-height: 36px;">
+        <option value="">All Statuses</option>
+        {% for value, label in job_statuses %}
+          <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+      <button type="submit" class="btn-pill-action"><i class="bi bi-funnel me-1"></i>Filter</button>
+      {% if search or status_filter %}
+        <a href="{% url 'hrms:recruitment_status' %}" class="btn-pill-action"><i class="bi bi-x-lg me-1"></i>Clear</a>
+      {% endif %}
+    </form>
+  </div>
+
+  {% if job_rows %}
+    <div class="table-responsive">
+      <table class="table-saas" id="statusTable">
+        <caption class="visually-hidden">Recruitment progress by job posting</caption>
+        <thead>
+          <tr>
+            <th scope="col">Position &amp; Department</th>
+            <th scope="col">Applicants</th>
+            {% for stage in stages %}
+              <th scope="col">{{ stage }}</th>
+            {% endfor %}
+            <th scope="col">Job Status</th>
+            <th scope="col" style="text-align: right;">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in job_rows %}
+            <tr>
+              <td>
+                <div class="emp-table-profile">
+                  <div class="emp-table-avatar" style="background: linear-gradient(135deg, #F59E0B, #D97706);">
+                    {{ row.vacancy.title|slice:":1"|upper }}
+                  </div>
+                  <div>
+                    <div class="emp-table-name text-dark fw-semibold">{{ row.vacancy.title }}</div>
+                    <div class="emp-table-dept text-muted">{{ row.vacancy.department.name|default:"Unassigned" }}</div>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span class="fw-bold text-dark">{{ row.applicants_count }}</span>
+              </td>
+              {% for stage in stages %}
+                <td>
+                  <span class="{% if stage == 'Selected' or stage == 'Hired' %}text-success fw-semibold{% elif stage == 'Rejected' %}text-danger{% else %}text-dark{% endif %}">
+                    {{ row.stages|get_item:stage }}
+                  </span>
+                </td>
+              {% endfor %}
+              <td>
+                {% if row.vacancy.status == "Open" %}
+                  <span class="badge-status badge-status-active"><i class="bi bi-check-circle-fill me-1"></i>Open</span>
+                {% elif row.vacancy.status == "Closed" %}
+                  <span class="badge-status badge-status-danger"><i class="bi bi-x-circle-fill me-1"></i>Closed</span>
+                {% elif row.vacancy.status == "On Hold" %}
+                  <span class="badge-status badge-status-pending"><i class="bi bi-pause-circle-fill me-1"></i>On Hold</span>
+                {% else %}
+                  <span class="badge-status badge-status-pending"><i class="bi bi-pencil-square me-1"></i>{{ row.vacancy.get_status_display }}</span>
+                {% endif %}
+              </td>
+              <td style="text-align: right;">
+                <a href="{% url 'hrms:recruitment_job_status' row.vacancy.pk %}" class="table-action-btn btn-action-view" title="View Full Pipeline">
+                  <i class="bi bi-eye"></i>
+                </a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="empty-state-box">
+      <i class="bi bi-funnel empty-state-icon"></i>
+      <h5 class="empty-state-title">No Job Postings Found</h5>
+      <p class="empty-state-desc">Publish job postings in the HR module to start tracking recruitment progress.</p>
+    </div>
+  {% endif %}
+</div>
+{% endblock content %}

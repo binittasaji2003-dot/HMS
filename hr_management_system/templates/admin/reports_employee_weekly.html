@@ -1,0 +1,196 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Employee Weekly Reports - Admin Reports{% endblock title %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+  <div>
+    <h1 class="page-title-saas mb-1">Employee Weekly Reports</h1>
+    <p class="page-subtitle-saas mb-0">
+      Weekly work reports submitted by employees, showing reporting periods, work summaries, and review status.
+    </p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'hrms:reports_hr_weekly' %}" class="btn-secondary-admin">
+      <i class="bi bi-person-badge"></i> HR Weekly
+    </a>
+    <a href="{% url 'hrms:admin_dashboard' %}" class="btn-secondary-admin">
+      <i class="bi bi-arrow-left"></i> Dashboard
+    </a>
+  </div>
+</div>
+
+<!-- Summary KPI Cards -->
+<div class="row g-3 mb-4">
+  <div class="col-12 col-sm-6 col-lg">
+    <div class="saas-card p-3 h-100">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <span class="text-secondary small text-uppercase fw-semibold" style="font-size: 0.72rem;">Total Reports</span>
+        <div class="avatar-saas rounded-circle" style="background: rgba(59, 130, 246, 0.12); color: #3b82f6; width: 34px; height: 34px; font-size: 1rem; display: flex; align-items: center; justify-content: center;">
+          <i class="bi bi-file-earmark-text-fill"></i>
+        </div>
+      </div>
+      <div class="h3 fw-bold text-dark mb-1">{{ total_reports|default:"0" }}</div>
+      <div class="text-secondary small" style="font-size: 0.75rem;">On file</div>
+    </div>
+  </div>
+  <div class="col-12 col-sm-6 col-lg">
+    <div class="saas-card p-3 h-100">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <span class="text-secondary small text-uppercase fw-semibold" style="font-size: 0.72rem;">Submitted</span>
+        <div class="avatar-saas rounded-circle" style="background: rgba(139, 92, 246, 0.12); color: #8b5cf6; width: 34px; height: 34px; font-size: 1rem; display: flex; align-items: center; justify-content: center;">
+          <i class="bi bi-send-fill"></i>
+        </div>
+      </div>
+      <div class="h3 fw-bold text-dark mb-1">{{ submitted_count|default:"0" }}</div>
+      <div class="text-secondary small" style="font-size: 0.75rem;">Awaiting review</div>
+    </div>
+  </div>
+  <div class="col-12 col-sm-6 col-lg">
+    <div class="saas-card p-3 h-100">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <span class="text-secondary small text-uppercase fw-semibold" style="font-size: 0.72rem;">Reviewed</span>
+        <div class="avatar-saas rounded-circle" style="background: rgba(16, 185, 129, 0.12); color: #10b981; width: 34px; height: 34px; font-size: 1rem; display: flex; align-items: center; justify-content: center;">
+          <i class="bi bi-check2-circle"></i>
+        </div>
+      </div>
+      <div class="h3 fw-bold text-dark mb-1">{{ reviewed_count|default:"0" }}</div>
+      <div class="text-success small fw-semibold" style="font-size: 0.75rem;"><i class="bi bi-check-circle me-1"></i>Completed</div>
+    </div>
+  </div>
+  <div class="col-12 col-sm-6 col-lg">
+    <div class="saas-card p-3 h-100">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <span class="text-secondary small text-uppercase fw-semibold" style="font-size: 0.72rem;">Needs Correction</span>
+        <div class="avatar-saas rounded-circle" style="background: rgba(245, 158, 11, 0.12); color: #f59e0b; width: 34px; height: 34px; font-size: 1rem; display: flex; align-items: center; justify-content: center;">
+          <i class="bi bi-exclamation-triangle-fill"></i>
+        </div>
+      </div>
+      <div class="h3 fw-bold text-dark mb-1">{{ needs_correction_count|default:"0" }}</div>
+      <div class="text-warning small fw-semibold" style="font-size: 0.75rem;">Follow-up needed</div>
+    </div>
+  </div>
+  <div class="col-12 col-sm-6 col-lg">
+    <div class="saas-card p-3 h-100">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <span class="text-secondary small text-uppercase fw-semibold" style="font-size: 0.72rem;">Filtered View</span>
+        <div class="avatar-saas rounded-circle" style="background: rgba(6, 182, 212, 0.12); color: #06b6d4; width: 34px; height: 34px; font-size: 1rem; display: flex; align-items: center; justify-content: center;">
+          <i class="bi bi-funnel-fill"></i>
+        </div>
+      </div>
+      <div class="h3 fw-bold text-dark mb-1">{{ filtered_count|default:"0" }}</div>
+      <div class="text-secondary small" style="font-size: 0.75rem;">Showing {{ reports|length }}</div>
+    </div>
+  </div>
+</div>
+
+<!-- Reports Table Card -->
+<div class="saas-card overflow-hidden">
+  <div class="p-3 border-bottom border-light-subtle d-flex align-items-center justify-content-between flex-wrap gap-3">
+    <div class="d-flex align-items-center gap-2">
+      <h2 class="h5 mb-0 fw-bold text-dark">
+        <i class="bi bi-file-earmark-text text-primary me-2"></i>Weekly Report Records
+      </h2>
+      <span class="badge bg-light text-secondary border border-light-subtle rounded-pill">{{ reports|length }} Report{{ reports|length|pluralize }}</span>
+    </div>
+
+    <!-- Filters -->
+    <form method="get" class="d-flex align-items-center gap-2 flex-wrap mb-0">
+      <div class="input-group input-group-sm" style="width: 220px;">
+        <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-search"></i></span>
+        <input type="text" name="q" value="{{ search }}" class="form-control border-start-0 ps-0" placeholder="Search employee...">
+      </div>
+      <select name="status" class="form-select form-select-sm" style="width: 160px; min-height: 38px;">
+        <option value="">All Statuses</option>
+        {% for value, label in statuses %}
+          <option value="{{ value }}" {% if status_filter == value %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+      <input type="date" name="from" value="{{ from_date }}" class="form-control form-control-sm" style="width: 140px; min-height: 38px;" title="Week starts from">
+      <input type="date" name="to" value="{{ to_date }}" class="form-control form-control-sm" style="width: 140px; min-height: 38px;" title="Week ends by">
+      <button type="submit" class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1" style="min-height: 38px;">
+        <i class="bi bi-funnel"></i> Filter
+      </button>
+      {% if search or status_filter or from_date or to_date %}
+        <a href="{% url 'hrms:reports_employee_weekly' %}" class="btn btn-sm btn-light border d-inline-flex align-items-center gap-1" style="min-height: 38px;">
+          <i class="bi bi-x-lg"></i> Clear
+        </a>
+      {% endif %}
+    </form>
+  </div>
+
+  {% if reports %}
+    <div class="table-responsive">
+      <table class="table-saas mb-0" id="empWeeklyTable">
+        <caption class="visually-hidden">Employee weekly report records</caption>
+        <thead>
+          <tr>
+            <th scope="col" style="width: 22%;">Employee</th>
+            <th scope="col" style="width: 15%;">Department</th>
+            <th scope="col" style="width: 18%;">Reporting Period</th>
+            <th scope="col" style="width: 25%;">Work Summary</th>
+            <th scope="col" style="width: 10%;">Submitted</th>
+            <th scope="col" style="width: 10%;">Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for report in reports %}
+            <tr>
+              <td>
+                <div class="d-flex align-items-center gap-2">
+                  <div class="avatar-saas rounded-circle" style="background: rgba(59, 130, 246, 0.12); color: #2563eb; font-weight: 700; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; font-size: 0.85rem;">
+                    {{ report.employee.user.name|default:report.employee.user.email|slice:":1"|upper }}
+                  </div>
+                  <div>
+                    <div class="fw-semibold text-dark">{{ report.employee.user.name|default:report.employee.user.email }}</div>
+                    <div class="text-secondary small" style="font-size: 0.75rem;">{{ report.employee.user.email }}</div>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span class="badge bg-light text-dark border border-light-subtle">
+                  <i class="bi bi-building me-1 text-secondary"></i>{{ report.employee.department.name|default:"Unassigned" }}
+                </span>
+              </td>
+              <td>
+                <div class="text-dark fw-semibold" style="font-size: 0.88rem;">{{ report.week_start_date|date:"M d, Y" }}</div>
+                <div class="text-secondary small" style="font-size: 0.72rem;">to {{ report.week_end_date|date:"M d, Y" }}</div>
+              </td>
+              <td>
+                <span class="text-secondary small">{{ report.work_summary|default:"—"|truncatewords:16 }}</span>
+              </td>
+              <td><span class="text-secondary small">{{ report.submitted_at|date:"M d, Y" }}</span></td>
+              <td>
+                {% if report.status == "REVIEWED" %}
+                  <span class="badge-status-saas badge-success-saas"><i class="bi bi-check-circle me-1"></i>Reviewed</span>
+                {% elif report.status == "NEEDS_CORRECTION" %}
+                  <span class="badge-status-saas badge-danger-saas"><i class="bi bi-exclamation-triangle me-1"></i>Correction</span>
+                {% elif report.status == "UNDER_REVIEW" %}
+                  <span class="badge-status-saas badge-warning-saas"><i class="bi bi-hourglass-split me-1"></i>Under Review</span>
+                {% else %}
+                  <span class="badge-status-saas badge-info-saas"><i class="bi bi-hourglass-split me-1"></i>{{ report.get_status_display }}</span>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="text-center py-5">
+      <div class="avatar-saas-lg rounded-circle mx-auto mb-3" style="background: #f1f5f9; color: #94a3b8; width: 64px; height: 64px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem;">
+        <i class="bi bi-file-earmark-text"></i>
+      </div>
+      <h5 class="text-dark fw-bold mb-1">No Weekly Reports Found</h5>
+      <p class="text-secondary small mb-0">
+        {% if search or status_filter or from_date or to_date %}
+          No weekly reports match the current filters.
+        {% else %}
+          Employee weekly reports submitted through the employee reporting workflow will appear here.
+        {% endif %}
+      </p>
+    </div>
+  {% endif %}
+</div>
+{% endblock content %}

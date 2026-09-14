@@ -1,0 +1,268 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}{{ page_title|default:"Warning Details - Admin Responsibilities" }}{% endblock title %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+  <div>
+    <div class="d-flex align-items-center gap-2 mb-1">
+      <h1 class="page-title-saas mb-0">Performance Warning #{{ warning.warning_id }}</h1>
+      {% if warning.status == "OPEN" %}
+        <span class="badge-status-saas badge-danger-saas">Open</span>
+      {% elif warning.status == "SENT_TO_ADMIN" %}
+        <span class="badge-status-saas badge-warning-saas">Sent to Admin</span>
+      {% elif warning.status == "RESOLVED" %}
+        <span class="badge-status-saas badge-success-saas">Resolved</span>
+      {% endif %}
+    </div>
+    <p class="page-subtitle-saas mb-0">
+      Detailed record of warning issued to {{ employee.user.name|default:employee.user.email }}, HR recommendations, and warning history.
+    </p>
+  </div>
+  <div class="d-flex gap-2">
+    {% if warning.hr_recommendation and warning.status != "RESOLVED" %}
+      <a href="{% url 'hrms:admin_responsibilities_review' warning.warning_id %}" class="btn-primary-admin">
+        <i class="bi bi-hammer me-1"></i> Review &amp; Decide
+      </a>
+    {% endif %}
+    <a href="{% url 'hrms:admin_responsibilities_warnings' %}" class="btn-secondary-admin">
+      <i class="bi bi-arrow-left"></i> All Warnings
+    </a>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Left Column: Warning & HR Recommendation & Admin Decision -->
+  <div class="col-12 col-xl-8">
+    <!-- Warning Details Card -->
+    <div class="saas-card p-4 mb-4">
+      <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom border-light-subtle">
+        <h2 class="h5 mb-0 fw-bold text-dark"><i class="bi bi-exclamation-triangle-fill text-warning me-2"></i>Warning Particulars</h2>
+        <span class="text-secondary small"><i class="bi bi-calendar-event me-1"></i>Issued on {{ warning.warning_date|date:"F d, Y" }}</span>
+      </div>
+
+      <div class="mb-4">
+        <label class="text-muted text-uppercase small fw-semibold d-block mb-1" style="font-size: 0.72rem;">Reason / Infraction Description</label>
+        <div class="p-3 rounded-3 bg-light border border-light-subtle text-dark" style="font-size: 0.92rem; line-height: 1.6; white-space: pre-wrap;">{{ warning.reason }}</div>
+      </div>
+
+      <div class="row g-3">
+        <div class="col-12 col-md-6">
+          <div class="p-3 rounded-3 bg-light border border-light-subtle">
+            <span class="text-muted text-uppercase small fw-semibold d-block mb-1" style="font-size: 0.72rem;">Issuing HR Manager</span>
+            <span class="text-dark fw-semibold" style="font-size: 0.95rem;">
+              {% if warning.issued_by %}
+                <i class="bi bi-person-badge text-primary me-1"></i>{{ warning.issued_by.user.name|default:warning.issued_by.user.email }}
+              {% else %}
+                <span class="text-secondary">Human Resources</span>
+              {% endif %}
+            </span>
+          </div>
+        </div>
+        <div class="col-12 col-md-6">
+          <div class="p-3 rounded-3 bg-light border border-light-subtle">
+            <span class="text-muted text-uppercase small fw-semibold d-block mb-1" style="font-size: 0.72rem;">Current Warning Status</span>
+            <span class="text-dark fw-semibold" style="font-size: 0.95rem;">
+              {% if warning.status == "OPEN" %}
+                <span class="badge-status-saas badge-danger-saas">Open</span>
+              {% elif warning.status == "SENT_TO_ADMIN" %}
+                <span class="badge-status-saas badge-warning-saas">Sent to Admin for Review</span>
+              {% elif warning.status == "RESOLVED" %}
+                <span class="badge-status-saas badge-success-saas">Resolved</span>
+              {% endif %}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- HR Recommendation Card -->
+    {% if warning.hr_recommendation %}
+      <div class="saas-card p-4 mb-4 border-start border-4 border-warning">
+        <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom border-light-subtle flex-wrap gap-2">
+          <div class="d-flex align-items-center gap-2">
+            <h2 class="h5 mb-0 fw-bold text-dark">
+              <i class="bi bi-chat-quote-fill text-warning me-2"></i>HR Recommendation on Record
+            </h2>
+            <span class="badge-status-saas badge-warning-saas" style="font-size: 0.72rem;">Advisory from HR</span>
+          </div>
+          {% if warning.issued_by %}
+            <span class="text-secondary small">Submitted by {{ warning.issued_by.user.name|default:warning.issued_by.user.email }}</span>
+          {% endif %}
+        </div>
+        <div>
+          <div class="p-3 rounded-3 mb-3 text-dark" style="background-color: #fffbeb; border: 1px solid #fde68a; font-size: 0.92rem; line-height: 1.6; white-space: pre-wrap;">{{ warning.hr_recommendation }}</div>
+          <p class="text-secondary small mb-0">
+            <i class="bi bi-info-circle me-1 text-primary"></i>
+            This recommendation is advisory. The Administrator holds sole authority for the final decision.
+          </p>
+        </div>
+      </div>
+    {% endif %}
+
+    <!-- Admin Final Decision Record Card -->
+    {% if warning.admin_decision %}
+      <div class="saas-card p-4 mb-4 border-start border-4 {% if warning.admin_decision == 'TERMINATION' %}border-danger{% elif warning.admin_decision == 'ANOTHER_WARNING' %}border-warning{% else %}border-success{% endif %}">
+        <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom border-light-subtle flex-wrap gap-2">
+          <div class="d-flex align-items-center gap-2">
+            <h2 class="h5 mb-0 fw-bold text-dark">
+              <i class="bi bi-patch-check-fill text-success me-2"></i>Administrator Final Decision
+            </h2>
+            {% if warning.admin_decision == "CONTINUE" %}
+              <span class="badge-status-saas badge-success-saas">Continue Employment</span>
+            {% elif warning.admin_decision == "ANOTHER_WARNING" %}
+              <span class="badge-status-saas badge-warning-saas">Give Another Warning</span>
+            {% elif warning.admin_decision == "TERMINATION" %}
+              <span class="badge-status-saas badge-danger-saas">Issue Termination Letter</span>
+            {% endif %}
+          </div>
+          {% if warning.decision_date %}
+            <span class="text-secondary small"><i class="bi bi-clock-history me-1"></i>{{ warning.decision_date|date:"M d, Y H:i" }}</span>
+          {% endif %}
+        </div>
+        <div>
+          <div class="mb-3">
+            <label class="text-muted text-uppercase small fw-semibold d-block mb-1" style="font-size: 0.72rem;">Admin Directive / Comments</label>
+            <div class="p-3 rounded-3 bg-light border border-light-subtle text-dark" style="font-size: 0.92rem; line-height: 1.6; white-space: pre-wrap;">{{ warning.admin_comments|default:"No comments recorded." }}</div>
+          </div>
+          <div class="d-flex align-items-center justify-content-between text-secondary small">
+            <span>
+              <i class="bi bi-person-check-fill text-primary me-1"></i>
+              Decided by: <strong class="text-dark">{% if warning.decided_by %}{{ warning.decided_by.name|default:warning.decided_by.email }}{% else %}Administrator{% endif %}</strong>
+            </span>
+          </div>
+        </div>
+      </div>
+    {% elif warning.hr_recommendation %}
+      <div class="saas-card p-4 text-center mb-4 border border-warning border-opacity-25" style="background-color: #fffbeb;">
+        <i class="bi bi-hammer text-warning" style="font-size: 2.2rem;"></i>
+        <h4 class="text-dark fw-bold mt-2 mb-1">Administrative Decision Pending</h4>
+        <p class="text-secondary small mb-3">Review the HR recommendation and issue the final ruling for this employee.</p>
+        <a href="{% url 'hrms:admin_responsibilities_review' warning.warning_id %}" class="btn btn-primary-admin px-4 py-2">
+          <i class="bi bi-arrow-right-circle me-1"></i> Enter Decision Interface
+        </a>
+      </div>
+    {% endif %}
+
+    <!-- Employee Warning History Table Card -->
+    <div class="saas-card overflow-hidden">
+      <div class="p-3 border-bottom border-light-subtle d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center gap-2">
+          <h2 class="h5 mb-0 fw-bold text-dark"><i class="bi bi-clock-history text-primary me-2"></i>Employee Warning History</h2>
+          <span class="badge bg-light text-secondary border border-light-subtle rounded-pill">{{ history|length }} Other Record{{ history|length|pluralize }}</span>
+        </div>
+      </div>
+      {% if history %}
+        <div class="table-responsive">
+          <table class="table-saas mb-0">
+            <thead>
+              <tr>
+                <th scope="col" style="width: 8%;">ID</th>
+                <th scope="col" style="width: 15%;">Date</th>
+                <th scope="col" style="width: 35%;">Reason</th>
+                <th scope="col" style="width: 12%;">HR Rec</th>
+                <th scope="col" style="width: 12%;">Status</th>
+                <th scope="col" style="width: 10%;">Decision</th>
+                <th scope="col" class="text-end pe-3" style="width: 8%;">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for h in history %}
+                <tr>
+                  <td class="text-muted fw-semibold">#{{ h.warning_id }}</td>
+                  <td class="text-secondary small">{{ h.warning_date|date:"M d, Y" }}</td>
+                  <td>
+                    <span class="text-dark small d-inline-block text-truncate" style="max-width: 200px;" title="{{ h.reason }}">{{ h.reason }}</span>
+                  </td>
+                  <td>
+                    {% if h.hr_recommendation %}
+                      <span class="badge-status-saas badge-info-saas" style="font-size: 0.68rem;">Yes</span>
+                    {% else %}
+                      <span class="text-secondary small">—</span>
+                    {% endif %}
+                  </td>
+                  <td>
+                    <span class="badge-status-saas {% if h.status == 'RESOLVED' %}badge-success-saas{% else %}badge-warning-saas{% endif %}" style="font-size: 0.68rem;">{{ h.status }}</span>
+                  </td>
+                  <td>
+                    <span class="text-dark small fw-semibold">{{ h.get_admin_decision_display|default:"Pending" }}</span>
+                  </td>
+                  <td class="text-end pe-3">
+                    <a href="{% url 'hrms:admin_responsibilities_warning_detail' h.warning_id %}" class="btn btn-sm btn-light border py-0 px-2" style="font-size: 0.75rem;">
+                      View
+                    </a>
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="text-center py-4">
+          <i class="bi bi-shield-check text-muted" style="font-size: 2rem;"></i>
+          <p class="text-secondary small mb-0 mt-1">No other warning records found for this employee.</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Right Column: Employee Profile Summary Card -->
+  <div class="col-12 col-xl-4">
+    <div class="saas-card p-4 mb-4">
+      <div class="d-flex align-items-center gap-3 mb-4">
+        <div class="avatar-saas-lg rounded-circle" style="width: 52px; height: 52px; font-size: 1.3rem; background: rgba(245, 158, 11, 0.15); color: #d97706; font-weight: 700; display: flex; align-items: center; justify-content: center;">
+          {{ employee.user.name|default:employee.user.email|slice:":1"|upper }}
+        </div>
+        <div>
+          <h3 class="h5 mb-0 text-dark fw-bold">{{ employee.user.name|default:employee.user.email }}</h3>
+          <span class="text-secondary small">{{ employee.designation }}</span>
+        </div>
+      </div>
+
+      <div class="d-flex flex-column gap-3">
+        <div class="p-3 rounded-3 bg-light border border-light-subtle">
+          <span class="text-muted text-uppercase small fw-semibold d-block mb-1" style="font-size: 0.72rem;">Employee Code</span>
+          <span class="text-dark fw-bold">{{ employee.employee_code }}</span>
+        </div>
+        <div class="p-3 rounded-3 bg-light border border-light-subtle">
+          <span class="text-muted text-uppercase small fw-semibold d-block mb-1" style="font-size: 0.72rem;">Email Address</span>
+          <span class="text-dark fw-semibold" style="font-size: 0.88rem;">{{ employee.user.email }}</span>
+        </div>
+        <div class="p-3 rounded-3 bg-light border border-light-subtle">
+          <span class="text-muted text-uppercase small fw-semibold d-block mb-1" style="font-size: 0.72rem;">Department</span>
+          <span class="text-primary fw-semibold">{{ employee.department.name|default:"Unassigned" }}</span>
+        </div>
+        <div class="p-3 rounded-3 bg-light border border-light-subtle">
+          <span class="text-muted text-uppercase small fw-semibold d-block mb-1" style="font-size: 0.72rem;">Joining Date</span>
+          <span class="text-dark fw-semibold">{{ employee.joining_date|date:"M d, Y"|default:"Not recorded" }}</span>
+        </div>
+        <div class="p-3 rounded-3 bg-light border border-light-subtle">
+          <span class="text-muted text-uppercase small fw-semibold d-block mb-1" style="font-size: 0.72rem;">Employment Status</span>
+          <div>
+            {% if employee.employment_status == "ACTIVE" %}
+              <span class="badge-status-saas badge-success-saas">Active</span>
+            {% elif employee.employment_status == "TERMINATED" %}
+              <span class="badge-status-saas badge-danger-saas">Terminated</span>
+            {% elif employee.employment_status == "ON_LEAVE" %}
+              <span class="badge-status-saas badge-warning-saas">On Leave</span>
+            {% else %}
+              <span class="badge-status-saas badge-neutral-saas">{{ employee.employment_status }}</span>
+            {% endif %}
+          </div>
+        </div>
+        <div class="p-3 rounded-3 bg-light border border-light-subtle">
+          <span class="text-muted text-uppercase small fw-semibold d-block mb-1" style="font-size: 0.72rem;">Account Login Status</span>
+          <div>
+            {% if employee.user.is_active and employee.user.status == "Active" %}
+              <span class="badge-status-saas badge-success-saas">Enabled</span>
+            {% else %}
+              <span class="badge-status-saas badge-danger-saas">Disabled / Locked</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}

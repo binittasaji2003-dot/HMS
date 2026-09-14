@@ -1,0 +1,153 @@
+{% extends "admin/base_admin.html" %}
+{% block title %}{{ page_title|default:title }}{% endblock %}
+
+{% block content %}
+<!-- Page Breadcrumb & Header -->
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+  <div>
+    <div class="d-flex align-items-center gap-2 mb-1">
+      <a href="{% url 'hrms:candidates_list' %}" class="text-muted small text-decoration-none">Candidates</a>
+      <span class="text-muted small">/</span>
+      <span class="text-dark small fw-medium">{{ title }}</span>
+    </div>
+    <h1 class="h3 mb-0 fw-bold">{{ title }}</h1>
+  </div>
+  <a href="{% url back_url %}" class="btn-secondary-admin">
+    <i class="bi bi-arrow-left"></i> Back to Candidates
+  </a>
+</div>
+
+<!-- Centered Structured Card Container -->
+<div class="row justify-content-center">
+  <div class="col-12 col-lg-10 col-xl-9" style="max-width: 820px;">
+    <div class="saas-card">
+      <div class="card-header">
+        <h2 class="card-title">
+          <i class="bi bi-person-lines-fill text-primary"></i>
+          <span>Candidate Application Details</span>
+        </h2>
+        <span class="badge-status badge-status-info">
+          Talent Pipeline
+        </span>
+      </div>
+
+      <!-- Card Body with Form -->
+      <div class="form-window-body">
+        <form method="post" novalidate id="candidateWindowForm">
+          {% csrf_token %}
+
+          {% if form.non_field_errors %}
+            <div class="alert alert-danger mb-4 p-3">
+              {% for error in form.non_field_errors %}
+                <div class="d-flex align-items-center gap-2">
+                  <i class="bi bi-exclamation-circle-fill text-danger"></i>
+                  <span>{{ error }}</span>
+                </div>
+              {% endfor %}
+            </div>
+          {% endif %}
+
+          <!-- SECTION 1: CANDIDATE INFORMATION -->
+          <div class="form-section">
+            <div class="form-section-title">
+              <i class="bi bi-person-lines-fill"></i> Candidate Personal Details
+            </div>
+            <div class="row g-3">
+              <!-- Full Name -->
+              <div class="col-12">
+                <label for="{{ form.full_name.id_for_label }}" class="form-label mb-1">
+                  Full Name {% if form.full_name.field.required %}<span class="text-danger">*</span>{% endif %}
+                </label>
+                {{ form.full_name }}
+                {% if form.full_name.errors %}
+                  <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ form.full_name.errors.0 }}</div>
+                {% endif %}
+              </div>
+
+              <!-- Email Address -->
+              <div class="col-12 col-md-6">
+                <label for="{{ form.email.id_for_label }}" class="form-label mb-1">
+                  Email Address {% if form.email.field.required %}<span class="text-danger">*</span>{% endif %}
+                </label>
+                {{ form.email }}
+                {% if form.email.errors %}
+                  <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ form.email.errors.0 }}</div>
+                {% endif %}
+              </div>
+
+              <!-- Phone -->
+              <div class="col-12 col-md-6">
+                <label for="{{ form.phone.id_for_label }}" class="form-label mb-1">
+                  Contact Phone
+                </label>
+                {{ form.phone }}
+                {% if form.phone.errors %}
+                  <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ form.phone.errors.0 }}</div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+          <!-- SECTION 2: JOB APPLICATION DETAILS -->
+          <div class="form-section">
+            <div class="form-section-title">
+              <i class="bi bi-briefcase-fill"></i> Position & Qualifications
+            </div>
+            <div class="row g-3">
+              <!-- Job Vacancy -->
+              <div class="col-12 col-md-8">
+                <label for="{{ form.job_vacancy.id_for_label }}" class="form-label mb-1">
+                  Target Job Vacancy {% if form.job_vacancy.field.required %}<span class="text-danger">*</span>{% endif %}
+                </label>
+                {{ form.job_vacancy }}
+                {% if form.job_vacancy.errors %}
+                  <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ form.job_vacancy.errors.0 }}</div>
+                {% endif %}
+              </div>
+
+              <!-- Experience Years -->
+              <div class="col-12 col-md-4">
+                <label for="{{ form.experience_years.id_for_label }}" class="form-label mb-1">
+                  Experience (Years)
+                </label>
+                {{ form.experience_years }}
+                {% if form.experience_years.errors %}
+                  <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ form.experience_years.errors.0 }}</div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+          <!-- SECTION 3: EVALUATION & PIPELINE STAGE -->
+          <div class="form-section">
+            <div class="form-section-title">
+              <i class="bi bi-funnel-fill"></i> Application Stage & Status
+            </div>
+            <div class="row g-3">
+              <div class="col-12 col-md-6">
+                <label for="{{ form.status.id_for_label }}" class="form-label mb-1">
+                  Pipeline Status {% if form.status.field.required %}<span class="text-danger">*</span>{% endif %}
+                </label>
+                {{ form.status }}
+                {% if form.status.errors %}
+                  <div class="text-danger small mt-1"><i class="bi bi-exclamation-circle me-1"></i>{{ form.status.errors.0 }}</div>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+
+          <!-- Form Actions Footer -->
+          <div class="form-actions-bar">
+            <a href="{% url back_url %}" class="btn-secondary-admin">
+              <i class="bi bi-x-lg"></i> Cancel
+            </a>
+            <button type="submit" class="btn-primary-admin">
+              <i class="bi bi-check2-circle"></i> {{ submit_label|default:"Save Candidate" }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

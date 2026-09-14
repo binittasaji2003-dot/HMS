@@ -1,0 +1,254 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}Recruitment Reports - Admin Reports{% endblock title %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+  <div>
+    <h1 class="page-title-saas mb-1">Recruitment Reports</h1>
+    <p class="page-subtitle-saas mb-0">
+      Recruitment statistics across all job postings. Counts are computed live from candidate applications.
+    </p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'hrms:recruitment_status' %}" class="btn-secondary-admin">
+      <i class="bi bi-funnel"></i> Live Pipeline
+    </a>
+    <a href="{% url 'hrms:admin_dashboard' %}" class="btn-secondary-admin">
+      <i class="bi bi-arrow-left"></i> Dashboard
+    </a>
+  </div>
+</div>
+
+<!-- Summary KPI Cards -->
+<div class="row g-3 mb-4">
+  <div class="col-12 col-sm-6 col-lg">
+    <div class="saas-card p-3 h-100">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <span class="text-secondary small text-uppercase fw-semibold" style="font-size: 0.72rem;">Job Postings</span>
+        <div class="avatar-saas rounded-circle" style="background: rgba(245, 158, 11, 0.12); color: #f59e0b; width: 34px; height: 34px; font-size: 1rem; display: flex; align-items: center; justify-content: center;">
+          <i class="bi bi-briefcase-fill"></i>
+        </div>
+      </div>
+      <div class="h3 fw-bold text-dark mb-1">{{ total_jobs|default:"0" }}</div>
+      <div class="text-secondary small" style="font-size: 0.75rem;">{{ open_jobs }} open roles</div>
+    </div>
+  </div>
+  <div class="col-12 col-sm-6 col-lg">
+    <div class="saas-card p-3 h-100">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <span class="text-secondary small text-uppercase fw-semibold" style="font-size: 0.72rem;">Applications</span>
+        <div class="avatar-saas rounded-circle" style="background: rgba(59, 130, 246, 0.12); color: #3b82f6; width: 34px; height: 34px; font-size: 1rem; display: flex; align-items: center; justify-content: center;">
+          <i class="bi bi-person-lines-fill"></i>
+        </div>
+      </div>
+      <div class="h3 fw-bold text-dark mb-1">{{ applications|default:"0" }}</div>
+      <div class="text-secondary small" style="font-size: 0.75rem;">{{ period_label }}</div>
+    </div>
+  </div>
+  <div class="col-12 col-sm-6 col-lg">
+    <div class="saas-card p-3 h-100">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <span class="text-secondary small text-uppercase fw-semibold" style="font-size: 0.72rem;">Shortlisted</span>
+        <div class="avatar-saas rounded-circle" style="background: rgba(139, 92, 246, 0.12); color: #8b5cf6; width: 34px; height: 34px; font-size: 1rem; display: flex; align-items: center; justify-content: center;">
+          <i class="bi bi-person-check"></i>
+        </div>
+      </div>
+      <div class="h3 fw-bold text-dark mb-1">{{ shortlisted|default:"0" }}</div>
+      <div class="text-secondary small" style="font-size: 0.75rem;">{{ period_label }}</div>
+    </div>
+  </div>
+  <div class="col-12 col-sm-6 col-lg">
+    <div class="saas-card p-3 h-100">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <span class="text-secondary small text-uppercase fw-semibold" style="font-size: 0.72rem;">Selected / Hired</span>
+        <div class="avatar-saas rounded-circle" style="background: rgba(16, 185, 129, 0.12); color: #10b981; width: 34px; height: 34px; font-size: 1rem; display: flex; align-items: center; justify-content: center;">
+          <i class="bi bi-person-check-fill"></i>
+        </div>
+      </div>
+      <div class="h3 fw-bold text-dark mb-1">{{ selected|add:hired|default:"0" }}</div>
+      <div class="text-success small fw-semibold" style="font-size: 0.75rem;">{{ selected }} selected · {{ hired }} hired</div>
+    </div>
+  </div>
+  <div class="col-12 col-sm-6 col-lg">
+    <div class="saas-card p-3 h-100">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <span class="text-secondary small text-uppercase fw-semibold" style="font-size: 0.72rem;">Rejected</span>
+        <div class="avatar-saas rounded-circle" style="background: rgba(239, 68, 68, 0.12); color: #ef4444; width: 34px; height: 34px; font-size: 1rem; display: flex; align-items: center; justify-content: center;">
+          <i class="bi bi-x-circle-fill"></i>
+        </div>
+      </div>
+      <div class="h3 fw-bold text-dark mb-1">{{ rejected|default:"0" }}</div>
+      <div class="text-danger small" style="font-size: 0.75rem;">{{ period_label }}</div>
+    </div>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Applications by Job Chart -->
+  <div class="col-12 col-xl-4">
+    <div class="saas-card p-4 h-100">
+      <div class="d-flex align-items-center justify-content-between mb-3">
+        <h2 class="h5 mb-0 fw-bold text-dark"><i class="bi bi-bar-chart-fill text-primary me-2"></i>Applications by Job</h2>
+        <span class="badge bg-light text-secondary border border-light-subtle">{{ period_label }}</span>
+      </div>
+      {% if job_rows %}
+        <div style="position: relative; height: 280px; width: 100%;"><canvas id="recruitmentBarChart"></canvas></div>
+        <p class="text-secondary small mt-3 mb-0" style="font-size: 0.75rem;">Applicants received per posting in the selected period.</p>
+      {% else %}
+        <div class="text-center py-5">
+          <i class="bi bi-bar-chart text-muted fs-3 d-block mb-2"></i>
+          <p class="text-secondary small mb-0">No job postings to chart.</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Per-job Statistics Table -->
+  <div class="col-12 col-xl-8">
+    <div class="saas-card overflow-hidden">
+      <div class="p-3 border-bottom border-light-subtle d-flex align-items-center justify-content-between flex-wrap gap-3">
+        <div class="d-flex align-items-center gap-2">
+          <h2 class="h5 mb-0 fw-bold text-dark">
+            <i class="bi bi-table text-primary me-2"></i>Recruitment Statistics by Job
+          </h2>
+          <span class="badge bg-light text-secondary border border-light-subtle rounded-pill">{{ job_rows|length }} Posting{{ job_rows|length|pluralize }}</span>
+        </div>
+        <form method="get" class="d-flex align-items-center gap-2 mb-0">
+          <select name="period" class="form-select form-select-sm" style="width: 180px; min-height: 38px;">
+            {% for value, label in report_periods %}
+              <option value="{{ value }}" {% if period == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+          </select>
+          <button type="submit" class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1" style="min-height: 38px;">
+            <i class="bi bi-funnel"></i> Apply
+          </button>
+        </form>
+      </div>
+
+      {% if job_rows %}
+        <div class="table-responsive">
+          <table class="table-saas mb-0" id="recruitmentReportTable">
+            <caption class="visually-hidden">Recruitment statistics by job posting</caption>
+            <thead>
+              <tr>
+                <th scope="col">Position</th>
+                <th scope="col">Department</th>
+                <th scope="col" class="text-center">Applicants</th>
+                <th scope="col" class="text-center">Shortlisted</th>
+                <th scope="col" class="text-center">Selected</th>
+                <th scope="col" class="text-center">Hired</th>
+                <th scope="col" class="text-center">Rejected</th>
+                <th scope="col">Job Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in job_rows %}
+                <tr>
+                  <td>
+                    <div class="d-flex align-items-center gap-2">
+                      <div class="avatar-saas rounded-circle" style="background: rgba(245, 158, 11, 0.12); color: #d97706; font-weight: 700; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; font-size: 0.85rem;">
+                        {{ row.vacancy.title|slice:":1"|upper }}
+                      </div>
+                      <div>
+                        <div class="fw-semibold text-dark">{{ row.vacancy.title }}</div>
+                        <div class="text-secondary small" style="font-size: 0.75rem;">{{ row.vacancy.openings_count }} opening{{ row.vacancy.openings_count|pluralize }}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="badge bg-light text-dark border border-light-subtle">
+                      <i class="bi bi-building me-1 text-secondary"></i>{{ row.vacancy.department.name|default:"Unassigned" }}
+                    </span>
+                  </td>
+                  <td class="text-center"><span class="fw-bold text-dark">{{ row.applicants }}</span></td>
+                  <td class="text-center"><span class="text-secondary">{{ row.shortlisted }}</span></td>
+                  <td class="text-center"><span class="text-secondary">{{ row.selected }}</span></td>
+                  <td class="text-center"><span class="text-success fw-bold">{{ row.hired }}</span></td>
+                  <td class="text-center"><span class="text-danger">{{ row.rejected }}</span></td>
+                  <td>
+                    {% if row.vacancy.status == "Open" %}
+                      <span class="badge-status-saas badge-success-saas"><i class="bi bi-check-circle me-1"></i>Open</span>
+                    {% elif row.vacancy.status == "Closed" %}
+                      <span class="badge-status-saas badge-neutral-saas"><i class="bi bi-x-circle me-1"></i>Closed</span>
+                    {% elif row.vacancy.status == "On Hold" %}
+                      <span class="badge-status-saas badge-warning-saas"><i class="bi bi-pause-circle me-1"></i>On Hold</span>
+                    {% else %}
+                      <span class="badge-status-saas badge-info-saas"><i class="bi bi-pencil-square me-1"></i>{{ row.vacancy.get_status_display }}</span>
+                    {% endif %}
+                  </td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="text-center py-5">
+          <div class="avatar-saas-lg rounded-circle mx-auto mb-3" style="background: #f1f5f9; color: #94a3b8; width: 64px; height: 64px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem;">
+            <i class="bi bi-briefcase"></i>
+          </div>
+          <h5 class="text-dark fw-bold mb-1">No Job Postings Found</h5>
+          <p class="text-secondary small mb-0">Publish job postings in the HR module to populate recruitment statistics.</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock content %}
+
+{% block extra_js %}
+{% if job_rows %}
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const ctx = document.getElementById('recruitmentBarChart');
+    if (ctx) {
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: {{ chart_labels|safe }},
+          datasets: [{
+            label: 'Applications',
+            data: {{ chart_values|safe }},
+            backgroundColor: ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#06b6d4', '#ef4444', '#6366f1', '#14b8a6', '#84cc16', '#eab308'],
+            borderRadius: 6,
+            borderSkipped: false,
+            barPercentage: 0.65,
+            categoryPercentage: 0.8
+          }]
+        },
+        options: {
+          indexAxis: 'y',
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: {
+              backgroundColor: '#1e293b',
+              titleColor: '#ffffff',
+              bodyColor: '#cbd5e1',
+              borderColor: '#334155',
+              borderWidth: 1,
+              padding: 10,
+              displayColors: false,
+              callbacks: { label: ctx => ctx.parsed.x + ' applications' }
+            }
+          },
+          scales: {
+            x: {
+              beginAtZero: true,
+              ticks: { color: '#64748b', font: { family: 'Inter', size: 11 }, precision: 0 },
+              grid: { color: '#e2e8f0' }
+            },
+            y: {
+              grid: { display: false },
+              ticks: { color: '#1e293b', font: { family: 'Inter', size: 11, weight: '500' } }
+            }
+          }
+        }
+      });
+    }
+  });
+</script>
+{% endif %}
+{% endblock extra_js %}

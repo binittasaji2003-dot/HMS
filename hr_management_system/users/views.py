@@ -46,7 +46,20 @@ class UserRedirectView(LoginRequiredMixin, RedirectView):
     permanent = False
 
     def get_redirect_url(self) -> str:
-        return reverse("users:detail", kwargs={"pk": self.request.user.pk})
+        user = self.request.user
+        role = getattr(user, "role", None)
+
+        if role == User.RoleChoices.ADMIN:
+            return reverse("hrms:admin_dashboard")
+        elif role == User.RoleChoices.HR:
+            # HR managers go to the public home page for now
+            # (their own dashboard is not yet implemented)
+            return reverse("home")
+        elif role == User.RoleChoices.EMPLOYEE:
+            return reverse("employees:homepage")
+
+        return reverse("users:detail", kwargs={"pk": user.pk})
 
 
 user_redirect_view = UserRedirectView.as_view()
+

@@ -1,0 +1,205 @@
+{% extends "admin/base_admin.html" %}
+
+{% block title %}New Employee Approvals - Recruitment Monitoring{% endblock title %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+  <div>
+    <h1 class="h3 mb-1 fw-bold">New Employee Approvals</h1>
+    <p class="text-secondary mb-0 small">
+      Employee records raised by HR for selected candidates that are awaiting your approval.
+      Approving moves the record to the Active workforce.
+    </p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'hrms:recruitment_selected' %}" class="btn-secondary-admin">
+      <i class="bi bi-person-check"></i> Selected Candidates
+    </a>
+    <a href="{% url 'hrms:admin_dashboard' %}" class="btn-secondary-admin">
+      <i class="bi bi-arrow-left"></i> Dashboard
+    </a>
+  </div>
+</div>
+
+<!-- Summary KPI Cards -->
+<div class="kpi-grid-5 mb-4">
+  <div class="kpi-card kpi-card-compact">
+    <div class="kpi-header">
+      <span class="kpi-title">Pending Reviews</span>
+      <div class="kpi-icon-circle icon-circle-amber"><i class="bi bi-hourglass-split"></i></div>
+    </div>
+    <div class="kpi-value">{{ pending_count|default:"0" }}</div>
+    <div class="kpi-trend trend-warning"><i class="bi bi-clock"></i><span>Awaiting approval</span></div>
+  </div>
+  <div class="kpi-card kpi-card-compact">
+    <div class="kpi-header">
+      <span class="kpi-title">Active Employees</span>
+      <div class="kpi-icon-circle icon-circle-emerald"><i class="bi bi-people-fill"></i></div>
+    </div>
+    <div class="kpi-value">{{ active_employees|default:"0" }}</div>
+    <div class="kpi-trend trend-positive"><i class="bi bi-person-check-fill"></i><span>Approved workforce</span></div>
+  </div>
+  <div class="kpi-card kpi-card-compact">
+    <div class="kpi-header">
+      <span class="kpi-title">Employee Records</span>
+      <div class="kpi-icon-circle icon-circle-blue"><i class="bi bi-person-vcard-fill"></i></div>
+    </div>
+    <div class="kpi-value">{{ total_employees|default:"0" }}</div>
+    <div class="kpi-trend trend-subtext"><span>Total on file</span></div>
+  </div>
+</div>
+
+<!-- Pending Approvals Card -->
+<div class="saas-card mb-4">
+  <div class="card-header flex-wrap gap-3">
+    <div class="d-flex align-items-center gap-2">
+      <h2 class="card-title">
+        <i class="bi bi-clipboard-check-fill text-primary"></i> Awaiting Approval
+      </h2>
+      <span class="btn-pill-action">{{ pending_count }} Record{{ pending_count|pluralize }}</span>
+    </div>
+
+    <form method="get" class="d-flex align-items-center gap-2 flex-wrap">
+      <div class="topbar-search-box" style="width: 240px;">
+        <i class="bi bi-search"></i>
+        <input type="text" name="q" value="{{ search }}" placeholder="Search name, email, role...">
+      </div>
+      <button type="submit" class="btn-pill-action"><i class="bi bi-funnel me-1"></i>Filter</button>
+      {% if search %}
+        <a href="{% url 'hrms:recruitment_approvals' %}" class="btn-pill-action"><i class="bi bi-x-lg me-1"></i>Clear</a>
+      {% endif %}
+    </form>
+  </div>
+
+  {% if pending_list %}
+    <div class="table-responsive">
+      <table class="table-saas" id="approvalsTable">
+        <caption class="visually-hidden">Employee records awaiting approval</caption>
+        <thead>
+          <tr>
+            <th scope="col" style="width: 24%;">New Employee</th>
+            <th scope="col" style="width: 14%;">Department</th>
+            <th scope="col" style="width: 16%;">Designation</th>
+            <th scope="col" style="width: 12%;">Joining Date</th>
+            <th scope="col" style="width: 12%;">Raised</th>
+            <th scope="col" style="width: 10%;">Status</th>
+            <th scope="col" style="width: 12%; text-align: right;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for employee in pending_list %}
+            <tr>
+              <td>
+                <div class="emp-table-profile">
+                  <div class="emp-table-avatar" style="background: linear-gradient(135deg, #F59E0B, #D97706);">
+                    {{ employee.user.name|default:employee.user.email|slice:":1"|upper }}
+                  </div>
+                  <div>
+                    <div class="emp-table-name text-dark fw-semibold">{{ employee.user.name|default:employee.user.email }}</div>
+                    <div class="emp-table-dept text-muted">{{ employee.user.email }}</div>
+                  </div>
+                </div>
+              </td>
+              <td><span class="btn-pill-action"><i class="bi bi-building me-1"></i>{{ employee.department.name|default:"Unassigned" }}</span></td>
+              <td><span class="text-dark fw-medium">{{ employee.designation|default:"—" }}</span></td>
+              <td><span class="text-secondary small">{{ employee.date_of_joining|date:"M d, Y"|default:"—" }}</span></td>
+              <td>
+                <div class="text-secondary small">
+                  <div>{{ employee.created_at|date:"M d, Y" }}</div>
+                  <div style="font-size: 0.72rem;">Record created</div>
+                </div>
+              </td>
+              <td>
+                <span class="badge-status badge-status-pending"><i class="bi bi-hourglass-split me-1"></i>Pending</span>
+              </td>
+              <td style="text-align: right;">
+                <div class="d-inline-flex align-items-center gap-1">
+                  <a href="{% url 'hrms:recruitment_approval_review' employee.pk %}" class="table-action-btn btn-action-view" title="Review Record">
+                    <i class="bi bi-eye"></i>
+                  </a>
+                  <a href="{% url 'hrms:recruitment_approval_review' employee.pk %}#approve" class="btn-primary-admin" style="min-height: 32px; padding: 0.3rem 0.7rem; font-size: 0.78rem;">
+                    <i class="bi bi-check2-circle"></i> Approve
+                  </a>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="empty-state-box">
+      <i class="bi bi-clipboard-check empty-state-icon"></i>
+      <h5 class="empty-state-title">No Pending Approvals</h5>
+      <p class="empty-state-desc">
+        {% if search %}No employee records match your search.{% else %}All new employee records have been reviewed.{% endif %}
+      </p>
+    </div>
+  {% endif %}
+</div>
+
+<!-- Recently Processed Employees -->
+<div class="saas-card">
+  <div class="card-header">
+    <div class="d-flex align-items-center gap-2">
+      <h2 class="card-title">
+        <i class="bi bi-people-fill text-primary"></i> Recently Added Active Employees
+      </h2>
+      <span class="btn-pill-action">{{ recently_processed|length }}</span>
+    </div>
+    <a href="{% url 'hrms:employees_list' %}" class="btn-pill-action">Full Workforce</a>
+  </div>
+
+  {% if recently_processed %}
+    <div class="table-responsive">
+      <table class="table-saas">
+        <caption class="visually-hidden">Recently processed employee records</caption>
+        <thead>
+          <tr>
+            <th scope="col">Employee</th>
+            <th scope="col">Department</th>
+            <th scope="col">Designation</th>
+            <th scope="col">Joining Date</th>
+            <th scope="col" style="text-align: right;">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for employee in recently_processed %}
+            <tr>
+              <td>
+                <div class="emp-table-profile">
+                  <div class="emp-table-avatar">{{ employee.user.name|default:employee.user.email|slice:":1"|upper }}</div>
+                  <div>
+                    <div class="emp-table-name text-dark fw-semibold">{{ employee.user.name|default:employee.user.email }}</div>
+                    <div class="emp-table-dept text-muted">{{ employee.user.email }}</div>
+                  </div>
+                </div>
+              </td>
+              <td><span class="btn-pill-action"><i class="bi bi-building me-1"></i>{{ employee.department.name|default:"Unassigned" }}</span></td>
+              <td><span class="text-dark fw-medium">{{ employee.designation|default:"—" }}</span></td>
+              <td><span class="text-secondary small">{{ employee.date_of_joining|date:"M d, Y"|default:"—" }}</span></td>
+              <td style="text-align: right;">
+                <a href="{% url 'hrms:employee_detail' employee.pk %}" class="table-action-btn btn-action-view" title="View Employee Profile">
+                  <i class="bi bi-eye"></i>
+                </a>
+              </td>
+            </tr>
+          {% empty %}
+            <tr>
+              <td colspan="5" class="text-center py-4">
+                <p class="text-secondary small mb-0">No active employee records on file yet.</p>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="empty-state-box py-4">
+      <i class="bi bi-people empty-state-icon"></i>
+      <p class="empty-state-desc mb-0">Approved new hires will appear here.</p>
+    </div>
+  {% endif %}
+</div>
+{% endblock content %}

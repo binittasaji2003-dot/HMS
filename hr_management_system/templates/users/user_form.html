@@ -1,31 +1,42 @@
 {% extends "base.html" %}
+{% load crispy_forms_tags i18n %}
 
-{% load crispy_forms_tags %}
+{% block title %}{% translate "Update Profile" %} - {{ user.name|default:user.email }}{% endblock title %}
 
-{% block title %}
-
-
-  {{ user.name }}
-
-
-{% endblock title %}
 {% block content %}
-  <h1>
-  
-  
-    {{ user.name }}
-  
-  
-</h1>
-<form class="form-horizontal"
-      method="post"
-      action="{% url 'users:update' %}">
-  {% csrf_token %}
-  {{ form|crispy }}
-  <div class="control-group">
-    <div class="controls">
-      <button type="submit" class="btn btn-primary">Update</button>
+<div class="row justify-content-center py-4">
+  <div class="col-lg-7">
+    <div class="public-card">
+      <div class="d-flex align-items-center justify-content-between pb-3 mb-4 border-bottom border-secondary border-opacity-25">
+        <div class="d-flex align-items-center gap-3">
+          <div class="public-brand-icon">
+            <i class="bi bi-person-gear"></i>
+          </div>
+          <div>
+            <h3 class="text-white fw-bold mb-0">Update Profile</h3>
+            <p class="text-muted small mb-0">{{ user.email }}</p>
+          </div>
+        </div>
+        <a href="{% url 'users:detail' request.user.pk %}" class="btn btn-sm btn-outline-secondary">
+          <i class="bi bi-arrow-left me-1"></i> Cancel
+        </a>
+      </div>
+
+      <form class="form-horizontal" method="post" action="{% url 'users:update' %}">
+        {% csrf_token %}
+        <div class="mb-4">
+          {{ form|crispy }}
+        </div>
+        <div class="d-flex justify-content-end gap-2 pt-3 border-top border-secondary border-opacity-25">
+          <a href="{% url 'users:detail' request.user.pk %}" class="btn btn-outline-secondary">
+            Cancel
+          </a>
+          <button type="submit" class="btn btn-primary d-inline-flex align-items-center gap-2">
+            <i class="bi bi-check-lg"></i> Update Profile
+          </button>
+        </div>
+      </form>
     </div>
   </div>
-</form>
+</div>
 {% endblock content %}

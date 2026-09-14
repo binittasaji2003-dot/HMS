@@ -1,0 +1,145 @@
+{% extends "admin/base_admin.html" %}
+{% load static %}
+
+{% block title %}Candidate & Talent Management - Smart HRMS Admin{% endblock title %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+  <div>
+    <h1 class="h3 mb-1 fw-bold">Talent Pipeline & Candidates</h1>
+    <p class="text-secondary mb-0 small">Track candidate applications, interview evaluations, and recruitment qualifications.</p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'hrms:candidate_create' %}" class="btn-primary-admin">
+      <i class="bi bi-person-plus-fill"></i> New Candidate Application
+    </a>
+    <a href="{% url 'hrms:recruitment_list' %}" class="btn-secondary-admin">
+      <i class="bi bi-briefcase"></i> Job Vacancies
+    </a>
+  </div>
+</div>
+
+<!-- Candidate Pipeline Card -->
+<div class="saas-card">
+  <div class="card-header flex-wrap gap-3">
+    <div class="d-flex align-items-center gap-2">
+      <h2 class="card-title">
+        <i class="bi bi-person-lines-fill text-primary"></i> Active Applicant Pipeline
+      </h2>
+      <span class="btn-pill-action">{{ candidates|length }} Candidates</span>
+    </div>
+
+    <!-- Live Search Filter -->
+    <div class="d-flex align-items-center gap-2">
+      <div class="topbar-search-box" style="width: 260px;">
+        <i class="bi bi-search"></i>
+        <input type="text" id="candidateSearchInput" placeholder="Filter by name, email, or role...">
+      </div>
+    </div>
+  </div>
+
+  {% if candidates %}
+    <div class="table-responsive">
+      <table class="table-saas" id="candidatesTable">
+        <caption class="visually-hidden">Candidate directory</caption>
+        <thead>
+          <tr>
+            <th scope="col" style="width: 28%;">Candidate Details</th>
+            <th scope="col" style="width: 24%;">Applied Position</th>
+            <th scope="col" style="width: 18%;">Contact Phone</th>
+            <th scope="col" style="width: 14%;">Pipeline Stage</th>
+            <th scope="col" style="width: 16%; text-align: right;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for cand in candidates %}
+            <tr class="cand-row">
+              <td>
+                <div class="emp-table-profile">
+                  <div class="emp-table-avatar" style="background: linear-gradient(135deg, #059669, #10b981);">
+                    {{ cand.full_name|default:cand.email|slice:":1"|upper }}
+                  </div>
+                  <div>
+                    <div class="emp-table-name text-dark fw-semibold cand-name">{{ cand.full_name }}</div>
+                    <div class="emp-table-dept text-muted cand-email">{{ cand.email }}</div>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span class="btn-pill-action cand-role">
+                  <i class="bi bi-briefcase me-1"></i>{{ cand.job_vacancy.title|default:"General Opening" }}
+                </span>
+              </td>
+              <td>
+                <span class="text-secondary small">{{ cand.phone|default:"—" }}</span>
+              </td>
+              <td>
+                {% if cand.status == "Hired" or cand.status == "Selected" %}
+                  <span class="badge-status badge-status-active">
+                    <i class="bi bi-check-circle-fill me-1"></i> {{ cand.status }}
+                  </span>
+                {% elif cand.status == "Rejected" %}
+                  <span class="badge-status badge-status-danger">
+                    <i class="bi bi-x-circle-fill me-1"></i> Rejected
+                  </span>
+                {% else %}
+                  <span class="badge-status badge-status-pending">
+                    <i class="bi bi-hourglass-split me-1"></i> {{ cand.status|default:"Applied" }}
+                  </span>
+                {% endif %}
+              </td>
+              <td style="text-align: right;">
+                <div class="d-inline-flex align-items-center gap-1">
+                  <!-- Edit Application -->
+                  <a href="{% url 'hrms:candidate_edit' cand.pk %}" class="table-action-btn btn-action-edit" title="Edit Application">
+                    <i class="bi bi-pencil-square"></i>
+                  </a>
+
+                  <!-- Delete Application -->
+                  <a href="{% url 'hrms:candidate_delete' cand.pk %}" class="table-action-btn btn-action-delete" title="Delete Candidate">
+                    <i class="bi bi-trash"></i>
+                  </a>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="empty-state-box">
+      <i class="bi bi-person-lines-fill empty-state-icon"></i>
+      <h5 class="empty-state-title">No Candidates in Pipeline</h5>
+      <p class="empty-state-desc">Add or register your first candidate to commence the evaluation workflow.</p>
+      <a href="{% url 'hrms:candidate_create' %}" class="btn-primary-admin">
+        <i class="bi bi-person-plus-fill"></i> Register First Candidate
+      </a>
+    </div>
+  {% endif %}
+</div>
+{% endblock content %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const searchInput = document.getElementById('candidateSearchInput');
+    if (searchInput) {
+      searchInput.addEventListener('input', function (e) {
+        const query = e.target.value.toLowerCase().trim();
+        const rows = document.querySelectorAll('#candidatesTable .cand-row');
+        rows.forEach(row => {
+          const name = row.querySelector('.cand-name')?.textContent.toLowerCase() || '';
+          const email = row.querySelector('.cand-email')?.textContent.toLowerCase() || '';
+          const role = row.querySelector('.cand-role')?.textContent.toLowerCase() || '';
+          if (name.includes(query) || email.includes(query) || role.includes(query)) {
+            row.style.display = '';
+          } else {
+            row.style.display = 'none';
+          }
+        });
+      });
+    }
+  });
+</script>
+{% endblock extra_js %}

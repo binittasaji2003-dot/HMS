@@ -285,14 +285,28 @@ class Announcement(models.Model):
         EMPLOYEES = "Employees", _("Employees")
         CANDIDATES = "Candidates", _("Candidates")
 
+    class TypeChoices(models.TextChoices):
+        GENERAL = "GENERAL", _("General")
+        HOLIDAY = "HOLIDAY", _("Holiday")
+        NOTICE = "NOTICE", _("Notice")
+        HR = "HR", _("HR Notice")
+
     title = models.CharField(_("Announcement Title"), max_length=200)
     content = models.TextField(_("Content"))
+    announcement_type = models.CharField(
+        _("Announcement Type"),
+        max_length=20,
+        choices=TypeChoices.choices,
+        default=TypeChoices.GENERAL,
+    )
     target_audience = models.CharField(
         _("Target Audience"),
         max_length=50,
         choices=AudienceChoices.choices,
         default=AudienceChoices.ALL,
     )
+    is_published = models.BooleanField(_("Is Published"), default=False)
+    published_at = models.DateTimeField(_("Published At"), null=True, blank=True)
     is_active = models.BooleanField(_("Is Active"), default=True)
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
@@ -312,3 +326,17 @@ class Announcement(models.Model):
 
     def __str__(self) -> str:
         return f"{self.title} ({self.target_audience})"
+
+    def publish(self):
+        from django.utils import timezone
+        self.is_published = True
+        self.published_at = timezone.now()
+        self.is_active = True
+        self.save()
+
+    def unpublish(self):
+        self.is_published = False
+        self.published_at = None
+        self.is_active = False
+        self.save()
+

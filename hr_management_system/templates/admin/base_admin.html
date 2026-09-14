@@ -17,165 +17,375 @@
 
   <!-- Bootstrap 5 CSS -->
   <link rel="stylesheet"
-        href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css"
-        integrity="sha512-jnSuA4Ss2PkkupMQBQtgASvhzBIzBRbRNftzKPtxkJ5H7VMKRmWflEV22EUbxyNCL1CWBHz6f5T6J5PYhxOiqw=="
-        crossorigin="anonymous"
-        referrerpolicy="no-referrer" />
+        href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/css/bootstrap.min.css" />
 
   <!-- Bootstrap Icons -->
   <link rel="stylesheet"
         href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
-  <!-- Custom Dark Enterprise HRMS CSS -->
+  <!-- Chart.js for High-Fidelity Enterprise Analytics -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+
+  <!-- Custom Enterprise HRMS CSS -->
   <link href="{% static 'css/admin_theme.css' %}" rel="stylesheet" />
 
   {% block extra_css %}{% endblock extra_css %}
 </head>
 <body class="admin-body">
   <div class="admin-layout">
-    <!-- Sidebar -->
+    <!-- Reference Dark Sidebar -->
     <aside class="admin-sidebar" id="adminSidebar">
-      <!-- Sidebar Brand Header -->
-      <div class="sidebar-brand">
-        <div class="sidebar-brand-icon">
-          <i class="bi bi-shield-lock-fill"></i>
+      <!-- Sidebar Brand Header matching reference image -->
+      <div class="sidebar-brand-ref">
+        <div class="sidebar-logo-icon">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="6" cy="6" r="3"></circle>
+            <circle cx="18" cy="6" r="3"></circle>
+            <circle cx="6" cy="18" r="3"></circle>
+            <circle cx="18" cy="18" r="3"></circle>
+            <path d="M6 9v6"></path>
+            <path d="M18 9v6"></path>
+            <path d="M9 6h6"></path>
+            <path d="M9 18h6"></path>
+          </svg>
         </div>
         <div class="d-flex flex-column">
-          <span class="sidebar-brand-text">Smart HRMS</span>
-          <span class="sidebar-brand-badge">Admin Workspace</span>
+          <span class="sidebar-brand-title">Smart HRMS</span>
+          <span class="sidebar-brand-tagline">People • Process • Progress</span>
         </div>
       </div>
 
-      <!-- Navigation Links -->
-      <nav class="sidebar-nav">
-        <div class="nav-section-title">Core Navigation</div>
-        
-        <!-- 1. Dashboard -->
-        <a href="{% url 'hrms:admin_dashboard' %}" class="sidebar-nav-link {% if current_page == 'dashboard' %}active{% endif %}" id="nav-dashboard">
-          <i class="bi bi-grid-1x2-fill"></i>
-          <span>Dashboard</span>
-        </a>
-
-        <!-- 2. Users -->
-        <a href="{% url 'hrms:users_list' %}" class="sidebar-nav-link {% if current_page == 'users' %}active{% endif %}" id="nav-users">
-          <i class="bi bi-people-fill"></i>
-          <span>Users</span>
-        </a>
-
-        <!-- 3. Departments -->
-        <a href="{% url 'hrms:departments_list' %}" class="sidebar-nav-link {% if current_page == 'departments' %}active{% endif %}" id="nav-departments">
-          <i class="bi bi-diagram-3-fill"></i>
-          <span>Departments</span>
-        </a>
-
-        <!-- 4. HR Managers -->
-        <a href="{% url 'hrms:hr_managers_list' %}" class="sidebar-nav-link {% if current_page == 'hr_managers' %}active{% endif %}" id="nav-hrmanagers">
-          <i class="bi bi-person-badge-fill"></i>
-          <span>HR Managers</span>
-        </a>
-
-        <div class="nav-section-title">Recruitment & Talent</div>
-
-        <!-- 5. Job Vacancies -->
-        <a href="{% url 'hrms:job_vacancies_list' %}" class="sidebar-nav-link {% if current_page == 'job_vacancies' %}active{% endif %}" id="nav-jobvacancies">
-          <i class="bi bi-briefcase-fill"></i>
-          <span>Job Vacancies</span>
-        </a>
-
-        <!-- 6. Candidates -->
-        <a href="{% url 'hrms:candidates_list' %}" class="sidebar-nav-link {% if current_page == 'candidates' %}active{% endif %}" id="nav-candidates">
-          <i class="bi bi-person-lines-fill"></i>
-          <span>Candidates</span>
-        </a>
-
-        <div class="nav-section-title">Workforce & Operations</div>
-
-        <!-- 7. Employees -->
-        <a href="{% url 'hrms:employees_list' %}" class="sidebar-nav-link {% if current_page == 'employees' %}active{% endif %}" id="nav-employees">
-          <i class="bi bi-person-workspace"></i>
-          <span>Employees</span>
-        </a>
-
-        <!-- 8. Performance -->
-        <a href="{% url 'hrms:performance_list' %}" class="sidebar-nav-link {% if current_page == 'performance' %}active{% endif %}" id="nav-performance">
-          <i class="bi bi-graph-up-arrow"></i>
-          <span>Performance</span>
-        </a>
-
-        <!-- 9. Warnings -->
-        <a href="{% url 'hrms:warnings_list' %}" class="sidebar-nav-link {% if current_page == 'warnings' %}active{% endif %}" id="nav-warnings">
-          <i class="bi bi-exclamation-triangle-fill"></i>
-          <span>Warnings</span>
-        </a>
-
-        <!-- 10. Announcements -->
-        <a href="{% url 'hrms:announcements_list' %}" class="sidebar-nav-link {% if current_page == 'announcements' %}active{% endif %}" id="nav-announcements">
-          <i class="bi bi-megaphone-fill"></i>
-          <span>Announcements</span>
-        </a>
-
-        <div class="nav-section-title mt-3">Account Session</div>
-
-        <!-- 11. Logout -->
-        <a href="{% url 'hrms:admin_logout' %}" class="sidebar-nav-link nav-logout" id="nav-logout">
-          <i class="bi bi-box-arrow-right"></i>
-          <span>Logout</span>
-        </a>
-      </nav>
-
-      <!-- Sidebar User Footer -->
-      <div class="sidebar-footer">
-        <div class="sidebar-user-pill">
-          <div class="sidebar-user-avatar">
-            {% if request.user.name %}{{ request.user.name|slice:":1"|upper }}{% else %}{{ request.user.email|slice:":1"|upper }}{% endif %}
-          </div>
-          <div class="sidebar-user-info">
-            <div class="sidebar-user-name" title="{{ request.user.email }}">
-              {{ request.user.name|default:request.user.email }}
+      <!-- Navigation Items with Nested Submenu Accordions -->
+      <nav class="sidebar-nav-container">
+        <!-- 1. Dashboard (Direct Link) -->
+        <div class="sidebar-item">
+          <a href="{% url 'hrms:admin_dashboard' %}" class="sidebar-btn-link {% if current_page == 'dashboard' %}active-main{% endif %}" id="nav-dashboard">
+            <div class="link-left">
+              <i class="bi bi-grid-1x2-fill"></i>
+              <span>Dashboard</span>
             </div>
-            <div class="sidebar-user-role">
-              <i class="bi bi-patch-check-fill me-1"></i>Administrator
+          </a>
+        </div>
+
+        <!-- 2. HR Managers (Expandable Dropdown) -->
+        <div class="sidebar-item {% if current_page in 'hr_managers,hr_manager_add,hr_manager_detail,reports_hr_weekly' %}open{% endif %}">
+          <button type="button" class="sidebar-btn-link sidebar-toggle" aria-expanded="{% if current_page in 'hr_managers,hr_manager_add,hr_manager_detail,reports_hr_weekly' %}true{% else %}false{% endif %}">
+            <div class="link-left">
+              <i class="bi bi-person-badge-fill"></i>
+              <span>HR Managers</span>
             </div>
+            <i class="bi bi-chevron-down sidebar-chevron"></i>
+          </button>
+          <div class="sidebar-submenu">
+            <a href="{% url 'hrms:hr_managers_list' %}" class="sidebar-sublink {% if current_page == 'hr_managers' %}active-sub{% endif %}">
+              <i class="bi bi-list-ul"></i>
+              <span>View All HR Managers</span>
+            </a>
+            <a href="{% url 'hrms:hr_manager_create' %}" class="sidebar-sublink {% if current_page == 'hr_manager_add' %}active-sub{% endif %}">
+              <i class="bi bi-person-plus"></i>
+              <span>Add HR Manager</span>
+            </a>
+            <a href="{% url 'hrms:reports_hr_weekly' %}" class="sidebar-sublink {% if current_page == 'reports_hr_weekly' %}active-sub{% endif %}">
+              <i class="bi bi-file-earmark-text"></i>
+              <span>HR Weekly Reports</span>
+            </a>
           </div>
         </div>
+
+        <!-- 3. Employees (Expandable Dropdown) -->
+        <div class="sidebar-item {% if current_page in 'employees,employee_add,employee_detail,recruitment_approvals,performance,warnings,reports_employee_weekly' %}open{% endif %}">
+          <button type="button" class="sidebar-btn-link sidebar-toggle" aria-expanded="{% if current_page in 'employees,employee_add,employee_detail,recruitment_approvals,performance,warnings,reports_employee_weekly' %}true{% else %}false{% endif %}">
+            <div class="link-left">
+              <i class="bi bi-people-fill"></i>
+              <span>Employees</span>
+            </div>
+            <i class="bi bi-chevron-down sidebar-chevron"></i>
+          </button>
+          <div class="sidebar-submenu">
+            <a href="{% url 'hrms:employees_list' %}" class="sidebar-sublink {% if current_page == 'employees' %}active-sub{% endif %}">
+              <i class="bi bi-person-lines-fill"></i>
+              <span>View All Employees</span>
+            </a>
+            <a href="{% url 'hrms:employee_create' %}" class="sidebar-sublink {% if current_page == 'employee_add' %}active-sub{% endif %}">
+              <i class="bi bi-person-plus-fill"></i>
+              <span>Add New Employee</span>
+            </a>
+            <a href="{% url 'hrms:recruitment_approvals' %}" class="sidebar-sublink {% if current_page == 'recruitment_approvals' %}active-sub{% endif %}">
+              <i class="bi bi-check2-circle"></i>
+              <span>Pending Approvals</span>
+              {% if approvals_pending_count %}
+                <span class="badge rounded-pill bg-warning text-dark ms-auto" style="font-size: 0.65rem;">{{ approvals_pending_count }}</span>
+              {% endif %}
+            </a>
+            <a href="{% url 'hrms:performance_list' %}" class="sidebar-sublink {% if current_page == 'performance' %}active-sub{% endif %}">
+              <i class="bi bi-graph-up-arrow"></i>
+              <span>Performance Records</span>
+            </a>
+            <a href="{% url 'hrms:warnings_list' %}" class="sidebar-sublink {% if current_page == 'warnings' %}active-sub{% endif %}">
+              <i class="bi bi-exclamation-triangle"></i>
+              <span>Warnings & Discipline</span>
+            </a>
+            <a href="{% url 'hrms:reports_employee_weekly' %}" class="sidebar-sublink {% if current_page == 'reports_employee_weekly' %}active-sub{% endif %}">
+              <i class="bi bi-file-earmark-person"></i>
+              <span>Employee Weekly Reports</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- 4. Departments (Expandable Dropdown) -->
+        <div class="sidebar-item {% if current_page in 'departments,department_add,department_detail,reports_departments' %}open{% endif %}">
+          <button type="button" class="sidebar-btn-link sidebar-toggle" aria-expanded="{% if current_page in 'departments,department_add,department_detail,reports_departments' %}true{% else %}false{% endif %}">
+            <div class="link-left">
+              <i class="bi bi-diagram-3-fill"></i>
+              <span>Departments</span>
+            </div>
+            <i class="bi bi-chevron-down sidebar-chevron"></i>
+          </button>
+          <div class="sidebar-submenu">
+            <a href="{% url 'hrms:departments_list' %}" class="sidebar-sublink {% if current_page == 'departments' %}active-sub{% endif %}">
+              <i class="bi bi-building"></i>
+              <span>View All Departments</span>
+            </a>
+            <a href="{% url 'hrms:department_create' %}" class="sidebar-sublink {% if current_page == 'department_add' %}active-sub{% endif %}">
+              <i class="bi bi-plus-circle"></i>
+              <span>Add Department</span>
+            </a>
+            <a href="{% url 'hrms:reports_departments' %}" class="sidebar-sublink {% if current_page == 'reports_departments' %}active-sub{% endif %}">
+              <i class="bi bi-pie-chart"></i>
+              <span>Department Reports</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- 5. Recruitment Monitoring (Expandable Dropdown) -->
+        <div class="sidebar-item {% if current_page in 'job_vacancies,candidates,candidate_add,recruitment,recruitment_status,recruitment_selected,reports_recruitment' %}open{% endif %}">
+          <button type="button" class="sidebar-btn-link sidebar-toggle" aria-expanded="{% if current_page in 'job_vacancies,candidates,candidate_add,recruitment,recruitment_status,recruitment_selected,reports_recruitment' %}true{% else %}false{% endif %}">
+            <div class="link-left">
+              <i class="bi bi-person-workspace"></i>
+              <span>Recruitment Monitoring</span>
+            </div>
+            <i class="bi bi-chevron-down sidebar-chevron"></i>
+          </button>
+          <div class="sidebar-submenu">
+            <a href="{% url 'hrms:job_vacancies_list' %}" class="sidebar-sublink {% if current_page == 'job_vacancies' %}active-sub{% endif %}">
+              <i class="bi bi-briefcase"></i>
+              <span>Job Vacancies</span>
+            </a>
+            <a href="{% url 'hrms:recruitment_status' %}" class="sidebar-sublink {% if current_page == 'recruitment_status' %}active-sub{% endif %}">
+              <i class="bi bi-kanban"></i>
+              <span>Recruitment Status</span>
+            </a>
+            <a href="{% url 'hrms:candidates_list' %}" class="sidebar-sublink {% if current_page == 'candidates' %}active-sub{% endif %}">
+              <i class="bi bi-person-lines-fill"></i>
+              <span>All Candidates</span>
+            </a>
+            <a href="{% url 'hrms:candidate_create' %}" class="sidebar-sublink {% if current_page == 'candidate_add' %}active-sub{% endif %}">
+              <i class="bi bi-person-plus"></i>
+              <span>Add Candidate</span>
+            </a>
+            <a href="{% url 'hrms:recruitment_selected' %}" class="sidebar-sublink {% if current_page == 'recruitment_selected' %}active-sub{% endif %}">
+              <i class="bi bi-award"></i>
+              <span>Selected Candidates</span>
+            </a>
+            <a href="{% url 'hrms:reports_recruitment' %}" class="sidebar-sublink {% if current_page == 'reports_recruitment' %}active-sub{% endif %}">
+              <i class="bi bi-file-earmark-bar-graph"></i>
+              <span>Recruitment Analytics</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- 6. Announcements (Expandable Dropdown) -->
+        <div class="sidebar-item {% if current_page in 'announcements,announcement_add,announcement_detail' %}open{% endif %}">
+          <button type="button" class="sidebar-btn-link sidebar-toggle" aria-expanded="{% if current_page in 'announcements,announcement_add,announcement_detail' %}true{% else %}false{% endif %}">
+            <div class="link-left">
+              <i class="bi bi-megaphone-fill"></i>
+              <span>Announcements</span>
+            </div>
+            <i class="bi bi-chevron-down sidebar-chevron"></i>
+          </button>
+          <div class="sidebar-submenu">
+            <a href="{% url 'hrms:announcements_list' %}" class="sidebar-sublink {% if current_page == 'announcements' %}active-sub{% endif %}">
+              <i class="bi bi-card-list"></i>
+              <span>View All Announcements</span>
+            </a>
+            <a href="{% url 'hrms:announcement_create' %}" class="sidebar-sublink {% if current_page == 'announcement_add' %}active-sub{% endif %}">
+              <i class="bi bi-plus-square"></i>
+              <span>Create Announcement</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- 7. Reports (Expandable Dropdown) -->
+        <div class="sidebar-item {% if current_page in 'reports,reports_hr_weekly,reports_employee_weekly,reports_recruitment,reports_departments,reports_performance' %}open{% endif %}">
+          <button type="button" class="sidebar-btn-link sidebar-toggle" aria-expanded="{% if current_page in 'reports,reports_hr_weekly,reports_employee_weekly,reports_recruitment,reports_departments,reports_performance' %}true{% else %}false{% endif %}">
+            <div class="link-left">
+              <i class="bi bi-file-earmark-bar-graph-fill"></i>
+              <span>Reports</span>
+            </div>
+            <i class="bi bi-chevron-down sidebar-chevron"></i>
+          </button>
+          <div class="sidebar-submenu">
+            <a href="{% url 'hrms:reports_hr_weekly' %}" class="sidebar-sublink {% if current_page == 'reports_hr_weekly' %}active-sub{% endif %}">
+              <i class="bi bi-file-earmark-text"></i>
+              <span>HR Weekly Reports</span>
+            </a>
+            <a href="{% url 'hrms:reports_employee_weekly' %}" class="sidebar-sublink {% if current_page == 'reports_employee_weekly' %}active-sub{% endif %}">
+              <i class="bi bi-file-earmark-person"></i>
+              <span>Employee Weekly Reports</span>
+            </a>
+            <a href="{% url 'hrms:reports_recruitment' %}" class="sidebar-sublink {% if current_page == 'reports_recruitment' %}active-sub{% endif %}">
+              <i class="bi bi-briefcase"></i>
+              <span>Recruitment Reports</span>
+            </a>
+            <a href="{% url 'hrms:reports_departments' %}" class="sidebar-sublink {% if current_page == 'reports_departments' %}active-sub{% endif %}">
+              <i class="bi bi-pie-chart"></i>
+              <span>Department Employees</span>
+            </a>
+            <a href="{% url 'hrms:reports_performance' %}" class="sidebar-sublink {% if current_page == 'reports_performance' %}active-sub{% endif %}">
+              <i class="bi bi-graph-up-arrow"></i>
+              <span>Performance Reports</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- 8. Admin Responsibilities (Expandable Dropdown) -->
+        <div class="sidebar-item {% if current_page in 'admin_responsibilities_warnings,admin_responsibilities_recommendations,admin_responsibilities_warning_detail,admin_responsibilities_review,warnings' %}open{% endif %}">
+          <button type="button" class="sidebar-btn-link sidebar-toggle" aria-expanded="{% if current_page in 'admin_responsibilities_warnings,admin_responsibilities_recommendations,warnings' %}true{% else %}false{% endif %}">
+            <div class="link-left">
+              <i class="bi bi-shield-exclamation"></i>
+              <span>Admin Responsibilities</span>
+            </div>
+            <i class="bi bi-chevron-down sidebar-chevron"></i>
+          </button>
+          <div class="sidebar-submenu">
+            <a href="{% url 'hrms:admin_responsibilities_warnings' %}" class="sidebar-sublink {% if current_page == 'admin_responsibilities_warnings' or current_page == 'warnings' %}active-sub{% endif %}">
+              <i class="bi bi-shield-exclamation"></i>
+              <span>Performance Warnings</span>
+            </a>
+            <a href="{% url 'hrms:admin_responsibilities_recommendations' %}" class="sidebar-sublink {% if current_page == 'admin_responsibilities_recommendations' %}active-sub{% endif %}">
+              <i class="bi bi-file-earmark-check"></i>
+              <span>HR Recommendations</span>
+              {% if pending_recommendations_count %}
+                <span class="badge rounded-pill bg-danger ms-auto" style="font-size: 0.65rem;">{{ pending_recommendations_count }}</span>
+              {% endif %}
+            </a>
+          </div>
+        </div>
+
+        <!-- 9. Settings (Expandable Dropdown) -->
+        <div class="sidebar-item {% if current_page in 'settings,users' %}open{% endif %}">
+          <button type="button" class="sidebar-btn-link sidebar-toggle" aria-expanded="{% if current_page in 'settings,users' %}true{% else %}false{% endif %}">
+            <div class="link-left">
+              <i class="bi bi-gear-fill"></i>
+              <span>Settings</span>
+            </div>
+            <i class="bi bi-chevron-down sidebar-chevron"></i>
+          </button>
+          <div class="sidebar-submenu">
+            <a href="{% url 'hrms:users_list' %}" class="sidebar-sublink {% if current_page == 'users' %}active-sub{% endif %}">
+              <i class="bi bi-person-gear"></i>
+              <span>System User Accounts</span>
+            </a>
+            <a href="{% url 'hrms:settings_list' %}" class="sidebar-sublink {% if current_page == 'settings' %}active-sub{% endif %}">
+              <i class="bi bi-sliders"></i>
+              <span>Portal Preferences</span>
+            </a>
+            <a href="{% url 'home' %}" class="sidebar-sublink">
+              <i class="bi bi-globe"></i>
+              <span>Public Portal</span>
+            </a>
+            <a href="{% url 'hrms:admin_logout' %}" class="sidebar-sublink text-danger">
+              <i class="bi bi-box-arrow-right text-danger"></i>
+              <span>Sign Out</span>
+            </a>
+          </div>
+        </div>
+      </nav>
+
+      <!-- Sidebar Bottom Illustration & Motto matching reference image -->
+      <div class="sidebar-footer-motto">
+        <div class="sidebar-footer-illustration">
+          <svg width="48" height="32" viewBox="0 0 48 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="14" cy="10" r="4" fill="#94a3b8"/>
+            <path d="M7 26v-3a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v3" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
+            <circle cx="24" cy="8" r="5" fill="#60a5fa"/>
+            <path d="M16 26v-4a6 6 0 0 1 6-6h4a6 6 0 0 1 6 6v4" stroke="#60a5fa" stroke-width="2.5" stroke-linecap="round"/>
+            <circle cx="34" cy="10" r="4" fill="#94a3b8"/>
+            <path d="M27 26v-3a5 5 0 0 1 5-5h4a5 5 0 0 1 5 5v3" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="sidebar-footer-text-primary">A Better Workplace</div>
+        <div class="sidebar-footer-text-sub">A Brighter Tomorrow</div>
       </div>
     </aside>
 
     <!-- Main Content Area -->
     <div class="admin-main-wrapper">
-      <!-- Topbar Header -->
+      <!-- Modern Topbar Header matching reference image -->
       <header class="admin-topbar">
         <div class="d-flex align-items-center gap-3">
           <!-- Mobile Sidebar Toggle -->
-          <button class="btn btn-outline-secondary d-lg-none p-1 px-2 text-white border-0" id="sidebarToggle" type="button" aria-label="Toggle Sidebar">
+          <button class="btn btn-outline-secondary d-lg-none p-1 px-2 border-0 text-dark" id="sidebarToggle" type="button" aria-label="Toggle Sidebar">
             <i class="bi bi-list fs-4"></i>
           </button>
           
-          <!-- Search Bar -->
-          <div class="topbar-search d-none d-md-block">
+          <!-- Search Bar matching reference image -->
+          <div class="topbar-search-ref d-none d-md-block">
             <i class="bi bi-search"></i>
-            <input type="text" placeholder="Search employees, vacancies, records..." aria-label="Global Search">
+            <input type="text" placeholder="Search anything..." aria-label="Global Search">
           </div>
         </div>
 
-        <!-- Right Side Badges & Status -->
-        <div class="topbar-actions">
-          <div class="d-none d-sm-flex align-items-center gap-2">
-            <span class="badge-status badge-status-active">
-              <span class="spinner-grow spinner-grow-sm" style="width: 8px; height: 8px; animation-duration: 2s;" role="status"></span>
-              System Live
-            </span>
+        <!-- Right Side: Notification Bell & Admin Profile Dropdown -->
+        <div class="d-flex align-items-center gap-3">
+          <!-- Notification Bell with Dynamic Pending Alerts Badge -->
+          <a href="{% if approvals_pending_count %}{% url 'hrms:recruitment_approvals' %}{% elif pending_recommendations_count %}{% url 'hrms:admin_responsibilities_recommendations' %}{% else %}#{% endif %}" class="topbar-notif-btn text-decoration-none" title="Notifications" aria-label="Notifications">
+            <i class="bi bi-bell"></i>
+            {% if approvals_pending_count or pending_recommendations_count %}
+              <span class="topbar-notif-badge">{{ approvals_pending_count|add:pending_recommendations_count }}</span>
+            {% endif %}
+          </a>
+
+          <!-- Admin User Profile with Avatar, Name, Role, Chevron -->
+          <div class="dropdown">
+            <div class="topbar-user-dropdown" data-bs-toggle="dropdown" aria-expanded="false" role="button">
+              <div class="topbar-user-avatar">
+                {% if request.user.name %}{{ request.user.name|slice:":1"|upper }}{% else %}A{% endif %}
+              </div>
+              <div class="topbar-user-meta d-none d-sm-block">
+                <div class="topbar-user-name">{{ request.user.name|default:"Admin" }}</div>
+                <div class="topbar-user-role">System Administrator</div>
+              </div>
+              <i class="bi bi-chevron-down ms-1 text-muted" style="font-size: 0.75rem;"></i>
+            </div>
+            <ul class="dropdown-menu dropdown-menu-end shadow border-0 rounded-3 mt-2" style="font-size: 0.875rem;">
+              <li class="px-3 py-2 border-bottom">
+                <div class="fw-semibold text-dark">{{ request.user.name|default:"Administrator" }}</div>
+                <div class="text-muted small">{{ request.user.email }}</div>
+              </li>
+              <li>
+                <a class="dropdown-item py-2" href="{% url 'hrms:admin_dashboard' %}">
+                  <i class="bi bi-grid-1x2 me-2 text-primary"></i> Dashboard
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item py-2" href="{% url 'hrms:settings_list' %}">
+                  <i class="bi bi-gear me-2 text-secondary"></i> System Settings
+                </a>
+              </li>
+              <li>
+                <a class="dropdown-item py-2" href="{% url 'home' %}">
+                  <i class="bi bi-globe me-2 text-info"></i> Public Portal
+                </a>
+              </li>
+              <li><hr class="dropdown-divider my-1"></li>
+              <li>
+                <a class="dropdown-item py-2 text-danger" href="{% url 'hrms:admin_logout' %}">
+                  <i class="bi bi-box-arrow-right me-2"></i> Log Out
+                </a>
+              </li>
+            </ul>
           </div>
-
-          <a href="{% url 'home' %}" class="topbar-badge-btn" title="View Public Portal">
-            <i class="bi bi-globe"></i>
-            <span class="d-none d-md-inline">Public Site</span>
-          </a>
-
-          <a href="{% url 'hrms:admin_logout' %}" class="topbar-badge-btn text-danger border-danger-subtle" title="Sign out">
-            <i class="bi bi-box-arrow-right"></i>
-            <span class="d-none d-md-inline">Logout</span>
-          </a>
         </div>
       </header>
 
@@ -185,7 +395,7 @@
         {% if messages %}
           <div class="mb-4">
             {% for message in messages %}
-              <div class="alert alert-dark-dismissible alert-{{ message.tags|default:'info' }} alert-dismissible fade show d-flex align-items-center justify-content-between" role="alert">
+              <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show d-flex align-items-center justify-content-between shadow-sm rounded-3" role="alert">
                 <div class="d-flex align-items-center gap-2">
                   {% if message.tags == 'error' or message.tags == 'danger' %}
                     <i class="bi bi-exclamation-octagon-fill text-danger fs-5"></i>
@@ -198,7 +408,7 @@
                   {% endif %}
                   <span>{{ message }}</span>
                 </div>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
               </div>
             {% endfor %}
           </div>
@@ -210,14 +420,12 @@
   </div>
 
   <!-- Bootstrap 5 JS -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"
-          integrity="sha512-7Pi/otdlbbCR+LnW+RMwiJMnPmCAWmVoj9VNzS5PX920PxfcxCgk122wc6SuP6ULypz01PUeyCBthQRvg=="
-          crossorigin="anonymous"
-          referrerpolicy="no-referrer"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.3/js/bootstrap.bundle.min.js"></script>
 
-  <!-- Sidebar Toggle Script -->
+  <!-- Sidebar Toggle & Accordion Interaction Script -->
   <script>
     document.addEventListener('DOMContentLoaded', function () {
+      // Mobile sidebar toggle
       const sidebar = document.getElementById('adminSidebar');
       const toggleBtn = document.getElementById('sidebarToggle');
       if (toggleBtn && sidebar) {
@@ -225,6 +433,31 @@
           sidebar.classList.toggle('show');
         });
       }
+
+      // Expandable Submenu Accordion handler
+      const toggleButtons = document.querySelectorAll('.sidebar-toggle');
+      toggleButtons.forEach(function (btn) {
+        btn.addEventListener('click', function (e) {
+          e.preventDefault();
+          const parentItem = this.closest('.sidebar-item');
+          if (!parentItem) return;
+
+          const isOpen = parentItem.classList.contains('open');
+
+          // Optional: close other accordion items if desired
+          // document.querySelectorAll('.sidebar-item.open').forEach(function(item) {
+          //   if (item !== parentItem) item.classList.remove('open');
+          // });
+
+          if (isOpen) {
+            parentItem.classList.remove('open');
+            this.setAttribute('aria-expanded', 'false');
+          } else {
+            parentItem.classList.add('open');
+            this.setAttribute('aria-expanded', 'true');
+          }
+        });
+      });
     });
   </script>
 

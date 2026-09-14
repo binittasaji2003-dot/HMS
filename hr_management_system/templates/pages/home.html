@@ -1,32 +1,119 @@
 {% extends "base.html" %}
 {% load static %}
 
-{% block title %}Smart HR Management System{% endblock title %}
+{% block title %}Smart HR Management System - Home{% endblock title %}
 
 {% block content %}
-<div class="row justify-content-center align-items-center min-vh-75 py-5 text-center">
-  <div class="col-lg-8">
-    <div class="p-5 rounded-4 shadow-sm border" style="background: #111827; border-color: #1f2937 !important; color: #f9fafb;">
-      <div class="mb-4">
-        <span class="badge px-3 py-2 rounded-pill" style="background: rgba(99, 102, 241, 0.2); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.4);">
-          Enterprise HRMS v1.0
+<!-- Hero Section -->
+<div class="row justify-content-center align-items-center py-4 text-center">
+  <div class="col-lg-10">
+    <div class="public-card p-5 border shadow-lg position-relative overflow-hidden">
+      <!-- Glow background effect -->
+      <div class="position-absolute top-0 start-50 translate-middle-x" style="width: 500px; height: 180px; background: radial-gradient(circle, rgba(99, 102, 241, 0.15) 0%, transparent 70%); pointer-events: none;"></div>
+
+      <div class="mb-3">
+        <span class="badge px-3 py-2 rounded-pill" style="background: rgba(99, 102, 241, 0.15); color: #818cf8; border: 1px solid rgba(99, 102, 241, 0.35); font-weight: 600; font-size: 0.8rem;">
+          <i class="bi bi-stars me-1"></i> Enterprise HRMS v1.0
         </span>
       </div>
-      <h1 class="display-5 fw-bold mb-3" style="color: #ffffff;">Smart HR Management System</h1>
-      <p class="lead mb-4" style="color: #9ca3af;">
-        Comprehensive role-based enterprise solution for managing recruitment, employee lifecycle, performance reviews, and administrative operations.
+
+      <h1 class="display-5 fw-bold mb-3 text-white">Smart HR Management System</h1>
+      <p class="lead mb-4 mx-auto text-secondary" style="max-width: 720px; font-size: 1.15rem;">
+        Unified role-based platform engineered to automate recruitment pipelines, streamline workforce lifecycle, govern performance reviews, and deliver executive-grade reporting.
       </p>
-      <div class="d-flex justify-content-center gap-3 flex-wrap">
-        <a href="{% url 'hrms:admin_dashboard' %}" class="btn btn-primary btn-lg px-4 py-2" style="background: #4f46e5; border-color: #4f46e5;">
-          <i class="bi bi-speedometer2 me-2"></i> Go to Admin Dashboard
+
+      <div class="d-flex justify-content-center gap-3 flex-wrap mb-4">
+        <a href="{% url 'hrms:admin_dashboard' %}" class="btn btn-primary btn-lg px-4 py-2 d-inline-flex align-items-center gap-2">
+          <i class="bi bi-speedometer2"></i>
+          <span>Admin Portal</span>
         </a>
-        <a href="{% url 'hrms:admin_login' %}" class="btn btn-outline-light btn-lg px-4 py-2" style="border-color: #374151;">
-          <i class="bi bi-box-arrow-in-right me-2"></i> Admin Login
+        <a href="{% url 'employees:homepage' %}" class="btn btn-outline-light btn-lg px-4 py-2 d-inline-flex align-items-center gap-2">
+          <i class="bi bi-people"></i>
+          <span>Employee Directory</span>
         </a>
-        <a href="{% url 'hrms:admin_register' %}" class="btn btn-outline-secondary btn-lg px-4 py-2" style="color: #9ca3af; border-color: #374151;">
-          <i class="bi bi-person-plus me-2"></i> Admin Registration
+        <a href="{% url 'hrms:admin_login' %}" class="btn btn-outline-secondary btn-lg px-4 py-2 d-inline-flex align-items-center gap-2">
+          <i class="bi bi-shield-lock"></i>
+          <span>Admin Login</span>
         </a>
       </div>
+
+      <div class="row g-3 justify-content-center pt-3 border-top border-secondary border-opacity-25 text-start">
+        <div class="col-sm-6 col-md-3">
+          <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-check-circle-fill text-success"></i>
+            <span class="small text-secondary">Role-Based Access</span>
+          </div>
+        </div>
+        <div class="col-sm-6 col-md-3">
+          <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-check-circle-fill text-success"></i>
+            <span class="small text-secondary">Recruitment Automation</span>
+          </div>
+        </div>
+        <div class="col-sm-6 col-md-3">
+          <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-check-circle-fill text-success"></i>
+            <span class="small text-secondary">Performance Governance</span>
+          </div>
+        </div>
+        <div class="col-sm-6 col-md-3">
+          <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-check-circle-fill text-success"></i>
+            <span class="small text-secondary">Weekly Reporting</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Feature Pillars Grid -->
+<div class="row g-4 mt-2">
+  <div class="col-md-6 col-lg-3">
+    <div class="public-card h-100 p-4">
+      <div class="metric-icon-box metric-icon-indigo mb-3">
+        <i class="bi bi-people-fill"></i>
+      </div>
+      <h5 class="text-white fw-semibold mb-2">Workforce Management</h5>
+      <p class="text-muted small mb-0">
+        Comprehensive records for staff, department hierarchy, designations, contact details, and account status tracking.
+      </p>
+    </div>
+  </div>
+
+  <div class="col-md-6 col-lg-3">
+    <div class="public-card h-100 p-4">
+      <div class="metric-icon-box metric-icon-cyan mb-3">
+        <i class="bi bi-briefcase-fill"></i>
+      </div>
+      <h5 class="text-white fw-semibold mb-2">Talent Acquisition</h5>
+      <p class="text-muted small mb-0">
+        Vacancy posting, candidate applications, interview tracking, and two-stage executive hiring approvals.
+      </p>
+    </div>
+  </div>
+
+  <div class="col-md-6 col-lg-3">
+    <div class="public-card h-100 p-4">
+      <div class="metric-icon-box metric-icon-emerald mb-3">
+        <i class="bi bi-graph-up-arrow"></i>
+      </div>
+      <h5 class="text-white fw-semibold mb-2">Performance & Warnings</h5>
+      <p class="text-muted small mb-0">
+        Quarterly review cycles, rating matrices, disciplinary warnings, and HR recommendation resolution workflows.
+      </p>
+    </div>
+  </div>
+
+  <div class="col-md-6 col-lg-3">
+    <div class="public-card h-100 p-4">
+      <div class="metric-icon-box metric-icon-purple mb-3">
+        <i class="bi bi-bar-chart-line-fill"></i>
+      </div>
+      <h5 class="text-white fw-semibold mb-2">Analytics & Audits</h5>
+      <p class="text-muted small mb-0">
+        Departmental breakdowns, HR and employee weekly worklogs, recruitment statistics, and complete audit logging.
+      </p>
     </div>
   </div>
 </div>
