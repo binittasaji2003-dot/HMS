@@ -1,4 +1,3 @@
-
 {% load static i18n %}<!DOCTYPE html>
 {% get_current_language as LANGUAGE_CODE %}
 <html lang="{{ LANGUAGE_CODE }}">
@@ -8,58 +7,59 @@
     <title>
       {% block title %}
       HR Management System
-    {% endblock title %}
-  </title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="description"
-        content="A web-based Smart HR Management System developed using Cookiecutter Django to automate recruitment, employee management, performance monitoring, and HR operations with role-based access for Admin, HR, Employee, and Candidate." />
-  <meta name="author"
-        content="Binitta Saji" />
-  <link rel="icon" href="{% static 'images/favicons/favicon.ico' %}" />
-  {% block css %}
-    <!-- Latest compiled and minified Bootstrap CSS -->
+      {% endblock title %}
+    </title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description"
+          content="A web-based Smart HR Management System developed to automate recruitment, employee management, performance monitoring, and HR operations with role-based access." />
+    <meta name="author" content="Binitta Saji" />
+    <link rel="icon" href="{% static 'images/favicons/favicon.ico' %}" />
+
+    <!-- Google Fonts: Inter -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap Icons -->
     <link rel="stylesheet"
-          href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.3/css/bootstrap.min.css"
-          integrity="sha512-SbiR/eusphKoMVVXysTKG/7VseWii+Y3FdHrt0EpKgpToZeemhqHeZeLWLhJutz/2ut2Vw1uQEj2MbRF+TVBUA=="
-          crossorigin="anonymous"
-          referrerpolicy="no-referrer" />
-<!-- Your stuff: Third-party CSS libraries go here -->
-<!-- This file stores project-specific CSS -->
+          href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
-  
-  <link href="{% static 'css/project.css' %}" rel="stylesheet" />
+    {% block css %}
+      <!-- Latest compiled and minified Bootstrap CSS -->
+      <link rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.3/css/bootstrap.min.css"
+            integrity="sha512-SbiR/eusphKoMVVXysTKG/7VseWii+Y3FdHrt0EpKgpToZeemhqHeZeLWLhJutz/2ut2Vw1uQEj2MbRF+TVBUA=="
+            crossorigin="anonymous"
+            referrerpolicy="no-referrer" />
 
+      <!-- Project Specific Theme -->
+      <link href="{% static 'css/project.css' %}" rel="stylesheet" />
+    {% endblock css %}
 
-{% endblock css %}
-<!-- Le javascript
-    ================================================== -->
-{# Placed at the top of the document so pages load faster with defer #}
-{% block javascript %}
+    <!-- Javascript -->
+    {% block javascript %}
+      <!-- Bootstrap JS -->
+      <script defer
+              src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.3/js/bootstrap.bundle.min.js"
+              crossorigin="anonymous"></script>
 
+      <!-- Project Specific Javascript -->
+      <script defer src="{% static 'js/project.js' %}"></script>
+    {% endblock javascript %}
+  </head>
+  <body class="{% block bodyclass %}{% endblock bodyclass %}">
+    {% block body %}
+    <!-- Public Modern Dark Navbar -->
+    <nav class="navbar navbar-expand-md public-navbar sticky-top">
+      <div class="container">
+        <a class="public-brand" href="{% url 'home' %}">
+          <div class="public-brand-icon">
+            <i class="bi bi-shield-lock-fill"></i>
+          </div>
+          <span>Smart HRMS</span>
+        </a>
 
-<!-- Bootstrap JS -->
-<script defer
-        src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.2.3/js/bootstrap.min.js"
-        integrity="sha512-1/RvZTcCDEUjY/CypiMz+iqqtaoQfAITmNSJY17Myp4Ms5mdxPS5UV7iOfdZoxcGhzFbOm6sntTKJppjvuhg4g=="
-        crossorigin="anonymous"
-        referrerpolicy="no-referrer"></script>
-<!-- Your stuff: Third-party javascript libraries go here -->
-
-
-<!-- place project specific Javascript in this file -->
-
-  
-  <script defer src="{% static 'js/project.js' %}"></script>
-
-
-{% endblock javascript %}
-</head>
-<body class="{% block bodyclass %}{% endblock bodyclass %}">
-  {% block body %}
-  <div class="mb-1">
-    <nav class="navbar navbar-expand-md navbar-light bg-light">
-      <div class="container-fluid">
-        <button class="navbar-toggler navbar-toggler-right"
+        <button class="navbar-toggler"
                 type="button"
                 data-bs-toggle="collapse"
                 data-bs-target="#navbarSupportedContent"
@@ -68,15 +68,32 @@
                 aria-label="Toggle navigation">
           <span class="navbar-toggler-icon"></span>
         </button>
-        <a class="navbar-brand" href="{% url 'home' %}">HR Management System</a>
+
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
-          <ul class="navbar-nav mr-auto">
-            <li class="nav-item active">
-              <a class="nav-link" href="{% url 'home' %}">Home <span class="visually-hidden">(current)</span></a>
+          <ul class="navbar-nav me-auto mb-2 mb-md-0 ms-md-4">
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'home' %}">
+                <i class="bi bi-house-door me-1"></i> Home
+              </a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="{% url 'about' %}">About</a>
+              <a class="nav-link" href="{% url 'about' %}">
+                <i class="bi bi-info-circle me-1"></i> About
+              </a>
             </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'employees:homepage' %}">
+                <i class="bi bi-people me-1"></i> Directory
+              </a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'admin_module:admin_dashboard' %}">
+                <i class="bi bi-speedometer2 me-1"></i> Admin Portal
+              </a>
+            </li>
+          </ul>
+
+          <ul class="navbar-nav ms-auto align-items-md-center gap-2">
             {% if request.user.is_authenticated %}
               {% if request.user.employee_profile %}
               <li class="nav-item">
@@ -84,63 +101,111 @@
               </li>
               {% endif %}
               <li class="nav-item">
-                <a class="nav-link"
-                   href="{% url 'users:detail' request.user.pk %}">{% translate "My Profile" %}</a>
+                <a class="nav-link" href="{% url 'users:detail' request.user.pk %}">
+                  <i class="bi bi-person-circle me-1"></i> {{ request.user.name|default:request.user.email }}
+                </a>
               </li>
               <li class="nav-item">
-                {# URL provided by django-allauth/account/urls.py #}
-                <a class="nav-link" href="{% url 'account_logout' %}">{% translate "Sign Out" %}</a>
+                <a class="btn btn-sm btn-outline-light" href="{% url 'account_logout' %}">
+                  <i class="bi bi-box-arrow-right me-1"></i> {% translate "Sign Out" %}
+                </a>
               </li>
             {% else %}
               {% if ACCOUNT_ALLOW_REGISTRATION %}
                 <li class="nav-item">
-                  {# URL provided by django-allauth/account/urls.py #}
-                  <a id="sign-up-link" class="nav-link" href="{% url 'account_signup' %}">{% translate "Sign Up" %}</a>
+                  <a id="sign-up-link" class="btn btn-sm btn-outline-light" href="{% url 'account_signup' %}">
+                    <i class="bi bi-person-plus me-1"></i> {% translate "Sign Up" %}
+                  </a>
                 </li>
               {% endif %}
               <li class="nav-item">
-                {# URL provided by django-allauth/account/urls.py #}
-                <a id="log-in-link" class="nav-link" href="{% url 'account_login' %}">{% translate "Sign In" %}</a>
+                <a id="log-in-link" class="btn btn-sm btn-primary" href="{% url 'account_login' %}">
+                  <i class="bi bi-box-arrow-in-right me-1"></i> {% translate "Sign In" %}
+                </a>
               </li>
             {% endif %}
           </ul>
         </div>
       </div>
     </nav>
-  </div>
-  <div class="container">
-    {% if messages %}
-      {% for message in messages %}
-        <div class="alert alert-dismissible {% if message.tags %}alert-{{ message.tags }}{% endif %}">
-          {{ message }}
-          <button type="button"
-                  class="btn-close"
-                  data-bs-dismiss="alert"
-                  aria-label="Close"></button>
-        </div>
-      {% endfor %}
-    {% endif %}
-    {% block main %}
-      {% block content %}
-        <p>Use this document as a way to quick start any new project.</p>
-      {% endblock content %}
-    {% endblock main %}
 
-  </div>
-  {% endblock body %}
-  <!-- /container -->
-  {% block modal %}
-  {% endblock modal %}
-  {% block inline_javascript %}
-    {% comment %}
-    Script tags with only code, no src (defer by default). To run
-    with a "defer" so that you run inline code:
-    <script>
-      window.addEventListener('DOMContentLoaded', () => {
-        /* Run whatever you want */
-      });
-    </script>
-    {% endcomment %}
-  {% endblock inline_javascript %}
-</body>
+    <!-- Content Area -->
+    <div class="public-main-content">
+      <div class="container">
+        {% if messages %}
+          {% for message in messages %}
+            <div class="alert alert-dismissible {% if message.tags %}alert-{{ message.tags }}{% endif %} fade show" role="alert">
+              {{ message }}
+              <button type="button"
+                      class="btn-close"
+                      data-bs-dismiss="alert"
+                      aria-label="Close"></button>
+            </div>
+          {% endfor %}
+        {% endif %}
+
+        {% block main %}
+          {% block content %}
+            <p>Welcome to Smart HR Management System.</p>
+          {% endblock content %}
+        {% endblock main %}
+      </div>
+    </div>
+
+    <!-- Public Footer -->
+    <footer class="public-footer">
+      <div class="container">
+        <div class="row g-4 mb-4">
+          <div class="col-lg-5">
+            <div class="d-flex align-items-center gap-2 mb-2">
+              <i class="bi bi-shield-lock-fill text-primary fs-5"></i>
+              <h5 class="m-0 text-white fw-bold">Smart HRMS</h5>
+            </div>
+            <p class="text-muted small pe-lg-4">
+              Next-generation Human Resource Management platform engineered for automated recruitment, lifecycle operations, performance metrics, and administrative oversight.
+            </p>
+            <div class="d-flex align-items-center gap-2">
+              <span class="badge-status badge-status-active">
+                <span class="spinner-grow spinner-grow-sm" style="width: 7px; height: 7px;" role="status"></span>
+                System Operational
+              </span>
+            </div>
+          </div>
+          <div class="col-6 col-lg-2">
+            <h6 class="text-white text-uppercase fs-7 fw-semibold mb-3">Portals</h6>
+            <ul class="list-unstyled small d-flex flex-column gap-2 mb-0">
+              <li><a href="{% url 'home' %}">Home</a></li>
+              <li><a href="{% url 'admin_module:admin_dashboard' %}">Admin Portal</a></li>
+              <li><a href="{% url 'employees:homepage' %}">Employee Directory</a></li>
+              <li><a href="{% url 'about' %}">About Platform</a></li>
+            </ul>
+          </div>
+          <div class="col-6 col-lg-2">
+            <h6 class="text-white text-uppercase fs-7 fw-semibold mb-3">Admin Suite</h6>
+            <ul class="list-unstyled small d-flex flex-column gap-2 mb-0">
+              <li><a href="{% url 'admin_module:employees_list' %}">Employees</a></li>
+              <li><a href="{% url 'admin_module:departments_list' %}">Departments</a></li>
+              <li><a href="{% url 'admin_module:job_vacancies_list' %}">Recruitment</a></li>
+              <li><a href="{% url 'admin_module:admin_responsibilities_warnings' %}">Governance</a></li>
+            </ul>
+          </div>
+          <div class="col-lg-3">
+            <h6 class="text-white text-uppercase fs-7 fw-semibold mb-3">Enterprise Security</h6>
+            <p class="text-muted small mb-2">
+              Role-based access control, cryptographic session handling, and auditing enabled.
+            </p>
+            <span class="text-muted small">v1.0.0 &bull; Django Enterprise</span>
+          </div>
+        </div>
+        <div class="pt-3 border-top border-secondary border-opacity-25 d-flex flex-column flex-md-row justify-content-between align-items-center gap-2 small text-muted">
+          <div>&copy; 2026 Smart HRMS. All rights reserved.</div>
+          <div>Crafted with precision &amp; modern enterprise architecture</div>
+        </div>
+      </div>
+    </footer>
+    {% endblock body %}
+
+    {% block modal %}{% endblock modal %}
+    {% block inline_javascript %}{% endblock inline_javascript %}
+  </body>
 </html>

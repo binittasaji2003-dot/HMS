@@ -1,0 +1,143 @@
+{% extends "admin_module/base_admin.html" %}
+{% load static %}
+
+{% block title %}Manage Departments - Smart HRMS Admin{% endblock title %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+  <div>
+    <h1 class="h3 mb-1 fw-bold">Department Management</h1>
+    <p class="text-secondary mb-0 small">Manage organizational units, departmental workforce capacity, and operations.</p>
+  </div>
+  <div class="d-flex gap-2">
+    {% if show_add_button %}
+      <a href="{% url 'admin_module:department_create' %}" class="btn-primary-admin">
+        <i class="bi bi-building-add"></i> Add Department
+      </a>
+    {% endif %}
+    <a href="{% url 'admin_module:admin_dashboard' %}" class="btn-secondary-admin">
+      <i class="bi bi-arrow-left"></i> Dashboard
+    </a>
+  </div>
+</div>
+
+<!-- Department List Card -->
+<div class="saas-card">
+  <div class="card-header flex-wrap gap-3">
+    <div class="d-flex align-items-center gap-2">
+      <h2 class="card-title">
+        <i class="bi bi-diagram-3-fill text-primary"></i> Organizational Units
+      </h2>
+      <span class="btn-pill-action">{{ departments|length }} Departments</span>
+    </div>
+
+    <!-- Live Search Filter -->
+    <div class="d-flex align-items-center gap-2">
+      <div class="topbar-search-box" style="width: 260px;">
+        <i class="bi bi-search"></i>
+        <input type="text" id="departmentSearchInput" placeholder="Filter departments...">
+      </div>
+    </div>
+  </div>
+
+  {% if departments %}
+    <div class="table-responsive">
+      <table class="table-saas" id="departmentsTable">
+        <caption class="visually-hidden">Department directory</caption>
+        <thead>
+          <tr>
+            <th scope="col" style="width: 28%;">Department Name</th>
+            <th scope="col" style="width: 34%;">Description</th>
+            <th scope="col" style="width: 14%;">Headcount</th>
+            <th scope="col" style="width: 10%;">Status</th>
+            <th scope="col" style="width: 14%; text-align: right;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for department in departments %}
+            <tr class="dept-row">
+              <td>
+                <div class="d-flex align-items-center gap-2">
+                  <div class="kpi-icon-circle icon-circle-blue" style="width: 34px; height: 34px; border-radius: 9px; font-size: 0.95rem;">
+                    <i class="bi bi-diagram-3"></i>
+                  </div>
+                  <div>
+                    <span class="fw-bold text-dark dept-name">{{ department.name }}</span>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span class="text-secondary small">{{ department.description|default:"No description provided."|truncatewords:10 }}</span>
+              </td>
+              <td>
+                <span class="btn-pill-action">
+                  <i class="bi bi-people me-1"></i>{{ department.employee_count|default:department.employees.count|default:"0" }} personnel
+                </span>
+              </td>
+              <td>
+                {% if department.status == "Active" or department.is_active %}
+                  <span class="badge-status badge-status-active">Active</span>
+                {% else %}
+                  <span class="badge-status badge-status-danger">Inactive</span>
+                {% endif %}
+              </td>
+              <td style="text-align: right;">
+                <div class="d-inline-flex align-items-center gap-1">
+                  <!-- View Details -->
+                  <a href="{% url 'admin_module:department_detail' department.department_id %}" class="table-action-btn btn-action-view" title="View Department">
+                    <i class="bi bi-eye"></i>
+                  </a>
+
+                  <!-- Edit Department -->
+                  <a href="{% url 'admin_module:department_edit' department.department_id %}" class="table-action-btn btn-action-edit" title="Edit Department">
+                    <i class="bi bi-pencil-square"></i>
+                  </a>
+
+                  <!-- Delete Department -->
+                  <a href="{% url 'admin_module:department_delete' department.department_id %}" class="table-action-btn btn-action-delete" title="Delete Department">
+                    <i class="bi bi-trash"></i>
+                  </a>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="empty-state-box">
+      <i class="bi bi-diagram-3 empty-state-icon"></i>
+      <h5 class="empty-state-title">No Departments Found</h5>
+      <p class="empty-state-desc">Create your first department to organize your workforce structure.</p>
+      {% if show_add_button %}
+        <a href="{% url 'admin_module:department_create' %}" class="btn-primary-admin">
+          <i class="bi bi-building-add"></i> Create First Department
+        </a>
+      {% endif %}
+    </div>
+  {% endif %}
+</div>
+{% endblock content %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const searchInput = document.getElementById('departmentSearchInput');
+    if (searchInput) {
+      searchInput.addEventListener('input', function (e) {
+        const query = e.target.value.toLowerCase().trim();
+        const rows = document.querySelectorAll('#departmentsTable .dept-row');
+        rows.forEach(row => {
+          const name = row.querySelector('.dept-name')?.textContent.toLowerCase() || '';
+          if (name.includes(query)) {
+            row.style.display = '';
+          } else {
+            row.style.display = 'none';
+          }
+        });
+      });
+    }
+  });
+</script>
+{% endblock extra_js %}

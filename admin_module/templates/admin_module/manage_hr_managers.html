@@ -1,0 +1,155 @@
+{% extends "admin_module/base_admin.html" %}
+{% load static %}
+
+{% block title %}Manage HR Managers - Smart HRMS Admin{% endblock title %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+  <div>
+    <h1 class="h3 mb-1 fw-bold">Manage HR Managers</h1>
+    <p class="text-secondary mb-0 small">Create, track, and maintain HR operations personnel records.</p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'admin_module:hr_manager_create' %}" class="btn-primary-admin">
+      <i class="bi bi-person-badge-fill"></i> Add HR Manager
+    </a>
+    <a href="{% url 'admin_module:admin_dashboard' %}" class="btn-secondary-admin">
+      <i class="bi bi-arrow-left"></i> Dashboard
+    </a>
+  </div>
+</div>
+
+<div class="saas-card">
+  <div class="card-header flex-wrap gap-3">
+    <div class="d-flex align-items-center gap-2">
+      <h2 class="card-title">
+        <i class="bi bi-person-badge-fill text-primary"></i> HR Operations Team
+      </h2>
+      <span class="btn-pill-action">{{ hr_managers|length }} Records</span>
+    </div>
+
+    <!-- Live Search Filter -->
+    <div class="d-flex align-items-center gap-2">
+      <div class="topbar-search-box" style="width: 260px;">
+        <i class="bi bi-search"></i>
+        <input type="text" id="hrManagerSearchInput" placeholder="Filter HR managers...">
+      </div>
+    </div>
+  </div>
+
+  {% if hr_managers %}
+    <div class="table-responsive">
+      <table class="table-saas align-middle" id="hrManagersTable">
+        <thead>
+          <tr>
+            <th>HR Manager</th>
+            <th>Department</th>
+            <th>Phone</th>
+            <th>Status</th>
+            <th class="text-end pe-4">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for manager in hr_managers %}
+            <tr class="hr-row">
+              <td>
+                <div class="d-flex align-items-center gap-2">
+                  <div class="sidebar-user-avatar" style="width: 36px; height: 36px; font-size: 0.85rem;">
+                    {% if manager.user.name %}{{ manager.user.name|slice:":1"|upper }}{% else %}H{% endif %}
+                  </div>
+                  <div>
+                    <div class="fw-semibold text-dark hr-name">{{ manager.user.name|default:manager.user.email }}</div>
+                    <div class="text-muted small">{{ manager.user.email }}</div>
+                  </div>
+                </div>
+              </td>
+              <td>
+                {% if manager.department %}
+                  <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2 py-1">
+                    {{ manager.department.name }}
+                  </span>
+                {% else %}
+                  <span class="text-muted small">Unassigned</span>
+                {% endif %}
+              </td>
+              <td>
+                <span class="text-secondary small">{{ manager.phone|default:"—" }}</span>
+              </td>
+              <td>
+                {% if manager.user.status == 'Active' %}
+                  <span class="badge-status badge-status-active small">Active</span>
+                {% else %}
+                  <span class="badge-status badge-status-danger small">{{ manager.user.status }}</span>
+                {% endif %}
+              </td>
+              <td class="text-end pe-4">
+                <div class="d-inline-flex align-items-center gap-1">
+                  <!-- View Details -->
+                  <a href="{% url 'admin_module:hr_manager_detail' manager.pk %}" class="table-action-btn btn-action-view" title="View Profile">
+                    <i class="bi bi-eye"></i>
+                  </a>
+
+                  <!-- Edit HR Manager -->
+                  <a href="{% url 'admin_module:hr_manager_edit' manager.pk %}" class="table-action-btn btn-action-edit" title="Edit Manager">
+                    <i class="bi bi-pencil-square"></i>
+                  </a>
+
+                  <!-- Toggle Status Form -->
+                  <form method="post" action="{% url 'admin_module:hr_manager_toggle_status' manager.pk %}" class="d-inline m-0 p-0">
+                    {% csrf_token %}
+                    {% if manager.user.status == 'Active' %}
+                      <button type="submit" class="table-action-btn" title="Deactivate HR Manager" style="color: #f59e0b; border-color: rgba(245, 158, 11, 0.3);">
+                        <i class="bi bi-person-slash"></i>
+                      </button>
+                    {% else %}
+                      <button type="submit" class="table-action-btn btn-action-status" title="Activate HR Manager">
+                        <i class="bi bi-person-check"></i>
+                      </button>
+                    {% endif %}
+                  </form>
+
+                  <!-- Delete HR Manager -->
+                  <a href="{% url 'admin_module:hr_manager_delete' manager.pk %}" class="table-action-btn btn-action-delete" title="Delete Manager">
+                    <i class="bi bi-trash"></i>
+                  </a>
+                </div>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="empty-state-box">
+      <i class="bi bi-person-badge empty-state-icon"></i>
+      <h5 class="empty-state-title">No HR Managers Found</h5>
+      <p class="empty-state-desc">No HR managers have been created yet. Add HR personnel to manage recruiting and operations.</p>
+      <a href="{% url 'admin_module:hr_manager_create' %}" class="btn-primary-admin">
+        <i class="bi bi-person-badge-fill"></i> Add First HR Manager
+      </a>
+    </div>
+  {% endif %}
+</div>
+{% endblock content %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const searchInput = document.getElementById('hrManagerSearchInput');
+    if (searchInput) {
+      searchInput.addEventListener('input', function (e) {
+        const query = e.target.value.toLowerCase().trim();
+        const rows = document.querySelectorAll('#hrManagersTable .hr-row');
+        rows.forEach(row => {
+          const text = row.textContent.toLowerCase();
+          if (text.includes(query)) {
+            row.style.display = '';
+          } else {
+            row.style.display = 'none';
+          }
+        });
+      });
+    }
+  });
+</script>
+{% endblock extra_js %}

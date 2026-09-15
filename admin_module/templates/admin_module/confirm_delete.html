@@ -1,0 +1,66 @@
+{% extends "admin_module/base_admin.html" %}
+
+{% block title %}{{ page_title|default:"Confirm Delete" }}{% endblock title %}
+
+{% block content %}
+<div class="row justify-content-center pt-4">
+  <div class="col-12 col-md-8 col-lg-6" style="max-width: 520px;">
+    <div class="saas-card overflow-hidden shadow-sm">
+      <!-- Header -->
+      <div class="p-3 border-bottom border-light-subtle d-flex align-items-center justify-content-between">
+        <h2 class="h6 mb-0 fw-bold text-danger">
+          <i class="bi bi-shield-exclamation text-danger me-2"></i>Confirm Deletion
+        </h2>
+        <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill" style="font-size: 0.72rem;">
+          Irreversible Action
+        </span>
+      </div>
+
+      <!-- Body -->
+      <div class="p-4 text-center">
+        <div class="mx-auto mb-3" style="width: 60px; height: 60px; border-radius: 50%; background-color: #fef2f2; display: flex; align-items: center; justify-content: center; color: #ef4444; font-size: 1.8rem; border: 1px solid #fee2e2;">
+          <i class="bi bi-exclamation-triangle-fill"></i>
+        </div>
+
+        <h1 class="h5 text-dark fw-bold mb-2">Delete {{ object_type }}?</h1>
+        <p class="text-secondary small mb-4">
+          Are you certain you want to permanently delete this {{ object_type|lower }} from the HRMS database?
+        </p>
+
+        <!-- Target Object Card -->
+        <div class="p-3 mb-4 rounded-3 text-start bg-light border border-light-subtle">
+          <div class="d-flex align-items-center justify-content-between mb-1">
+            <span class="text-muted small text-uppercase fw-semibold" style="font-size: 0.72rem;">Target {{ object_type }}</span>
+            <span class="badge-status-saas badge-danger-saas">{{ object_type }}</span>
+          </div>
+          <div class="text-dark fw-bold fs-6">{{ object_name }}</div>
+        </div>
+
+        {% if warning_message %}
+          <div class="alert alert-warning mb-4 text-start small p-3 d-flex align-items-start gap-2 rounded-3" role="alert">
+            <i class="bi bi-exclamation-circle-fill text-warning fs-5 mt-1"></i>
+            <div>{{ warning_message }}</div>
+          </div>
+        {% endif %}
+
+        <p class="text-muted small mb-0" style="font-size: 0.75rem;">
+          <i class="bi bi-info-circle me-1"></i> This action cannot be undone and will update associated records.
+        </p>
+      </div>
+
+      <!-- Footer with Action Buttons -->
+      <form method="post" class="m-0 p-0">
+        {% csrf_token %}
+        <div class="p-3 border-top border-light-subtle bg-light d-flex justify-content-end gap-2">
+          <a href="{% url back_url %}" class="btn-secondary-admin px-3">
+            <i class="bi bi-x-lg"></i> Cancel
+          </a>
+          <button type="submit" class="btn-danger-admin px-4" data-confirm-submit>
+            <i class="bi bi-trash"></i> Confirm Delete
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock content %}

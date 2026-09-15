@@ -1,0 +1,268 @@
+{% extends "admin_module/base_admin.html" %}
+
+{% block title %}Employee Performance Report - Admin Reports{% endblock title %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+  <div>
+    <h1 class="page-title-saas mb-1">Employee Performance Report</h1>
+    <p class="page-subtitle-saas mb-0">
+      Performance reviews and warnings recorded by HR, with ratings, review periods, and resolution status.
+    </p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'admin_module:reports_departments' %}" class="btn-secondary-admin">
+      <i class="bi bi-building"></i> Departments
+    </a>
+    <a href="{% url 'admin_module:admin_dashboard' %}" class="btn-secondary-admin">
+      <i class="bi bi-arrow-left"></i> Dashboard
+    </a>
+  </div>
+</div>
+
+<!-- Summary KPI Cards -->
+<div class="row g-3 mb-4">
+  <div class="col-12 col-sm-6 col-lg">
+    <div class="saas-card p-3 h-100">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <span class="text-secondary small text-uppercase fw-semibold" style="font-size: 0.72rem;">Reviews</span>
+        <div class="avatar-saas rounded-circle" style="background: rgba(59, 130, 246, 0.12); color: #3b82f6; width: 34px; height: 34px; font-size: 1rem; display: flex; align-items: center; justify-content: center;">
+          <i class="bi bi-clipboard-data-fill"></i>
+        </div>
+      </div>
+      <div class="h3 fw-bold text-dark mb-1">{{ total_reviews|default:"0" }}</div>
+      <div class="text-secondary small" style="font-size: 0.75rem;">On record</div>
+    </div>
+  </div>
+  <div class="col-12 col-sm-6 col-lg">
+    <div class="saas-card p-3 h-100">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <span class="text-secondary small text-uppercase fw-semibold" style="font-size: 0.72rem;">Average Rating</span>
+        <div class="avatar-saas rounded-circle" style="background: rgba(139, 92, 246, 0.12); color: #8b5cf6; width: 34px; height: 34px; font-size: 1rem; display: flex; align-items: center; justify-content: center;">
+          <i class="bi bi-star-fill"></i>
+        </div>
+      </div>
+      <div class="h3 fw-bold text-dark mb-1">{% if avg_rating %}{{ avg_rating }}{% else %}—{% endif %}</div>
+      <div class="text-secondary small" style="font-size: 0.75rem;">Out of 5.0</div>
+    </div>
+  </div>
+  <div class="col-12 col-sm-6 col-lg">
+    <div class="saas-card p-3 h-100">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <span class="text-secondary small text-uppercase fw-semibold" style="font-size: 0.72rem;">Rated Employees</span>
+        <div class="avatar-saas rounded-circle" style="background: rgba(16, 185, 129, 0.12); color: #10b981; width: 34px; height: 34px; font-size: 1rem; display: flex; align-items: center; justify-content: center;">
+          <i class="bi bi-person-check-fill"></i>
+        </div>
+      </div>
+      <div class="h3 fw-bold text-dark mb-1">{{ rated_employees|default:"0" }}</div>
+      <div class="text-success small fw-semibold" style="font-size: 0.75rem;"><i class="bi bi-person-check me-1"></i>Reviewed</div>
+    </div>
+  </div>
+  <div class="col-12 col-sm-6 col-lg">
+    <div class="saas-card p-3 h-100">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <span class="text-secondary small text-uppercase fw-semibold" style="font-size: 0.72rem;">Open Warnings</span>
+        <div class="avatar-saas rounded-circle" style="background: rgba(245, 158, 11, 0.12); color: #f59e0b; width: 34px; height: 34px; font-size: 1rem; display: flex; align-items: center; justify-content: center;">
+          <i class="bi bi-exclamation-triangle-fill"></i>
+        </div>
+      </div>
+      <div class="h3 fw-bold text-dark mb-1">{{ open_warnings|default:"0" }}</div>
+      <div class="text-warning small fw-semibold" style="font-size: 0.75rem;">Pending / active</div>
+    </div>
+  </div>
+  <div class="col-12 col-sm-6 col-lg">
+    <div class="saas-card p-3 h-100">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <span class="text-secondary small text-uppercase fw-semibold" style="font-size: 0.72rem;">Resolved Warnings</span>
+        <div class="avatar-saas rounded-circle" style="background: rgba(6, 182, 212, 0.12); color: #06b6d4; width: 34px; height: 34px; font-size: 1rem; display: flex; align-items: center; justify-content: center;">
+          <i class="bi bi-check2-circle"></i>
+        </div>
+      </div>
+      <div class="h3 fw-bold text-dark mb-1">{{ resolved_warnings|default:"0" }}</div>
+      <div class="text-secondary small" style="font-size: 0.75rem;">Resolved / noted</div>
+    </div>
+  </div>
+</div>
+
+<!-- Filters Card -->
+<div class="saas-card p-3 mb-4">
+  <form method="get" class="row g-2 align-items-center">
+    <div class="col-12 col-md-3">
+      <div class="input-group input-group-sm">
+        <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-search"></i></span>
+        <input type="text" name="q" value="{{ search }}" class="form-control border-start-0 ps-0" placeholder="Search employee...">
+      </div>
+    </div>
+    <div class="col-12 col-sm-6 col-md-3">
+      <select name="department" class="form-select form-select-sm" style="min-height: 38px;">
+        <option value="">All Departments</option>
+        {% for department in departments %}
+          <option value="{{ department.pk }}" {% if department_filter == department.pk|stringformat:"s" %}selected{% endif %}>{{ department.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-12 col-sm-6 col-md-2">
+      <select name="min_rating" class="form-select form-select-sm" style="min-height: 38px;">
+        <option value="">All Ratings</option>
+        <option value="3" {% if min_rating == "3" %}selected{% endif %}>Rating ≥ 3.0</option>
+        <option value="4" {% if min_rating == "4" %}selected{% endif %}>Rating ≥ 4.0</option>
+        <option value="4.5" {% if min_rating == "4.5" %}selected{% endif %}>Rating ≥ 4.5</option>
+        <option value="5" {% if min_rating == "5" %}selected{% endif %}>Rating = 5.0</option>
+      </select>
+    </div>
+    <div class="col-12 col-sm-6 col-md-2">
+      <select name="warning_status" class="form-select form-select-sm" style="min-height: 38px;">
+        <option value="">All Warning Statuses</option>
+        {% for value, label in warning_statuses %}
+          <option value="{{ value }}" {% if warning_status == value %}selected{% endif %}>{{ label }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="col-12 col-sm-6 col-md-2 d-flex gap-2">
+      <button type="submit" class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1 flex-grow-1 justify-content-center" style="min-height: 38px;">
+        <i class="bi bi-funnel"></i> Filter
+      </button>
+      {% if search or department_filter or min_rating or warning_status %}
+        <a href="{% url 'admin_module:reports_performance' %}" class="btn btn-sm btn-light border d-inline-flex align-items-center" style="min-height: 38px;" title="Clear filters">
+          <i class="bi bi-x-lg"></i>
+        </a>
+      {% endif %}
+    </div>
+  </form>
+</div>
+
+<div class="row g-4">
+  <!-- Performance Reviews -->
+  <div class="col-12 col-xl-7">
+    <div class="saas-card overflow-hidden h-100">
+      <div class="p-3 border-bottom border-light-subtle d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center gap-2">
+          <h2 class="h5 mb-0 fw-bold text-dark"><i class="bi bi-clipboard-data text-primary me-2"></i>Performance Reviews</h2>
+          <span class="badge bg-light text-secondary border border-light-subtle rounded-pill">{{ reviews|length }}</span>
+        </div>
+      </div>
+
+      {% if reviews %}
+        <div class="table-responsive">
+          <table class="table-saas mb-0">
+            <caption class="visually-hidden">Employee performance reviews</caption>
+            <thead>
+              <tr>
+                <th scope="col">Employee</th>
+                <th scope="col">Department</th>
+                <th scope="col">Review Period</th>
+                <th scope="col" class="text-center">Rating</th>
+                <th scope="col">Feedback</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for review in reviews %}
+                <tr>
+                  <td>
+                    <div class="d-flex align-items-center gap-2">
+                      <div class="avatar-saas rounded-circle" style="background: rgba(59, 130, 246, 0.12); color: #2563eb; font-weight: 700; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; font-size: 0.85rem;">
+                        {{ review.employee.user.name|default:review.employee.user.email|slice:":1"|upper }}
+                      </div>
+                      <div>
+                        <div class="fw-semibold text-dark">{{ review.employee.user.name|default:review.employee.user.email }}</div>
+                        <div class="text-secondary small" style="font-size: 0.72rem;">By {{ review.reviewed_by.name|default:review.reviewed_by.email|default:"—" }}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td>
+                    <span class="badge bg-light text-dark border border-light-subtle">
+                      <i class="bi bi-building me-1 text-secondary"></i>{{ review.employee.department.name|default:"Unassigned" }}
+                    </span>
+                  </td>
+                  <td>
+                    <div class="text-dark fw-semibold" style="font-size: 0.85rem;">{{ review.review_period|default:"—" }}</div>
+                    <div class="text-secondary small" style="font-size: 0.72rem;">{{ review.created_at|date:"M d, Y" }}</div>
+                  </td>
+                  <td class="text-center">
+                    {% if review.rating >= 4 %}
+                      <span class="badge-status-saas badge-success-saas"><i class="bi bi-star-fill me-1"></i>{{ review.rating }}</span>
+                    {% elif review.rating >= 3 %}
+                      <span class="badge-status-saas badge-warning-saas"><i class="bi bi-star-half me-1"></i>{{ review.rating }}</span>
+                    {% else %}
+                      <span class="badge-status-saas badge-danger-saas"><i class="bi bi-star me-1"></i>{{ review.rating }}</span>
+                    {% endif %}
+                  </td>
+                  <td><span class="text-secondary small">{{ review.feedback|default:"—"|truncatewords:14 }}</span></td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      {% else %}
+        <div class="text-center py-5">
+          <div class="avatar-saas-lg rounded-circle mx-auto mb-3" style="background: #f1f5f9; color: #94a3b8; width: 64px; height: 64px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem;">
+            <i class="bi bi-clipboard-data"></i>
+          </div>
+          <h5 class="text-dark fw-bold mb-1">No Performance Reviews Found</h5>
+          <p class="text-secondary small mb-0">Reviews recorded by HR will appear here.</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Performance Warnings -->
+  <div class="col-12 col-xl-5">
+    <div class="saas-card overflow-hidden h-100">
+      <div class="p-3 border-bottom border-light-subtle d-flex align-items-center justify-content-between">
+        <div class="d-flex align-items-center gap-2">
+          <h2 class="h5 mb-0 fw-bold text-dark"><i class="bi bi-exclamation-triangle text-warning me-2"></i>Performance Warnings</h2>
+          <span class="badge bg-light text-secondary border border-light-subtle rounded-pill">{{ warnings|length }}</span>
+        </div>
+      </div>
+
+      {% if warnings %}
+        <div class="p-3 d-flex flex-column gap-3">
+          {% for warning in warnings %}
+            <div class="p-3 rounded-3 border border-light-subtle bg-light">
+              <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+                <div class="d-flex align-items-center gap-2">
+                  <div class="avatar-saas rounded-circle" style="width: 32px; height: 32px; font-size: 0.8rem; background: rgba(245, 158, 11, 0.15); color: #d97706; font-weight: 700; display: flex; align-items: center; justify-content: center;">
+                    {{ warning.employee.user.name|default:warning.employee.user.email|slice:":1"|upper }}
+                  </div>
+                  <div>
+                    <div class="fw-semibold text-dark" style="font-size: 0.85rem;">{{ warning.employee.user.name|default:warning.employee.user.email }}</div>
+                    <div class="text-secondary small" style="font-size: 0.72rem;">{{ warning.employee.department.name|default:"Unassigned" }}</div>
+                  </div>
+                </div>
+                <div class="d-flex align-items-center gap-1">
+                  {% if warning.severity == "Critical" or warning.severity == "High" %}
+                    <span class="badge-status-saas badge-danger-saas" style="font-size: 0.7rem;">{{ warning.severity }}</span>
+                  {% else %}
+                    <span class="badge-status-saas badge-warning-saas" style="font-size: 0.7rem;">{{ warning.severity }}</span>
+                  {% endif %}
+                  {% if warning.status == "Resolved" or warning.status == "Acknowledged" %}
+                    <span class="badge-status-saas badge-success-saas" style="font-size: 0.7rem;">{{ warning.status }}</span>
+                  {% elif warning.status == "Active" %}
+                    <span class="badge-status-saas badge-danger-saas" style="font-size: 0.7rem;">{{ warning.status }}</span>
+                  {% else %}
+                    <span class="badge-status-saas badge-neutral-saas" style="font-size: 0.7rem;">{{ warning.status }}</span>
+                  {% endif %}
+                </div>
+              </div>
+              <div class="fw-semibold text-dark small mb-1">{{ warning.title }}</div>
+              <p class="text-secondary mb-2" style="font-size: 0.78rem; line-height: 1.4;">{{ warning.reason|truncatewords:18 }}</p>
+              <div class="text-secondary small d-flex align-items-center gap-1" style="font-size: 0.72rem;">
+                <i class="bi bi-calendar-event"></i> {{ warning.created_at|date:"M d, Y" }}
+              </div>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="text-center py-5">
+          <div class="avatar-saas-lg rounded-circle mx-auto mb-3" style="background: #f1f5f9; color: #94a3b8; width: 64px; height: 64px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem;">
+            <i class="bi bi-exclamation-triangle"></i>
+          </div>
+          <h5 class="text-dark fw-bold mb-1">No Warnings Found</h5>
+          <p class="text-secondary small mb-0">Warnings issued by HR will appear here.</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+{% endblock content %}

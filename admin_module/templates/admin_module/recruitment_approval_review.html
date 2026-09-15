@@ -1,0 +1,177 @@
+{% extends "admin_module/base_admin.html" %}
+
+{% block title %}{{ page_title|default:"Review Employee Approval" }}{% endblock title %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+  <div>
+    <h1 class="page-title-saas mb-1">Review Employee Approval</h1>
+    <p class="page-subtitle-saas mb-0">Verify the new hire record raised by HR before approving it into the active workforce.</p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'admin_module:recruitment_approvals' %}" class="btn-secondary-admin">
+      <i class="bi bi-arrow-left"></i> Back to Approvals
+    </a>
+  </div>
+</div>
+
+<div class="row justify-content-center">
+  <div class="col-12 col-lg-11 col-xl-10" style="max-width: 900px;">
+
+    <!-- Record Hero Card -->
+    <div class="saas-card p-4 mb-4">
+      <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
+        <div class="d-flex align-items-center gap-3">
+          <div class="avatar-saas-lg rounded-circle" style="background: rgba(245, 158, 11, 0.15); color: #b45309; font-weight: 700; font-size: 1.5rem; width: 64px; height: 64px; display: flex; align-items: center; justify-content: center;">
+            {{ employee.user.name|default:employee.user.email|slice:":1"|upper }}
+          </div>
+          <div>
+            <h2 class="h4 mb-1 text-dark fw-bold">{{ employee.user.name|default:employee.user.email }}</h2>
+            <div class="text-secondary small d-flex align-items-center gap-2 flex-wrap">
+              <span><i class="bi bi-briefcase text-primary me-1"></i>{{ employee.designation|default:"Staff Member" }}</span>
+              <span>&bull;</span>
+              <span><i class="bi bi-envelope me-1"></i>{{ employee.user.email }}</span>
+            </div>
+          </div>
+        </div>
+        <div>
+          <span class="badge-status-saas badge-warning-saas" style="font-size: 0.85rem; padding: 0.4rem 0.85rem;">
+            <i class="bi bi-hourglass-split me-1"></i> Pending Approval
+          </span>
+        </div>
+      </div>
+
+      <!-- Quick Metrics Ribbon -->
+      <div class="row g-3">
+        <div class="col-6 col-md-3">
+          <div class="p-3 rounded-3 bg-light border border-light-subtle text-center">
+            <div class="text-secondary small text-uppercase fw-semibold mb-1" style="font-size: 0.72rem;">Department</div>
+            <div class="text-dark fw-bold text-truncate">{{ employee.department.name|default:"Unassigned" }}</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="p-3 rounded-3 bg-light border border-light-subtle text-center">
+            <div class="text-secondary small text-uppercase fw-semibold mb-1" style="font-size: 0.72rem;">Designation</div>
+            <div class="text-dark fw-bold text-truncate">{{ employee.designation|default:"Staff" }}</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="p-3 rounded-3 bg-light border border-light-subtle text-center">
+            <div class="text-secondary small text-uppercase fw-semibold mb-1" style="font-size: 0.72rem;">Joining Date</div>
+            <div class="text-dark fw-bold" style="font-size: 0.95rem;">{{ employee.joining_date|date:"M d, Y"|default:"Not recorded" }}</div>
+          </div>
+        </div>
+        <div class="col-6 col-md-3">
+          <div class="p-3 rounded-3 bg-light border border-light-subtle text-center">
+            <div class="text-secondary small text-uppercase fw-semibold mb-1" style="font-size: 0.72rem;">Salary</div>
+            <div class="text-success fw-bold" style="font-size: 0.95rem;">{% if employee.salary %}${{ employee.salary }}{% else %}—{% endif %}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Record Details -->
+    <div class="saas-card p-4 mb-4">
+      <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom border-light-subtle">
+        <h2 class="h5 mb-0 fw-bold text-dark"><i class="bi bi-person-vcard text-primary me-2"></i>Employee Record Details</h2>
+      </div>
+      <div class="row g-3">
+        <div class="col-sm-6">
+          <label class="form-label-saas text-muted text-uppercase small mb-1" style="font-size: 0.72rem;">Email Address</label>
+          <div class="text-dark fw-semibold">{{ employee.user.email }}</div>
+        </div>
+        <div class="col-sm-6">
+          <label class="form-label-saas text-muted text-uppercase small mb-1" style="font-size: 0.72rem;">Department</label>
+          <div class="text-dark fw-semibold">{{ employee.department.name|default:"Unassigned" }}</div>
+        </div>
+        <div class="col-sm-6">
+          <label class="form-label-saas text-muted text-uppercase small mb-1" style="font-size: 0.72rem;">Designation</label>
+          <div class="text-dark fw-semibold">{{ employee.designation }}</div>
+        </div>
+        <div class="col-sm-6">
+          <label class="form-label-saas text-muted text-uppercase small mb-1" style="font-size: 0.72rem;">Date of Joining</label>
+          <div class="text-dark fw-semibold">{{ employee.joining_date|date:"M d, Y"|default:"—" }}</div>
+        </div>
+        <div class="col-sm-6">
+          <label class="form-label-saas text-muted text-uppercase small mb-1" style="font-size: 0.72rem;">Salary / Compensation</label>
+          <div class="text-dark fw-semibold">{% if employee.salary %}${{ employee.salary }}{% else %}Not set{% endif %}</div>
+        </div>
+        <div class="col-sm-6">
+          <label class="form-label-saas text-muted text-uppercase small mb-1" style="font-size: 0.72rem;">Record Status</label>
+          <div>
+            <span class="badge-status-saas badge-warning-saas">{{ employee.get_status_display }}</span>
+          </div>
+        </div>
+        <div class="col-sm-6">
+          <label class="form-label-saas text-muted text-uppercase small mb-1" style="font-size: 0.72rem;">Record Created On</label>
+          <div class="text-dark fw-semibold">{{ employee.created_at|date:"M d, Y g:i A" }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Linked Account -->
+    <div class="saas-card p-4 mb-4">
+      <div class="d-flex align-items-center justify-content-between mb-3 pb-2 border-bottom border-light-subtle">
+        <h2 class="h5 mb-0 fw-bold text-dark"><i class="bi bi-shield-lock text-primary me-2"></i>Linked User Account</h2>
+      </div>
+      <div class="row g-3">
+        <div class="col-sm-6">
+          <label class="form-label-saas text-muted text-uppercase small mb-1" style="font-size: 0.72rem;">Account Role</label>
+          <div class="text-dark fw-semibold">{{ employee.user.role|default:"Employee" }}</div>
+        </div>
+        <div class="col-sm-6">
+          <label class="form-label-saas text-muted text-uppercase small mb-1" style="font-size: 0.72rem;">Account Status</label>
+          <div class="text-dark fw-semibold">{{ employee.user.status|default:"—" }}</div>
+        </div>
+        <div class="col-sm-6">
+          <label class="form-label-saas text-muted text-uppercase small mb-1" style="font-size: 0.72rem;">Sign-in Enabled</label>
+          <div>
+            {% if employee.user.is_active %}
+              <span class="badge-status-saas badge-success-saas"><i class="bi bi-check-circle me-1"></i>Yes</span>
+            {% else %}
+              <span class="badge-status-saas badge-danger-saas"><i class="bi bi-x-circle me-1"></i>No</span>
+            {% endif %}
+          </div>
+        </div>
+        <div class="col-sm-6">
+          <label class="form-label-saas text-muted text-uppercase small mb-1" style="font-size: 0.72rem;">Account Created</label>
+          <div class="text-dark fw-semibold">{{ employee.user.date_joined|date:"M d, Y" }}</div>
+        </div>
+      </div>
+      <div class="alert alert-light border border-light-subtle d-flex align-items-start gap-2 mt-4 mb-0 py-2 px-3 rounded-3 text-secondary small">
+        <i class="bi bi-info-circle text-primary mt-1"></i>
+        <div>
+          Approving this record activates the linked user account (if still inactive) so the new hire can sign in.
+          One employee record exists per user, so duplicates cannot be created.
+        </div>
+      </div>
+    </div>
+
+    <!-- Approve Action -->
+    <div class="saas-card p-4 border border-success border-opacity-25" id="approve" style="background-color: #f0fdf4;">
+      <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
+        <div class="d-flex align-items-start gap-3">
+          <div class="p-3 rounded-circle" style="background: rgba(16, 185, 129, 0.15); color: #10b981; font-size: 1.3rem;">
+            <i class="bi bi-clipboard-check-fill"></i>
+          </div>
+          <div>
+            <h2 class="h5 mb-1 text-success fw-bold"><i class="bi bi-check2-circle me-1"></i> Approve New Employee Record</h2>
+            <p class="text-secondary small mb-0" style="max-width: 560px; line-height: 1.5;">
+              Confirm that <strong>{{ employee.user.name|default:employee.user.email }}</strong> should join the active workforce.
+              Approving is final — the record cannot be approved a second time.
+            </p>
+          </div>
+        </div>
+        <form method="post" action="{% url 'admin_module:recruitment_approval_approve' employee.pk %}" onsubmit="return confirm('Approve the employee record for {{ employee.user.name|default:employee.user.email }}?');">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-success fw-semibold px-4 py-2 d-inline-flex align-items-center gap-2 rounded-3 shadow-sm">
+            <i class="bi bi-check2-circle"></i> Approve &amp; Activate Employee
+          </button>
+        </form>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endblock content %}

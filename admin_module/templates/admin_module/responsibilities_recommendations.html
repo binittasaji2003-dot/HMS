@@ -1,0 +1,194 @@
+{% extends "admin_module/base_admin.html" %}
+
+{% block title %}HR Recommendations - Admin Responsibilities{% endblock title %}
+
+{% block content %}
+<!-- Page Header -->
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+  <div>
+    <h1 class="page-title-saas mb-1">HR Recommendations</h1>
+    <p class="page-subtitle-saas mb-0">
+      Review performance recommendations submitted by HR managers concerning employees and issue determinations.
+    </p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'admin_module:admin_responsibilities_warnings' %}" class="btn-secondary-admin">
+      <i class="bi bi-shield-exclamation me-1"></i> All Warnings
+    </a>
+    <a href="{% url 'admin_module:admin_dashboard' %}" class="btn-secondary-admin">
+      <i class="bi bi-arrow-left"></i> Dashboard
+    </a>
+  </div>
+</div>
+
+<!-- Tabs & Status Navigation -->
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+  <div class="d-flex gap-2">
+    <a href="{% url 'admin_module:admin_responsibilities_recommendations' %}?tab=pending{% if search %}&q={{ search }}{% endif %}" 
+       class="btn {% if status_tab != 'resolved' %}btn-primary-admin{% else %}btn-secondary-admin{% endif %}">
+      <i class="bi bi-hourglass-split me-1"></i> Pending Review
+      <span class="badge rounded-pill bg-danger ms-1">{{ pending_count|default:"0" }}</span>
+    </a>
+    <a href="{% url 'admin_module:admin_responsibilities_recommendations' %}?tab=resolved{% if search %}&q={{ search }}{% endif %}" 
+       class="btn {% if status_tab == 'resolved' %}btn-primary-admin{% else %}btn-secondary-admin{% endif %}">
+      <i class="bi bi-check2-all me-1"></i> Decided History
+      <span class="badge rounded-pill bg-secondary ms-1">{{ resolved_count|default:"0" }}</span>
+    </a>
+  </div>
+
+  <form method="get" class="d-flex align-items-center gap-2 mb-0">
+    <input type="hidden" name="tab" value="{{ status_tab }}">
+    <div class="input-group input-group-sm" style="width: 250px;">
+      <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-search"></i></span>
+      <input type="text" name="q" value="{{ search }}" class="form-control border-start-0 ps-0" placeholder="Search employee...">
+    </div>
+    <button type="submit" class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1" style="min-height: 38px;">
+      <i class="bi bi-funnel"></i> Filter
+    </button>
+    {% if search %}
+      <a href="{% url 'admin_module:admin_responsibilities_recommendations' %}?tab={{ status_tab }}" class="btn btn-sm btn-light border d-inline-flex align-items-center" style="min-height: 38px;">
+        <i class="bi bi-x-lg"></i>
+      </a>
+    {% endif %}
+  </form>
+</div>
+
+<!-- Recommendations Table Card -->
+<div class="saas-card overflow-hidden">
+  <div class="p-3 border-bottom border-light-subtle d-flex align-items-center justify-content-between">
+    <div class="d-flex align-items-center gap-2">
+      <h2 class="h5 mb-0 fw-bold text-dark">
+        {% if status_tab == 'resolved' %}
+          <i class="bi bi-archive-fill text-success me-2"></i>Decided HR Recommendations
+        {% else %}
+          <i class="bi bi-exclamation-circle-fill text-warning me-2"></i>Pending HR Recommendations
+        {% endif %}
+      </h2>
+      <span class="badge bg-light text-secondary border border-light-subtle rounded-pill">{{ recommendations|length }} Recommendation{{ recommendations|length|pluralize }}</span>
+    </div>
+  </div>
+
+  {% if recommendations %}
+    <div class="table-responsive">
+      <table class="table-saas mb-0">
+        <thead>
+          <tr>
+            <th scope="col" style="width: 22%;">Employee</th>
+            <th scope="col" style="width: 12%;">Department</th>
+            <th scope="col" style="width: 10%;">Status</th>
+            <th scope="col" style="width: 16%;">Warning Reason</th>
+            <th scope="col" style="width: 18%;">HR Recommendation</th>
+            <th scope="col" style="width: 10%;">HR Manager</th>
+            <th scope="col" style="width: 8%;">Date</th>
+            {% if status_tab == 'resolved' %}
+              <th scope="col" style="width: 10%;">Admin Decision</th>
+              <th scope="col" style="width: 10%;">Decided By</th>
+            {% endif %}
+            <th scope="col" class="text-end pe-3" style="width: 12%;">Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in recommendations %}
+            <tr>
+              <td>
+                <div class="d-flex align-items-center gap-2">
+                  <div class="avatar-saas rounded-circle" style="background: rgba(245, 158, 11, 0.12); color: #d97706; font-weight: 700; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; font-size: 0.85rem;">
+                    {{ r.employee.user.name|default:r.employee.user.email|slice:":1"|upper }}
+                  </div>
+                  <div>
+                    <div class="fw-semibold text-dark">{{ r.employee.user.name|default:r.employee.user.email }}</div>
+                    <div class="text-secondary small" style="font-size: 0.72rem;">{{ r.employee.employee_code }} &bull; {{ r.employee.designation }}</div>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span class="badge bg-light text-dark border border-light-subtle">
+                  <i class="bi bi-building me-1 text-secondary"></i>{{ r.employee.department.name|default:"Unassigned" }}
+                </span>
+              </td>
+              <td>
+                {% if r.employee.employment_status == "ACTIVE" %}
+                  <span class="badge-status-saas badge-success-saas">Active</span>
+                {% elif r.employee.employment_status == "TERMINATED" %}
+                  <span class="badge-status-saas badge-danger-saas">Terminated</span>
+                {% elif r.employee.employment_status == "ON_LEAVE" %}
+                  <span class="badge-status-saas badge-warning-saas">On Leave</span>
+                {% else %}
+                  <span class="badge-status-saas badge-neutral-saas">{{ r.employee.employment_status }}</span>
+                {% endif %}
+              </td>
+              <td>
+                <span class="text-dark small d-inline-block text-truncate" style="max-width: 160px;" title="{{ r.reason }}">{{ r.reason }}</span>
+              </td>
+              <td>
+                <div class="p-2 rounded-2 text-dark small" style="background-color: #fffbeb; border: 1px solid #fde68a; max-width: 220px;">
+                  <span class="d-inline-block text-truncate w-100 text-dark fw-medium" title="{{ r.hr_recommendation }}">
+                    <i class="bi bi-chat-quote text-warning me-1"></i>{{ r.hr_recommendation }}
+                  </span>
+                </div>
+              </td>
+              <td>
+                {% if r.issued_by %}
+                  <span class="text-dark small">{{ r.issued_by.user.name|default:r.issued_by.user.email }}</span>
+                {% else %}
+                  <span class="text-secondary small">HR System</span>
+                {% endif %}
+              </td>
+              <td>
+                <span class="text-secondary small">{{ r.warning_date|date:"M d, Y" }}</span>
+              </td>
+              {% if status_tab == 'resolved' %}
+                <td>
+                  {% if r.admin_decision == "CONTINUE" %}
+                    <span class="badge-status-saas badge-success-saas">Continued</span>
+                  {% elif r.admin_decision == "ANOTHER_WARNING" %}
+                    <span class="badge-status-saas badge-warning-saas">Another Warning</span>
+                  {% elif r.admin_decision == "TERMINATION" %}
+                    <span class="badge-status-saas badge-danger-saas">Terminated</span>
+                  {% else %}
+                    <span class="text-secondary small">—</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <span class="text-secondary small">{{ r.decided_by.name|default:r.decided_by.email|default:"Administrator" }}</span>
+                </td>
+              {% endif %}
+              <td class="text-end pe-3">
+                {% if r.status != 'RESOLVED' %}
+                  <a href="{% url 'admin_module:admin_responsibilities_review' r.warning_id %}" class="btn btn-sm btn-primary-admin py-1 px-2" style="font-size: 0.8rem;">
+                    <i class="bi bi-hammer me-1"></i> Review &amp; Decide
+                  </a>
+                {% else %}
+                  <a href="{% url 'admin_module:admin_responsibilities_warning_detail' r.warning_id %}" class="btn btn-sm btn-light border py-1 px-2" style="font-size: 0.8rem;">
+                    <i class="bi bi-eye me-1"></i> View Decision
+                  </a>
+                {% endif %}
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="text-center py-5">
+      <div class="avatar-saas-lg rounded-circle mx-auto mb-3" style="background: #f1f5f9; color: #94a3b8; width: 64px; height: 64px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem;">
+        <i class="bi bi-clipboard-check"></i>
+      </div>
+      <h5 class="text-dark fw-bold mb-1">
+        {% if status_tab == 'resolved' %}
+          No Decided Recommendations Found
+        {% else %}
+          No Pending HR Recommendations
+        {% endif %}
+      </h5>
+      <p class="text-secondary small mb-0">
+        {% if status_tab == 'resolved' %}
+          Previously settled HR recommendations will appear here.
+        {% else %}
+          All HR recommendations have been reviewed and acted upon by Administrator.
+        {% endif %}
+      </p>
+    </div>
+  {% endif %}
+</div>
+{% endblock content %}

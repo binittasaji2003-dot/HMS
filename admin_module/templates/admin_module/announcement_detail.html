@@ -1,0 +1,139 @@
+{% extends "admin_module/base_admin.html" %}
+
+{% block title %}{{ announcement.title }} - Smart HRMS Admin{% endblock title %}
+
+{% block content %}
+<!-- Page Header with Action Buttons -->
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+  <div>
+    <div class="d-flex align-items-center gap-2 mb-1">
+      <a href="{% url 'admin_module:announcements_list' %}" class="text-muted small text-decoration-none">Announcements</a>
+      <span class="text-muted small">/</span>
+      <span class="text-dark small fw-medium">Notice Overview</span>
+    </div>
+    <h1 class="h3 mb-0 fw-bold">{{ announcement.title }}</h1>
+  </div>
+
+  <!-- Primary Top Actions Bar -->
+  <div class="d-flex align-items-center gap-2 flex-wrap">
+    <a href="{% url 'admin_module:announcement_edit' announcement.announcement_id %}" class="btn btn-primary-admin px-3 py-2">
+      <i class="bi bi-pencil-square me-1"></i>
+      <span>Edit Notice</span>
+    </a>
+
+    <a href="{% url 'admin_module:announcement_delete' announcement.announcement_id %}" class="btn btn-danger-admin px-3 py-2">
+      <i class="bi bi-trash-fill me-1"></i>
+      <span>Delete</span>
+    </a>
+
+    <a href="{% url 'admin_module:announcements_list' %}" class="btn btn-secondary-admin">
+      <i class="bi bi-arrow-left me-1"></i> Back to List
+    </a>
+  </div>
+</div>
+
+<div class="row g-4">
+  <!-- Main Announcement Content Area (8 Columns) -->
+  <div class="col-12 col-lg-8">
+    <div class="saas-card p-4">
+      <div class="d-flex justify-content-between align-items-center pb-3 mb-4 border-bottom">
+        <div class="d-flex align-items-center gap-2">
+          <div class="kpi-icon-circle icon-circle-blue" style="width: 38px; height: 38px; font-size: 1.1rem;">
+            <i class="bi bi-megaphone-fill"></i>
+          </div>
+          <div>
+            <h2 class="h5 text-dark fw-bold mb-0">Official Broadcast Message</h2>
+            <div class="text-secondary small">Broadcast copy delivered to portal feeds</div>
+          </div>
+        </div>
+        <div>
+          <span class="badge-status badge-status-active">
+            <i class="bi bi-broadcast-pin me-1"></i> Published
+          </span>
+        </div>
+      </div>
+
+      <!-- Headline -->
+      <h3 class="h4 text-dark fw-bold mb-3">{{ announcement.title }}</h3>
+
+      <!-- Content Body -->
+      <div class="p-4 rounded-3 text-dark mb-4" style="background-color: var(--bg-main); border: 1px solid var(--border-color); font-size: 1rem; line-height: 1.75; white-space: pre-wrap;">{{ announcement.content }}</div>
+
+      <!-- Secondary Bottom Action Bar -->
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 pt-3 border-top">
+        <div class="text-secondary small">
+          Published on {{ announcement.published_at|default:announcement.created_at|date:"F d, Y at H:i" }}
+        </div>
+        <div class="d-flex gap-2">
+          <a href="{% url 'admin_module:announcement_edit' announcement.announcement_id %}" class="btn btn-sm btn-primary-admin px-3 py-2">
+            <i class="bi bi-pencil-square me-1"></i> Edit Notice
+          </a>
+          <a href="{% url 'admin_module:announcements_list' %}" class="btn btn-sm btn-secondary-admin px-3 py-2">
+            <i class="bi bi-arrow-left me-1"></i> Back
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Metadata & Distribution Sidebar (4 Columns) -->
+  <div class="col-12 col-lg-4">
+    <div class="d-flex flex-column gap-4">
+      
+      <!-- Distribution Properties Card -->
+      <div class="saas-card p-4">
+        <h2 class="h6 text-dark fw-bold pb-2 mb-3 border-bottom">
+          <i class="bi bi-info-circle text-primary me-1"></i> Distribution Summary
+        </h2>
+        
+        <div class="d-flex flex-column gap-3">
+          <div>
+            <span class="text-secondary small d-block">Notice Category</span>
+            <span class="badge-status badge-status-info mt-1">
+              <i class="bi bi-tag-fill me-1"></i> {{ announcement.get_announcement_type_display|default:announcement.announcement_type }}
+            </span>
+          </div>
+
+          <div>
+            <span class="text-secondary small d-block">Target Audience</span>
+            <span class="badge bg-light text-dark border px-3 py-1 rounded-pill mt-1" style="font-size: 0.75rem;">
+              <i class="bi bi-people-fill me-1 text-secondary"></i> Target: {{ announcement.get_target_audience_display|default:announcement.target_audience }}
+            </span>
+          </div>
+
+          <div>
+            <span class="text-secondary small d-block">Publisher</span>
+            <div class="text-dark fw-medium mt-1">
+              <i class="bi bi-shield-check text-primary me-1"></i>
+              {{ announcement.created_by.name|default:announcement.created_by.email|default:"System Administrator" }}
+            </div>
+            <div class="text-muted small">{{ announcement.created_by.email }}</div>
+          </div>
+
+          <div>
+            <span class="text-secondary small d-block">Publication Timestamp</span>
+            <div class="text-dark fw-medium mt-1">
+              <i class="bi bi-calendar2-check text-success me-1"></i> {{ announcement.published_at|default:announcement.created_at|date:"F d, Y at H:i" }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Danger Actions Card -->
+      <div class="saas-card p-4 border-danger border-opacity-25">
+        <h2 class="h6 text-danger fw-bold pb-2 mb-2 border-bottom border-danger border-opacity-25">
+          <i class="bi bi-exclamation-triangle-fill text-danger me-1"></i> Danger Zone
+        </h2>
+        <p class="text-secondary small mb-3">
+          Deleting this announcement is irreversible and permanently removes it from all portal user feeds.
+        </p>
+        <a href="{% url 'admin_module:announcement_delete' announcement.announcement_id %}" class="btn btn-danger-admin w-100 py-2">
+          <i class="bi bi-trash-fill me-1"></i>
+          <span>Delete Announcement</span>
+        </a>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock content %}
