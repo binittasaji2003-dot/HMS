@@ -25,11 +25,15 @@ def _update_or_create_site_with_sequence(site_model, connection, domain, name):
         # greater than the maximum value.
         if connection.vendor == "postgresql":
             with connection.cursor() as cursor:
-                cursor.execute("SELECT last_value from django_site_id_seq")
+                cursor.execute("SELECT MAX(id) FROM django_site")
+                (max_id,) = cursor.fetchone()
+
+                cursor.execute("SELECT last_value FROM django_site_id_seq")
                 (current_id,) = cursor.fetchone()
+
                 if current_id <= max_id:
                     cursor.execute(
-                        "alter sequence django_site_id_seq restart with %s",
+                        "ALTER SEQUENCE django_site_id_seq RESTART WITH %s",
                         [max_id + 1],
                     )
 
