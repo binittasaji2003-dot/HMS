@@ -1,7 +1,9 @@
 from datetime import date
-from django.test import TestCase, Client
-from django.urls import reverse
+
 from django.contrib.auth import get_user_model
+from django.test import Client
+from django.test import TestCase
+from django.urls import reverse
 
 from admin_module.models import Department
 from employees.models import Employee

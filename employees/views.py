@@ -1,14 +1,25 @@
-from django.conf import settings
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.contrib import messages
+from django.contrib.auth import authenticate
+from django.contrib.auth import login
+from django.contrib.auth import logout
+from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.decorators import login_required
-from django.utils import timezone
 from django.contrib.auth.forms import PasswordChangeForm
+from django.shortcuts import get_object_or_404
+from django.shortcuts import redirect
+from django.shortcuts import render
+from django.utils import timezone
 
-from .models import Employee, EmployeeReport, EmployeePerformance, PerformanceWarning, EmployeeDocument, Notification
 from admin_module.models import Announcement
-from .forms import EmployeeReportForm, EmployeeProfileForm, EmployeeDocumentForm, ForgotPasswordForm
+from admin_module.models import Department
+
+from .forms import EmployeeDocumentForm
+from .forms import EmployeeProfileForm
+from .forms import EmployeeReportForm
+from .forms import ForgotPasswordForm
+from .models import Employee
+from .models import EmployeeReport
+from .models import Notification
 
 
 def homepage(request):
@@ -18,127 +29,59 @@ def homepage(request):
 
 def employee_login(request):
     if request.user.is_authenticated:
-        if not hasattr(request.user, "employee_profile"):
-            from admin_module.models import Department
-            dept = Department.objects.first()
-            if not dept:
-                dept = Department.objects.create(name="Information Technology", description="IT Department", is_active=True)
-            Employee.objects.create(
-                user=request.user,
-                employee_code=f"EMP{request.user.id:04d}",
-                department=dept,
-                designation="Staff" if request.user.is_staff else "Employee",
-                joining_date=timezone.now().date(),
-                employment_status="ACTIVE",
-            )
-        return redirect("employees:dashboard")
+        if request.user.is_superuser or request.user.is_staff:
+            return redirect("admin:index")
+        if hasattr(request.user, "employee_profile"):
+            return redirect("employees:dashboard")
 
-    # 1-Click Instant Demo Login
-    if request.GET.get("demo") == "true" or request.POST.get("action") == "demo":
-        from django.contrib.auth import get_user_model
-        from allauth.account.models import EmailAddress
-        from admin_module.models import Department
-        UserModel = get_user_model()
-        user = UserModel.objects.filter(email="binitta.saji@company.com").first()
-        if not user:
-            user = UserModel.objects.create_user(
-                email="binitta.saji@company.com",
-                password="password123",
-                name="Binitta Saji",
-                is_active=True,
+    if request.method == "POST":
+        identifier = (
+            request.POST.get("email") or request.POST.get("username") or ""
+        ).strip()
+        password = (request.POST.get("password") or "").strip()
+
+        user = authenticate(request, username=identifier, password=password)
+        if user is None:
+            user = authenticate(request, email=identifier, password=password)
+        if user is None:
+            emp_rec = (
+                Employee.objects.filter(employee_code__iexact=identifier)
+                .select_related("user")
+                .first()
             )
-            EmailAddress.objects.get_or_create(user=user, email=user.email, defaults={"primary": True, "verified": True})
+            if emp_rec and emp_rec.user.check_password(password):
+                user = emp_rec.user
+
+        if user is None:
+            messages.error(request, "Invalid email or password.")
+            return render(request, "employees/login.html")
+
+        if not user.is_active:
+            messages.error(request, "This account is currently inactive.")
+            return render(request, "employees/login.html")
+
+        if user.is_superuser or user.is_staff:
+            user.backend = "django.contrib.auth.backends.ModelBackend"
+            login(request, user)
+            return redirect("admin:index")
+
         if not hasattr(user, "employee_profile"):
-            dept, _ = Department.objects.get_or_create(name="Information Technology", defaults={"description": "IT Department", "is_active": True})
+            dept, _ = Department.objects.get_or_create(
+                name="Information Technology",
+                defaults={"description": "IT Department", "is_active": True},
+            )
             Employee.objects.create(
                 user=user,
-                employee_code="EMP1024",
+                employee_code=f"EMP{user.id:04d}",
                 department=dept,
                 designation="Software Developer",
                 joining_date=timezone.now().date(),
                 employment_status="ACTIVE",
             )
+
         user.backend = "django.contrib.auth.backends.ModelBackend"
         login(request, user)
         return redirect("employees:dashboard")
-
-    if request.method == "POST":
-        identifier = (request.POST.get("email") or request.POST.get("username") or "").strip()
-        password = (request.POST.get("password") or "").strip()
-
-        user = None
-
-        if identifier and password:
-            # 1. Direct standard authenticate
-            user = authenticate(request, username=identifier, password=password)
-            if user is None:
-                user = authenticate(request, email=identifier, password=password)
-            if user is None:
-                user = authenticate(request, username=identifier.lower(), password=password)
-            if user is None:
-                user = authenticate(request, email=identifier.lower(), password=password)
-
-            from django.contrib.auth import get_user_model
-            from allauth.account.models import EmailAddress
-            from admin_module.models import Department
-            UserModel = get_user_model()
-
-            # 2. Check if user exists by email, employee code, or name
-            if user is None:
-                target_user = UserModel.objects.filter(email__iexact=identifier).first()
-                if not target_user:
-                    emp_rec = Employee.objects.filter(employee_code__iexact=identifier).select_related("user").first()
-                    if emp_rec:
-                        target_user = emp_rec.user
-                if not target_user:
-                    target_user = UserModel.objects.filter(name__iexact=identifier).first()
-
-                if target_user:
-                    if target_user.check_password(password):
-                        user = target_user
-                    elif settings.DEBUG:
-                        target_user.set_password(password)
-                        target_user.save()
-                        user = target_user
-
-            # 3. If in DEBUG mode and dummy user doesn't exist, auto-create it
-            if user is None and settings.DEBUG:
-                email = identifier if "@" in identifier else f"{identifier.lower().replace(' ', '')}@company.com"
-                user = UserModel.objects.filter(email__iexact=email).first()
-                if not user:
-                    user = UserModel.objects.create_user(
-                        email=email,
-                        password=password,
-                        name=identifier.split("@")[0].replace(".", " ").title(),
-                        is_active=True,
-                    )
-                    EmailAddress.objects.get_or_create(user=user, email=email, defaults={"primary": True, "verified": True})
-                else:
-                    user.set_password(password)
-                    user.save()
-
-        if user is not None:
-            if not user.is_active:
-                messages.error(request, "This account is currently inactive.")
-            else:
-                if not hasattr(user, "employee_profile"):
-                    from admin_module.models import Department
-                    dept = Department.objects.first()
-                    if not dept:
-                        dept = Department.objects.create(name="Information Technology", description="IT Department", is_active=True)
-                    Employee.objects.create(
-                        user=user,
-                        employee_code=f"EMP{user.id:04d}",
-                        department=dept,
-                        designation="Staff" if user.is_staff else "Employee",
-                        joining_date=timezone.now().date(),
-                        employment_status="ACTIVE",
-                    )
-                user.backend = "django.contrib.auth.backends.ModelBackend"
-                login(request, user)
-                return redirect("employees:dashboard")
-        else:
-            messages.error(request, "Invalid email/ID or password.")
 
     return render(request, "employees/login.html")
 
@@ -148,7 +91,10 @@ def forgot_password(request):
     if request.method == "POST":
         form = ForgotPasswordForm(request.POST)
         if form.is_valid():
-            messages.success(request, "Password reset instructions have been sent to your email address.")
+            messages.success(
+                request,
+                "Password reset instructions have been sent to your email address.",
+            )
             return redirect("employees:login")
     return render(request, "employees/forgot_password.html", {"form": form})
 
@@ -157,10 +103,10 @@ def forgot_password(request):
 def employee_dashboard(request):
     employee = getattr(request.user, "employee_profile", None)
     if not employee:
-        from admin_module.models import Department
-        dept = Department.objects.first()
-        if not dept:
-            dept = Department.objects.create(name="Information Technology", description="IT Department", is_active=True)
+        dept, _ = Department.objects.get_or_create(
+            name="Information Technology",
+            defaults={"description": "IT Department", "is_active": True},
+        )
         employee = Employee.objects.create(
             user=request.user,
             employee_code=f"EMP{request.user.id:04d}",
@@ -173,27 +119,39 @@ def employee_dashboard(request):
     # Metrics & Data
     reports = employee.reports.all().order_by("-submitted_at")
     recent_reports = reports[:5]
-    
+
     # Latest report status
     latest_report = reports.first()
-    monthly_report_status = latest_report.get_status_display() if latest_report else "No Reports"
-    
+    monthly_report_status = (
+        latest_report.get_status_display() if latest_report else "No Reports"
+    )
+
     # Performance score
     perf_reviews = employee.performance_reviews.all().order_by("-review_date")
     latest_perf = perf_reviews.first()
     perf_score = float(latest_perf.score) if latest_perf else 4.3
     perf_rating = latest_perf.get_rating_display() if latest_perf else "Good Performer"
-    perf_comments = latest_perf.comments if latest_perf else "You are doing a great job. Keep up the good work!"
+    perf_comments = (
+        latest_perf.comments
+        if latest_perf
+        else "You are doing a great job. Keep up the good work!"
+    )
 
     # Unread Notifications & Announcements
     notifications = employee.notifications.all().order_by("-created_at")
     unread_notifications_count = notifications.filter(is_read=False).count()
     recent_notifications = notifications[:5]
 
-    announcements = Announcement.objects.filter(is_published=True).order_by("-published_at", "-created_at")[:4]
+    announcements = Announcement.objects.filter(is_published=True).order_by(
+        "-published_at",
+        "-created_at",
+    )[:4]
 
     # Pending tasks count
-    pending_tasks = reports.filter(status="DRAFT").count() + reports.filter(status="NEEDS_CORRECTION").count()
+    pending_tasks = (
+        reports.filter(status="DRAFT").count()
+        + reports.filter(status="NEEDS_CORRECTION").count()
+    )
     if pending_tasks == 0:
         pending_tasks = 2
 
@@ -207,7 +165,9 @@ def employee_dashboard(request):
         "perf_rating": perf_rating,
         "perf_comments": perf_comments,
         "pending_tasks": pending_tasks,
-        "unread_notifications_count": unread_notifications_count if unread_notifications_count > 0 else 5,
+        "unread_notifications_count": unread_notifications_count
+        if unread_notifications_count > 0
+        else 5,
         "announcements": announcements,
         "notifications": recent_notifications,
     }
@@ -229,12 +189,19 @@ def profile_view(request):
 
     if request.method == "POST":
         action = request.POST.get("action")
-        
+
         if action == "update_profile":
-            profile_form = EmployeeProfileForm(request.POST, request.FILES, instance=employee)
+            profile_form = EmployeeProfileForm(
+                request.POST,
+                request.FILES,
+                instance=employee,
+            )
             if profile_form.is_valid():
                 profile_form.save()
-                messages.success(request, "Your profile information has been updated successfully!")
+                messages.success(
+                    request,
+                    "Your profile information has been updated successfully!",
+                )
                 return redirect("employees:profile")
 
         elif action == "upload_document":
@@ -253,8 +220,7 @@ def profile_view(request):
                 update_session_auth_hash(request, user)
                 messages.success(request, "Your password was updated successfully!")
                 return redirect("employees:profile")
-            else:
-                messages.error(request, "Please correct the password errors below.")
+            messages.error(request, "Please correct the password errors below.")
 
     documents = employee.documents.all().order_by("-uploaded_at")
 
@@ -301,11 +267,12 @@ def submit_report(request):
             report.status = "SUBMITTED"
             report.save()
 
+            msg = f"Your work report '{report.title}' has been submitted for HR review."
             Notification.objects.create(
                 employee=employee,
                 title="Work Report Submitted",
-                message=f"Your work report '{report.title}' has been submitted for HR review.",
-                notification_type="REPORT_REMINDER"
+                message=msg,
+                notification_type="REPORT_REMINDER",
             )
 
             messages.success(request, "Work report submitted successfully!")
@@ -313,7 +280,11 @@ def submit_report(request):
     else:
         form = EmployeeReportForm()
 
-    return render(request, "employees/report_form.html", {"form": form, "action": "Submit", "employee": employee})
+    return render(
+        request,
+        "employees/report_form.html",
+        {"form": form, "action": "Submit", "employee": employee},
+    )
 
 
 @login_required
@@ -327,7 +298,10 @@ def edit_report(request, report_id):
     report = get_object_or_404(EmployeeReport, report_id=report_id, employee=employee)
 
     if report.status in ["REVIEWED", "UNDER_REVIEW"]:
-        messages.error(request, "You cannot edit a report after HR has reviewed or put it under review.")
+        messages.error(
+            request,
+            "You cannot edit a report after HR has reviewed or put it under review.",
+        )
         return redirect("employees:reports_list")
 
     if request.method == "POST":
@@ -339,7 +313,11 @@ def edit_report(request, report_id):
     else:
         form = EmployeeReportForm(instance=report)
 
-    return render(request, "employees/report_form.html", {"form": form, "action": "Edit", "report": report, "employee": employee})
+    return render(
+        request,
+        "employees/report_form.html",
+        {"form": form, "action": "Edit", "report": report, "employee": employee},
+    )
 
 
 @login_required
@@ -374,7 +352,10 @@ def announcements_view(request):
         messages.error(request, "Employee profile not found.")
         return redirect("employees:login")
 
-    announcements = Announcement.objects.filter(is_published=True).order_by("-published_at", "-created_at")
+    announcements = Announcement.objects.filter(is_published=True).order_by(
+        "-published_at",
+        "-created_at",
+    )
 
     context = {
         "employee": employee,
@@ -407,7 +388,11 @@ def mark_notification_read(request, notification_id):
     except AttributeError:
         return redirect("employees:login")
 
-    notif = get_object_or_404(Notification, notification_id=notification_id, employee=employee)
+    notif = get_object_or_404(
+        Notification,
+        notification_id=notification_id,
+        employee=employee,
+    )
     notif.is_read = True
     notif.save()
     return redirect("employees:notifications")

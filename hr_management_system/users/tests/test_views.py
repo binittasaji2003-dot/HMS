@@ -89,10 +89,14 @@ class TestUserRedirectView:
 
     def test_employee_redirect_url(self, user: User, rf: RequestFactory):
         from datetime import date
+
         from admin_module.models import Department
         from employees.models import Employee
 
-        dept, _ = Department.objects.get_or_create(name="Engineering", defaults={"is_active": True})
+        dept, _ = Department.objects.get_or_create(
+            name="Engineering",
+            defaults={"is_active": True},
+        )
         Employee.objects.get_or_create(
             user=user,
             defaults={

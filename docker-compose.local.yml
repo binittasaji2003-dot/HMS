@@ -1,7 +1,7 @@
 volumes:
   hr_management_system_local_postgres_data: {}
   hr_management_system_local_postgres_data_backups: {}
-  
+
 
 services:
   django:

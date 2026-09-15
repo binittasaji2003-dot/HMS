@@ -1,6 +1,9 @@
 from django import forms
 from django.contrib.auth import get_user_model
-from .models import Employee, EmployeeReport, EmployeeDocument
+
+from .models import Employee
+from .models import EmployeeDocument
+from .models import EmployeeReport
 
 User = get_user_model()
 
@@ -18,38 +21,52 @@ class EmployeeReportForm(forms.ModelForm):
             "challenges",
         ]
         widgets = {
-            "title": forms.TextInput(attrs={
-                "class": "form-control",
-                "placeholder": "e.g. Weekly Work Report - Week 4",
-            }),
-            "week_start_date": forms.DateInput(attrs={
-                "class": "form-control",
-                "type": "date",
-            }),
-            "week_end_date": forms.DateInput(attrs={
-                "class": "form-control",
-                "type": "date",
-            }),
-            "work_summary": forms.Textarea(attrs={
-                "class": "form-control",
-                "rows": 3,
-                "placeholder": "Brief summary of your work this week...",
-            }),
-            "tasks_completed": forms.Textarea(attrs={
-                "class": "form-control",
-                "rows": 3,
-                "placeholder": "List tasks completed...",
-            }),
-            "achievements": forms.Textarea(attrs={
-                "class": "form-control",
-                "rows": 2,
-                "placeholder": "Key achievements or milestones (optional)...",
-            }),
-            "challenges": forms.Textarea(attrs={
-                "class": "form-control",
-                "rows": 2,
-                "placeholder": "Any blockers or challenges faced (optional)...",
-            }),
+            "title": forms.TextInput(
+                attrs={
+                    "class": "form-control",
+                    "placeholder": "e.g. Weekly Work Report - Week 4",
+                },
+            ),
+            "week_start_date": forms.DateInput(
+                attrs={
+                    "class": "form-control",
+                    "type": "date",
+                },
+            ),
+            "week_end_date": forms.DateInput(
+                attrs={
+                    "class": "form-control",
+                    "type": "date",
+                },
+            ),
+            "work_summary": forms.Textarea(
+                attrs={
+                    "class": "form-control",
+                    "rows": 3,
+                    "placeholder": "Brief summary of your work this week...",
+                },
+            ),
+            "tasks_completed": forms.Textarea(
+                attrs={
+                    "class": "form-control",
+                    "rows": 3,
+                    "placeholder": "List tasks completed...",
+                },
+            ),
+            "achievements": forms.Textarea(
+                attrs={
+                    "class": "form-control",
+                    "rows": 2,
+                    "placeholder": "Key achievements or milestones (optional)...",
+                },
+            ),
+            "challenges": forms.Textarea(
+                attrs={
+                    "class": "form-control",
+                    "rows": 2,
+                    "placeholder": "Any blockers or challenges faced (optional)...",
+                },
+            ),
         }
 
 
@@ -100,9 +117,10 @@ class EmployeeDocumentForm(forms.ModelForm):
 class ForgotPasswordForm(forms.Form):
     email = forms.EmailField(
         required=True,
-        widget=forms.EmailInput(attrs={
-            "class": "form-control",
-            "placeholder": "Enter your registered email address",
-        }),
+        widget=forms.EmailInput(
+            attrs={
+                "class": "form-control",
+                "placeholder": "Enter your registered email address",
+            },
+        ),
     )
-

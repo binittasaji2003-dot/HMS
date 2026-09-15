@@ -1,4 +1,5 @@
 from django.urls import path
+
 from . import views
 
 app_name = "employees"
@@ -15,6 +16,10 @@ urlpatterns = [
     path("performance/", views.performance_view, name="performance"),
     path("announcements/", views.announcements_view, name="announcements"),
     path("notifications/", views.notifications_view, name="notifications"),
-    path("notifications/<int:notification_id>/read/", views.mark_notification_read, name="mark_notification_read"),
+    path(
+        "notifications/<int:notification_id>/read/",
+        views.mark_notification_read,
+        name="mark_notification_read",
+    ),
     path("", views.homepage, name="homepage"),
 ]

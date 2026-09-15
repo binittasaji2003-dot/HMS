@@ -218,7 +218,7 @@ class JobApplication(models.Model):
             models.UniqueConstraint(
                 fields=["candidate", "vacancy"],
                 name="unique_candidate_vacancy",
-            )
+            ),
         ]
 
     def __str__(self):

@@ -118,10 +118,7 @@ class EmployeeDocument(models.Model):
     )
 
     def __str__(self):
-        return (
-            f"{self.employee.employee_code} - "
-            f"{self.get_document_type_display()}"
-        )
+        return f"{self.employee.employee_code} - {self.get_document_type_display()}"
 
 
 class EmployeeReport(models.Model):
@@ -192,10 +189,7 @@ class EmployeeReport(models.Model):
     )
 
     def __str__(self):
-        return (
-            f"{self.employee.employee_code} - "
-            f"{self.title} ({self.week_start_date})"
-        )
+        return f"{self.employee.employee_code} - {self.title} ({self.week_start_date})"
 
 
 class EmployeePerformance(models.Model):
@@ -247,10 +241,7 @@ class EmployeePerformance(models.Model):
     )
 
     def __str__(self):
-        return (
-            f"{self.employee.employee_code} - "
-            f"{self.get_rating_display()}"
-        )
+        return f"{self.employee.employee_code} - {self.get_rating_display()}"
 
 
 class PerformanceWarning(models.Model):
