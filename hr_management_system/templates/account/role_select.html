@@ -1,0 +1,269 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Select Portal Role - Smart HRMS</title>
+  <link rel="icon" href="{% static 'images/favicons/favicon.ico' %}" />
+  
+  <!-- Fonts & CDN -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+
+  <style>
+    :root {
+      --primary-blue: #0b4f9a;
+      --secondary-blue: #2563eb;
+      --bg-gradient: linear-gradient(135deg, #f0f7ff 0%, #e0f2fe 50%, #ffffff 100%);
+      --card-border: #e2e8f0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      background: var(--bg-gradient);
+      min-height: 100vh;
+      color: #1e293b;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .role-card {
+      background: #ffffff;
+      border: 1.5px solid var(--card-border);
+      border-radius: 20px;
+      padding: 32px 24px;
+      transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      height: 100%;
+      text-decoration: none;
+      color: inherit;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .role-card:hover {
+      transform: translateY(-6px);
+      border-color: var(--secondary-blue);
+      box-shadow: 0 16px 36px rgba(11, 79, 154, 0.12);
+      color: inherit;
+    }
+
+    .role-icon-box {
+      width: 64px;
+      height: 64px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      margin-bottom: 20px;
+      transition: transform 0.2s ease;
+    }
+
+    .role-card:hover .role-icon-box {
+      transform: scale(1.08);
+    }
+
+    .admin-theme .role-icon-box { background: #fdf4ff; color: #9333ea; }
+    .hr-theme .role-icon-box { background: #eff6ff; color: #2563eb; }
+    .employee-theme .role-icon-box { background: #ecfdf5; color: #059669; }
+    .candidate-theme .role-icon-box { background: #fffbeb; color: #d97706; }
+
+    .role-badge {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      display: inline-block;
+      margin-bottom: 12px;
+    }
+
+    .admin-theme .role-badge { background: #f3e8ff; color: #7e22ce; }
+    .hr-theme .role-badge { background: #dbeafe; color: #1d4ed8; }
+    .employee-theme .role-badge { background: #d1fae5; color: #047857; }
+    .candidate-theme .role-badge { background: #fef3c7; color: #b45309; }
+
+    .role-title {
+      font-size: 20px;
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: 8px;
+    }
+
+    .role-desc {
+      font-size: 13.5px;
+      color: #64748b;
+      line-height: 1.55;
+      margin-bottom: 24px;
+      flex-grow: 1;
+    }
+
+    .role-btn {
+      width: 100%;
+      padding: 10px 16px;
+      border-radius: 12px;
+      font-weight: 700;
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      transition: all 0.2s ease;
+      border: none;
+    }
+
+    .admin-theme .role-btn { background: #9333ea; color: #ffffff; }
+    .admin-theme .role-btn:hover { background: #7e22ce; }
+
+    .hr-theme .role-btn { background: #2563eb; color: #ffffff; }
+    .hr-theme .role-btn:hover { background: #1d4ed8; }
+
+    .employee-theme .role-btn { background: #059669; color: #ffffff; }
+    .employee-theme .role-btn:hover { background: #047857; }
+
+    .candidate-theme .role-btn { background: #d97706; color: #ffffff; }
+    .candidate-theme .role-btn:hover { background: #b45309; }
+  </style>
+</head>
+<body>
+
+  <!-- Top Simple Navigation -->
+  <header class="py-3 px-4 px-md-5 border-bottom bg-white d-flex justify-content-between align-items-center">
+    <a href="/" class="d-flex align-items-center gap-2 text-decoration-none text-dark">
+      <div class="bg-primary text-white rounded-3 p-2 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+        <i class="bi bi-diagram-3-fill"></i>
+      </div>
+      <span class="fw-extrabold fs-5 tracking-tight text-primary">Smart <span class="text-dark">HRMS</span></span>
+    </a>
+    <div>
+      <a href="/" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+        <i class="bi bi-arrow-left me-1"></i> Back to Homepage
+      </a>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="container my-auto py-5">
+    <div class="text-center max-w-2xl mx-auto mb-5">
+      <span class="badge bg-primary-subtle text-primary fw-bold text-uppercase px-3 py-2 rounded-pill mb-2">
+        <i class="bi bi-shield-lock-fill me-1"></i> Secure Role-Based Access
+      </span>
+      <h2 class="fw-extrabold text-dark tracking-tight mb-2">Select Your Portal Role</h2>
+      <p class="text-muted fs-6 mb-0">Choose your assigned organizational role below to proceed to your dedicated sign-in portal.</p>
+    </div>
+
+    <!-- 4 Role Cards Grid -->
+    <div class="row g-4 justify-content-center">
+      
+      <!-- 1. Admin Role -->
+      <div class="col-12 col-sm-6 col-lg-3">
+        <a href="{% url 'admin_module:admin_login' %}" class="role-card admin-theme">
+          <div>
+            <div class="role-icon-box shadow-sm">
+              <i class="bi bi-shield-shaded"></i>
+            </div>
+            <span class="role-badge">Executive</span>
+            <h3 class="role-title">Administrator</h3>
+            <p class="role-desc">
+              Organization governance, department structure, staff approvals, announcements, and policy audits.
+            </p>
+          </div>
+          <button class="role-btn shadow-sm">
+            <span>Admin Sign In</span>
+            <i class="bi bi-arrow-right"></i>
+          </button>
+        </a>
+      </div>
+
+      <!-- 2. HR Manager Role -->
+      <div class="col-12 col-sm-6 col-lg-3">
+        <a href="{% url 'account_login' %}?role=HR" class="role-card hr-theme">
+          <div>
+            <div class="role-icon-box shadow-sm">
+              <i class="bi bi-briefcase-fill"></i>
+            </div>
+            <span class="role-badge">HR Operations</span>
+            <h3 class="role-title">HR Manager</h3>
+            <p class="role-desc">
+              Job vacancies management, applicant ATS tracking, online aptitude tests, interview scheduling, and report evaluations.
+            </p>
+          </div>
+          <button class="role-btn shadow-sm">
+            <span>HR Sign In</span>
+            <i class="bi bi-arrow-right"></i>
+          </button>
+        </a>
+      </div>
+
+      <!-- 3. Employee Role -->
+      <div class="col-12 col-sm-6 col-lg-3">
+        <a href="{% url 'employees:login' %}" class="role-card employee-theme">
+          <div>
+            <div class="role-icon-box shadow-sm">
+              <i class="bi bi-person-workspace"></i>
+            </div>
+            <span class="role-badge">Self Service</span>
+            <h3 class="role-title">Employee</h3>
+            <p class="role-desc">
+              Daily attendance log, casual & medical leave applications, weekly work report submissions, and personal documents.
+            </p>
+          </div>
+          <button class="role-btn shadow-sm">
+            <span>Employee Sign In</span>
+            <i class="bi bi-arrow-right"></i>
+          </button>
+        </a>
+      </div>
+
+      <!-- 4. Candidate Role -->
+      <div class="col-12 col-sm-6 col-lg-3">
+        <a href="{% url 'account_login' %}?role=Candidate" class="role-card candidate-theme">
+          <div>
+            <div class="role-icon-box shadow-sm">
+              <i class="bi bi-person-badge-fill"></i>
+            </div>
+            <span class="role-badge">Careers</span>
+            <h3 class="role-title">Candidate</h3>
+            <p class="role-desc">
+              Browse open vacancies, submit resumes, participate in online aptitude assessments, and track interview status.
+            </p>
+          </div>
+          <button class="role-btn shadow-sm">
+            <span>Candidate Sign In</span>
+            <i class="bi bi-arrow-right"></i>
+          </button>
+        </a>
+      </div>
+
+    </div>
+
+    <!-- Additional Quick Links / Registration Banner -->
+    <div class="mt-5 text-center bg-white p-4 rounded-4 border border-light-subtle shadow-sm max-w-xl mx-auto">
+      <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-3">
+        <div class="text-sm-start">
+          <h6 class="fw-bold mb-1">Applying for a new job?</h6>
+          <p class="text-muted small mb-0">Create a candidate profile to apply for vacancies and take online tests.</p>
+        </div>
+        <a href="{% url 'candidates:register' %}" class="btn btn-outline-primary rounded-pill px-4 fw-semibold shrink-0">
+          Register as Candidate
+        </a>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="py-3 text-center text-muted small border-top bg-white">
+    &copy; 2026 Smart HRMS. Role-based enterprise authentication system.
+  </footer>
+
+</body>
+</html>
+

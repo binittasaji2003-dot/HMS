@@ -11,7 +11,7 @@
     <p class="text-secondary mb-0 small">Departmental organizational metrics, workforce placement, and administrative leadership.</p>
   </div>
   <div class="d-flex gap-2">
-    <a href="{% url 'admin_module:department_edit' department.department_id %}" class="btn-primary-admin">
+    <a href="{% url 'admin_module:department_edit' department.pk %}" class="btn-primary-admin">
       <i class="bi bi-pencil-square"></i> Edit Department
     </a>
     <a href="{% url 'admin_module:departments_list' %}" class="btn-secondary-admin">
@@ -33,7 +33,7 @@
       </div>
     </div>
     <div>
-      {% if department.status == "Active" or department.is_active %}
+      {% if department.is_active %}
         <span class="badge-status badge-status-active" style="font-size: 0.85rem; padding: 0.35rem 0.85rem;">
           <i class="bi bi-check-circle-fill me-1"></i> Active Department
         </span>
@@ -56,13 +56,13 @@
     <div class="col-12 col-md-4">
       <div class="profile-stat-box" style="background-color: var(--bg-main); border: 1px solid var(--border-color); border-radius: 10px; padding: 1rem;">
         <span class="profile-stat-label">HR Management Leads</span>
-        <span class="profile-stat-val text-primary" style="color: var(--accent-purple) !important;">{{ hr_managers|length|default:"0" }} Leads</span>
+        <span class="profile-stat-val text-primary" style="color: var(--accent-purple) !important;">{{ hr_managers|length }} Leads</span>
       </div>
     </div>
     <div class="col-12 col-md-4">
       <div class="profile-stat-box" style="background-color: var(--bg-main); border: 1px solid var(--border-color); border-radius: 10px; padding: 1rem;">
         <span class="profile-stat-label">Status</span>
-        <span class="profile-stat-val text-dark">{% if department.status %}{{ department.status }}{% else %}Active{% endif %}</span>
+        <span class="profile-stat-val text-dark">{% if department.is_active %}Active{% else %}Inactive{% endif %}</span>
       </div>
     </div>
   </div>

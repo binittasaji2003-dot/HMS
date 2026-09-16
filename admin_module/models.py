@@ -140,3 +140,26 @@ class EmployeeApproval(models.Model):
 
     def __str__(self):
         return f"{self.employee.employee_code} - {self.status}"
+
+
+class Holiday(models.Model):
+    HOLIDAY_TYPE_CHOICES = [
+        ("PUBLIC", "Public Holiday"),
+        ("RESTRICTED", "Restricted Holiday"),
+        ("COMPANY", "Company Holiday"),
+    ]
+
+    holiday_id = models.AutoField(primary_key=True)
+    name = models.CharField(max_length=150)
+    date = models.DateField()
+    holiday_type = models.CharField(max_length=30, choices=HOLIDAY_TYPE_CHOICES, default="PUBLIC")
+    description = models.TextField(blank=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["date"]
+
+    def __str__(self):
+        return f"{self.name} ({self.date})"
+

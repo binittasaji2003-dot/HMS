@@ -36,7 +36,7 @@
                 {% for report in reports %}
                 <tr>
                     <td>
-                        <strong>{{ report.employee.user.get_full_name|default:report.employee.user.username }}</strong><br>
+                        <strong>{{ report.employee.user.name|default:report.employee.user.email }}</strong><br>
                         <span class="text-muted">{{ report.employee.employee_code }} &bull; {{ report.employee.department.name }}</span>
                     </td>
                     <td>
@@ -63,7 +63,7 @@
                     </td>
                     <td>
                         {% if report.reviewed_by %}
-                            {{ report.reviewed_by.user.get_full_name|default:report.reviewed_by.user.username }}<br>
+                            {{ report.reviewed_by.user.name|default:report.reviewed_by.user.email }}<br>
                             <small class="text-muted">{{ report.reviewed_at|date:"M d, Y" }}</small>
                         {% else %}
                             <span class="text-muted">Pending</span>
@@ -82,7 +82,7 @@
                         <div class="modal-content border-0 shadow">
                             <div class="modal-header border-bottom">
                                 <div>
-                                    <h5 class="modal-title fw-bold">{{ report.employee.user.get_full_name|default:report.employee.user.username }}</h5>
+                                    <h5 class="modal-title fw-bold">{{ report.employee.user.name|default:report.employee.user.email }}</h5>
                                     <span class="text-muted small">{{ report.week_start_date }} to {{ report.week_end_date }}</span>
                                 </div>
                                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>

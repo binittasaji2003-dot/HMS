@@ -76,12 +76,16 @@
                 <span class="text-dark small fw-medium">{{ employee.designation }}</span>
               </td>
               <td>
-                {% if employee.employment_status == 'Active' %}
+                {% if employee.employment_status == 'ACTIVE' or employee.employment_status == 'Active' %}
                   <span class="badge-status badge-status-active small">Active</span>
-                {% elif employee.employment_status == 'Pending Approval' %}
-                  <span class="badge-status badge-status-pending small">Pending Approval</span>
+                {% elif employee.employment_status == 'ON_LEAVE' or employee.employment_status == 'On Leave' %}
+                  <span class="badge-status badge-status-pending small">On Leave</span>
+                {% elif employee.employment_status == 'TERMINATED' or employee.employment_status == 'Terminated' %}
+                  <span class="badge-status badge-status-danger small">Terminated</span>
+                {% elif employee.employment_status == 'INACTIVE' or employee.employment_status == 'Inactive' %}
+                  <span class="badge-status badge-status-danger small">Inactive</span>
                 {% else %}
-                  <span class="badge-status badge-status-danger small">{{ employee.employment_status }}</span>
+                  <span class="badge-status badge-status-pending small">{{ employee.get_employment_status_display|default:employee.employment_status }}</span>
                 {% endif %}
               </td>
               <td class="text-end pe-4">
@@ -92,8 +96,8 @@
                   <a href="{% url 'admin_module:employee_edit' employee.pk %}" class="table-action-btn btn-action-edit" title="Edit Employee">
                     <i class="bi bi-pencil-square"></i>
                   </a>
-                  <a href="{% url 'admin_module:employee_delete' employee.pk %}" class="table-action-btn btn-action-delete" title="Delete Employee">
-                    <i class="bi bi-trash"></i>
+                  <a href="{% url 'admin_module:employee_delete' employee.pk %}" class="table-action-btn btn-action-delete" title="Deactivate / Terminate Employee">
+                    <i class="bi bi-person-x"></i>
                   </a>
                 </div>
               </td>

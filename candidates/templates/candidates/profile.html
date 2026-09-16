@@ -1,11 +1,159 @@
-{% extends "base.html" %}
-{% block title %}Candidate Profile{% endblock title %}
+{% extends "candidates/base_candidate.html" %}
+
+{% block title %}Candidate Profile | Smart HRMS{% endblock title %}
+
 {% block content %}
-<div class="py-4">
-  <h1>Candidate Profile</h1>
-  <form method="post" enctype="multipart/form-data">
-    {% csrf_token %}{{ form.as_p }}
-    <button class="btn btn-primary">Save profile</button>
-  </form>
+<div class="row justify-content-center">
+  <div class="col-12 col-lg-9">
+    <!-- Header -->
+    <div class="portal-card bg-white p-4 mb-4">
+      <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+        <div>
+          <span class="badge bg-primary-subtle text-primary fw-bold text-uppercase px-3 py-1.5 rounded-pill mb-2">
+            My Applicant Profile
+          </span>
+          <h3 class="fw-extrabold text-dark mb-1">Personal &amp; Career Information</h3>
+          <p class="text-muted small mb-0">Keep your details and resume updated to help recruiters evaluate your application faster.</p>
+        </div>
+        <div>
+          <span class="badge {% if candidate.profile_completed %}bg-success{% else %}bg-warning text-dark{% endif %} px-3 py-2 rounded-pill">
+            <i class="bi bi-shield-check me-1"></i> {% if candidate.profile_completed %}Profile 100% Complete{% else %}Profile Incomplete{% endif %}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Profile Form Card -->
+    <div class="portal-card bg-white p-4 p-md-5 shadow-sm border-0">
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+          <div class="alert alert-danger mb-4 p-3 rounded-3 small">
+            {% for error in form.non_field_errors %}
+              <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                <span>{{ error }}</span>
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+
+        <!-- Section 1: Personal Details -->
+        <div class="mb-4">
+          <h6 class="fw-bold text-primary mb-3 d-flex align-items-center gap-2">
+            <i class="bi bi-person-badge-fill"></i> Personal Details
+          </h6>
+
+          <div class="row g-3">
+            <div class="col-12 col-md-4">
+              <label class="form-label">First Name <span class="text-danger">*</span></label>
+              {{ form.first_name }}
+              {% if form.first_name.errors %}<div class="text-danger small mt-1">{{ form.first_name.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-12 col-md-4">
+              <label class="form-label">Middle Name</label>
+              {{ form.middle_name }}
+              {% if form.middle_name.errors %}<div class="text-danger small mt-1">{{ form.middle_name.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-12 col-md-4">
+              <label class="form-label">Last Name <span class="text-danger">*</span></label>
+              {{ form.last_name }}
+              {% if form.last_name.errors %}<div class="text-danger small mt-1">{{ form.last_name.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-12 col-md-6">
+              <label class="form-label">Email Address</label>
+              <input type="text" class="form-control bg-light" value="{{ candidate.user.email }}" readonly disabled />
+              <div class="form-text text-muted small">Managed via account login email.</div>
+            </div>
+            <div class="col-12 col-md-6">
+              <label class="form-label">Phone Number</label>
+              {{ form.phone }}
+              {% if form.phone.errors %}<div class="text-danger small mt-1">{{ form.phone.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-12 col-md-6">
+              <label class="form-label">Date of Birth</label>
+              {{ form.date_of_birth }}
+              {% if form.date_of_birth.errors %}<div class="text-danger small mt-1">{{ form.date_of_birth.errors.0 }}</div>{% endif %}
+            </div>
+            <div class="col-12 col-md-6">
+              <label class="form-label">Profile Photo</label>
+              {{ form.profile_photo }}
+              {% if candidate.profile_photo %}
+                <div class="small text-muted mt-1"><i class="bi bi-image"></i> Current: <a href="{{ candidate.profile_photo.url }}" target="_blank">View Photo</a></div>
+              {% endif %}
+            </div>
+            <div class="col-12">
+              <label class="form-label">Residential Address</label>
+              {{ form.address }}
+              {% if form.address.errors %}<div class="text-danger small mt-1">{{ form.address.errors.0 }}</div>{% endif %}
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 2: Resume & Documents -->
+        <div class="mb-4 pt-3 border-top">
+          <h6 class="fw-bold text-primary mb-3 d-flex align-items-center gap-2">
+            <i class="bi bi-folder-fill"></i> Resume &amp; Certificates
+          </h6>
+
+          <div class="row g-3">
+            <div class="col-12 col-md-6">
+              <div class="p-3 bg-light rounded-3 border">
+                <label class="form-label fw-bold">Resume / CV (PDF, DOCX)</label>
+                {{ form.resume }}
+                {% if candidate.resume %}
+                  <div class="small text-success mt-2"><i class="bi bi-file-earmark-check-fill"></i> Current: <a href="{{ candidate.resume.url }}" target="_blank" class="text-success fw-semibold">View Resume</a></div>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="col-12 col-md-6">
+              <div class="p-3 bg-light rounded-3 border">
+                <label class="form-label fw-bold">ID Proof (Aadhaar / Passport)</label>
+                {{ form.id_proof }}
+                {% if candidate.id_proof %}
+                  <div class="small text-success mt-2"><i class="bi bi-file-earmark-check-fill"></i> Current: <a href="{{ candidate.id_proof.url }}" target="_blank" class="text-success fw-semibold">View ID Proof</a></div>
+                {% endif %}
+              </div>
+            </div>
+
+            <div class="col-12 col-md-6">
+              <label class="form-label">10th Certificate</label>
+              {{ form.tenth_certificate }}
+              {% if candidate.tenth_certificate %}
+                <div class="small text-muted mt-1"><a href="{{ candidate.tenth_certificate.url }}" target="_blank">View Certificate</a></div>
+              {% endif %}
+            </div>
+
+            <div class="col-12 col-md-6">
+              <label class="form-label">12th Certificate</label>
+              {{ form.twelfth_certificate }}
+              {% if candidate.twelfth_certificate %}
+                <div class="small text-muted mt-1"><a href="{{ candidate.twelfth_certificate.url }}" target="_blank">View Certificate</a></div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 3: Consent & Agreement -->
+        <div class="mb-4 pt-3 border-top">
+          <div class="form-check p-3 rounded-3 bg-light bg-opacity-50 border">
+            {{ form.policy_agreement }}
+            <label class="form-check-label small fw-semibold text-dark ms-2" for="{{ form.policy_agreement.id_for_label }}">
+              I confirm that all provided details and documents are authentic.
+            </label>
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+          <a href="{% url 'candidates:dashboard' %}" class="btn btn-light border px-4">Cancel</a>
+          <button type="submit" class="btn-blue-primary px-4">
+            <i class="bi bi-save me-1"></i> Save Changes
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
 </div>
 {% endblock content %}

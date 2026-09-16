@@ -1,12 +1,163 @@
-{% extends "base.html" %}
-{% block title %}Apply for {{ job.title }}{% endblock title %}
+{% extends "candidates/base_candidate.html" %}
+
+{% block title %}Apply for {{ job.title }} | Smart HRMS{% endblock title %}
+
 {% block content %}
-<div class="py-4">
-  <h1>Apply for {{ job.title }}</h1>
-  <form method="post" enctype="multipart/form-data">
-    {% csrf_token %}{{ form.as_p }}
-    <button class="btn btn-primary">Submit application</button>
-    <a class="btn btn-link" href="{% url 'candidates:job_detail' job.vacancy_id %}">Cancel</a>
-  </form>
+<div class="row justify-content-center">
+  <div class="col-12 col-lg-8">
+    <!-- Breadcrumb & Back -->
+    <a href="{% url 'candidates:job_detail' job.vacancy_id %}" class="btn btn-sm btn-outline-secondary rounded-pill px-3 mb-3">
+      <i class="bi bi-arrow-left me-1"></i> Back to Job Details
+    </a>
+
+    <!-- Application Form Card -->
+    <div class="portal-card bg-white p-4 p-md-5 shadow-sm border-0">
+      <div class="border-bottom pb-3 mb-4">
+        <span class="portal-badge-blue mb-2">{{ job.department.name }}</span>
+        <h3 class="fw-extrabold text-dark mb-1">Job Application</h3>
+        <p class="text-muted small mb-0">Applying for: <strong class="text-primary">{{ job.title }}</strong> ({{ job.location }})</p>
+      </div>
+
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+          <div class="alert alert-danger mb-4 p-3 rounded-3 small">
+            {% for error in form.non_field_errors %}
+              <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                <span>{{ error }}</span>
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+
+        <!-- Section 1: Basic Personal Information -->
+        <div class="mb-4">
+          <h6 class="fw-bold text-primary mb-3 d-flex align-items-center gap-2">
+            <i class="bi bi-person-fill"></i> Personal Information
+          </h6>
+
+          <div class="row g-3">
+            <!-- First Name -->
+            <div class="col-12 col-md-6">
+              <label class="form-label">First Name <span class="text-danger">*</span></label>
+              {{ form.first_name }}
+              {% if form.first_name.errors %}
+                <div class="text-danger small mt-1">{{ form.first_name.errors.0 }}</div>
+              {% endif %}
+            </div>
+
+            <!-- Last Name -->
+            <div class="col-12 col-md-6">
+              <label class="form-label">Last Name <span class="text-danger">*</span></label>
+              {{ form.last_name }}
+              {% if form.last_name.errors %}
+                <div class="text-danger small mt-1">{{ form.last_name.errors.0 }}</div>
+              {% endif %}
+            </div>
+
+            <!-- Email Address -->
+            <div class="col-12 col-md-6">
+              <label class="form-label">Email Address <span class="text-danger">*</span></label>
+              {{ form.email }}
+              {% if form.email.errors %}
+                <div class="text-danger small mt-1">{{ form.email.errors.0 }}</div>
+              {% endif %}
+            </div>
+
+            <!-- Phone Number -->
+            <div class="col-12 col-md-6">
+              <label class="form-label">Phone Number</label>
+              {{ form.phone }}
+              {% if form.phone.errors %}
+                <div class="text-danger small mt-1">{{ form.phone.errors.0 }}</div>
+              {% endif %}
+            </div>
+
+            <!-- Date of Birth -->
+            <div class="col-12 col-md-6">
+              <label class="form-label">Date of Birth</label>
+              {{ form.date_of_birth }}
+              {% if form.date_of_birth.errors %}
+                <div class="text-danger small mt-1">{{ form.date_of_birth.errors.0 }}</div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 2: Education & Experience -->
+        <div class="mb-4 pt-3 border-top">
+          <h6 class="fw-bold text-primary mb-3 d-flex align-items-center gap-2">
+            <i class="bi bi-mortarboard-fill"></i> Education &amp; Work Background
+          </h6>
+
+          <div class="row g-3">
+            <!-- Highest Education -->
+            <div class="col-12 col-md-6">
+              <label class="form-label">Highest Qualification / Education</label>
+              {{ form.highest_education }}
+              {% if form.highest_education.errors %}
+                <div class="text-danger small mt-1">{{ form.highest_education.errors.0 }}</div>
+              {% endif %}
+            </div>
+
+            <!-- Experience (Optional) -->
+            <div class="col-12 col-md-6">
+              <label class="form-label">Total Experience <span class="text-muted fw-normal small">(Optional / Fresher)</span></label>
+              {{ form.experience }}
+              <div class="form-text text-muted small">Not mandatory — freshers are welcome to leave blank or enter 0.</div>
+              {% if form.experience.errors %}
+                <div class="text-danger small mt-1">{{ form.experience.errors.0 }}</div>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+
+        <!-- Section 3: Resume / CV Upload -->
+        <div class="mb-4 pt-3 border-top">
+          <h6 class="fw-bold text-primary mb-3 d-flex align-items-center gap-2">
+            <i class="bi bi-file-earmark-arrow-up-fill"></i> Resume / Curriculum Vitae
+          </h6>
+
+          <div class="p-3 rounded-3 bg-light bg-opacity-50 border border-light-subtle mb-3">
+            {% if candidate.resume %}
+              <div class="d-flex align-items-center gap-2 mb-2 text-success small fw-semibold">
+                <i class="bi bi-check-circle-fill"></i> Saved profile resume available ({{ candidate.resume.name|truncatechars:30 }})
+              </div>
+            {% endif %}
+            <label class="form-label mb-1">Upload New / Updated Resume (PDF, DOC, DOCX)</label>
+            {{ form.resume }}
+            {% if form.resume.errors %}
+              <div class="text-danger small mt-1">{{ form.resume.errors.0 }}</div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Section 4: Terms and Conditions Agreement -->
+        <div class="mb-4 pt-3 border-top">
+          <div class="form-check p-3 rounded-3 bg-light bg-opacity-25 border">
+            {{ form.terms_agreement }}
+            <label class="form-check-label small fw-semibold text-dark ms-2" for="{{ form.terms_agreement.id_for_label }}">
+              {{ form.terms_agreement.label }}
+            </label>
+            {% if form.terms_agreement.errors %}
+              <div class="text-danger small mt-1">{{ form.terms_agreement.errors.0 }}</div>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="d-flex justify-content-end gap-2 pt-3 border-top">
+          <a class="btn btn-light border px-4 py-2" href="{% url 'candidates:job_detail' job.vacancy_id %}">
+            Cancel
+          </a>
+          <button type="submit" class="btn-blue-primary px-4 py-2">
+            <i class="bi bi-check2-circle me-1"></i> Submit Application
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
 </div>
 {% endblock content %}

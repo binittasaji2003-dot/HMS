@@ -1,0 +1,103 @@
+{% extends "candidates/base_candidate.html" %}
+
+{% block title %}Candidate Registration | Smart HRMS{% endblock title %}
+
+{% block content %}
+<div class="row justify-content-center py-4">
+  <div class="col-12 col-md-8 col-lg-6">
+    <div class="portal-card bg-white p-4 p-md-5 shadow-sm">
+      <div class="text-center mb-4">
+        <div class="d-inline-flex align-items-center justify-content-center bg-primary-subtle text-primary rounded-circle mb-3" style="width: 58px; height: 58px; font-size: 26px;">
+          <i class="bi bi-person-plus-fill"></i>
+        </div>
+        <h3 class="fw-extrabold text-dark mb-1">Create Candidate Account</h3>
+        <p class="text-muted small">Sign up to apply for open job vacancies and track recruitment rounds.</p>
+      </div>
+
+      {% if form.non_field_errors %}
+        <div class="alert alert-danger mb-4 p-3 rounded-3 small">
+          {% for error in form.non_field_errors %}
+            <div class="d-flex align-items-center gap-2">
+              <i class="bi bi-exclamation-triangle-fill"></i>
+              <span>{{ error }}</span>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <form method="post" novalidate>
+        {% csrf_token %}
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label">First Name <span class="text-danger">*</span></label>
+            {{ form.first_name }}
+            {% if form.first_name.errors %}
+              <div class="text-danger small mt-1">{{ form.first_name.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">Last Name <span class="text-danger">*</span></label>
+            {{ form.last_name }}
+            {% if form.last_name.errors %}
+              <div class="text-danger small mt-1">{{ form.last_name.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <div class="col-12">
+            <label class="form-label">Email Address <span class="text-danger">*</span></label>
+            {{ form.email }}
+            {% if form.email.errors %}
+              <div class="text-danger small mt-1">{{ form.email.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <div class="col-12">
+            <label class="form-label">Phone Number</label>
+            {{ form.phone }}
+            {% if form.phone.errors %}
+              <div class="text-danger small mt-1">{{ form.phone.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">Password <span class="text-danger">*</span></label>
+            {{ form.password }}
+            {% if form.password.errors %}
+              <div class="text-danger small mt-1">{{ form.password.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <div class="col-md-6">
+            <label class="form-label">Confirm Password <span class="text-danger">*</span></label>
+            {{ form.password_confirm }}
+            {% if form.password_confirm.errors %}
+              <div class="text-danger small mt-1">{{ form.password_confirm.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <div class="col-12 mt-3">
+            <div class="form-check p-3 bg-light bg-opacity-50 rounded-3 border">
+              {{ form.policy_agreement }}
+              <label class="form-check-label small fw-semibold text-dark ms-2" for="{{ form.policy_agreement.id_for_label }}">
+                I agree to the Terms of Service and Recruitment Data Privacy Policy.
+              </label>
+            </div>
+            {% if form.policy_agreement.errors %}
+              <div class="text-danger small mt-1">{{ form.policy_agreement.errors.0 }}</div>
+            {% endif %}
+          </div>
+        </div>
+
+        <button type="submit" class="btn-blue-primary w-100 py-2 mt-4">
+          <i class="bi bi-check2-circle me-1"></i> Register as Candidate
+        </button>
+
+        <div class="text-center mt-4 text-muted small">
+          Already have an account? <a href="{% url 'account_login' %}?role=Candidate" class="text-primary fw-bold text-decoration-none">Sign In</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock content %}

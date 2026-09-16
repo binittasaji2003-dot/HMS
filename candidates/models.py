@@ -205,6 +205,32 @@ class JobApplication(models.Model):
         default="APPLIED",
     )
 
+    # Aptitude Test Scheduling
+    aptitude_date = models.DateField(
+        null=True,
+        blank=True,
+        help_text="Scheduled date for aptitude assessment",
+    )
+
+    aptitude_time = models.TimeField(
+        null=True,
+        blank=True,
+        help_text="Scheduled time for aptitude assessment",
+    )
+
+    aptitude_test = models.ForeignKey(
+        "hr.AptitudeTest",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="scheduled_applications",
+    )
+
+    aptitude_remarks = models.TextField(
+        blank=True,
+        help_text="HR instructions or notes for aptitude round",
+    )
+
     applied_at = models.DateTimeField(
         auto_now_add=True,
     )
@@ -220,6 +246,87 @@ class JobApplication(models.Model):
                 name="unique_candidate_vacancy",
             ),
         ]
+        ordering = ["-applied_at"]
 
     def __str__(self):
         return f"{self.candidate} - {self.vacancy}"
+
+
+class CandidateNotification(models.Model):
+    NOTIFICATION_TYPES = [
+        ("STATUS_UPDATE", "Application Status Updated"),
+        ("APTITUDE_SCHEDULED", "Aptitude Test Scheduled"),
+        ("APTITUDE_RESULT", "Aptitude Test Result"),
+        ("INTERVIEW_SCHEDULED", "Interview Scheduled"),
+        ("INTERVIEW_UPDATE", "Interview Updated"),
+        ("GENERAL", "General Notification"),
+    ]
+
+    notification_id = models.AutoField(primary_key=True)
+
+    candidate = models.ForeignKey(
+        Candidate,
+        on_delete=models.CASCADE,
+        related_name="notifications",
+    )
+
+    application = models.ForeignKey(
+        JobApplication,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="candidate_notifications",
+    )
+
+    title = models.CharField(
+        max_length=200,
+    )
+
+    message = models.TextField()
+
+    notification_type = models.CharField(
+        max_length=30,
+        choices=NOTIFICATION_TYPES,
+        default="STATUS_UPDATE",
+    )
+
+    link_url = models.CharField(
+        max_length=255,
+        blank=True,
+    )
+
+    is_read = models.BooleanField(
+        default=False,
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+    )
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"{self.candidate} - {self.title}"
+
+
+def send_candidate_notification(
+    candidate,
+    title,
+    message,
+    notification_type="STATUS_UPDATE",
+    application=None,
+    link_url="",
+):
+    """Utility helper to dispatch a targeted notification to a specific candidate."""
+    if not candidate:
+        return None
+    return CandidateNotification.objects.create(
+        candidate=candidate,
+        application=application,
+        title=title,
+        message=message,
+        notification_type=notification_type,
+        link_url=link_url,
+    )
+

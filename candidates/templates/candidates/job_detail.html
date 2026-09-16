@@ -1,16 +1,120 @@
-{% extends "base.html" %}
-{% block title %}{{ job.title }}{% endblock title %}
+{% extends "candidates/base_candidate.html" %}
+
+{% block title %}{{ job.title }} | Smart HRMS{% endblock title %}
+
 {% block content %}
-<div class="py-4">
-  <p><a href="{% url 'candidates:job_list' %}">Back to vacancies</a></p>
-  <h1>{{ job.title }}</h1>
-  <p>{{ job.department }} · {{ job.location }}</p>
-  <h2 class="h4">Description</h2><p>{{ job.description|linebreaks }}</p>
-  <h2 class="h4">Responsibilities</h2><p>{{ job.responsibilities|linebreaks }}</p>
-  <h2 class="h4">Qualifications</h2><p>{{ job.qualifications|linebreaks }}</p>
-  {% if request.user.is_authenticated %}
-    {% if applied %}<p class="alert alert-info">You have already applied for this vacancy.</p>
-    {% else %}<a class="btn btn-primary" href="{% url 'candidates:apply' job.vacancy_id %}">Apply now</a>{% endif %}
-  {% else %}<a class="btn btn-primary" href="{% url 'account_login' %}?next={{ request.path|urlencode }}">Sign in to apply</a>{% endif %}
+<div class="row g-4">
+  <!-- Back Button & Header -->
+  <div class="col-12">
+    <a href="{% url 'candidates:job_list' %}" class="btn btn-sm btn-outline-secondary rounded-pill px-3 mb-3">
+      <i class="bi bi-arrow-left me-1"></i> Back to All Vacancies
+    </a>
+
+    <div class="portal-card bg-white p-4 d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+      <div>
+        <div class="d-flex gap-2 align-items-center mb-2">
+          <span class="portal-badge-blue">{{ job.department.name }}</span>
+          <span class="portal-badge-gray"><i class="bi bi-geo-alt"></i> {{ job.location }}</span>
+          {% if is_expired %}
+            <span class="badge bg-danger">Application Expired</span>
+          {% else %}
+            <span class="badge bg-success">Actively Hiring</span>
+          {% endif %}
+        </div>
+        <h2 class="fw-extrabold text-dark mb-1">{{ job.title }}</h2>
+        <p class="text-muted small mb-0">
+          Posted on {{ job.posted_date|date:"F d, Y" }}
+          {% if job.closing_date %} &bull; Application Deadline: <strong class="text-dark">{{ job.closing_date|date:"F d, Y" }}</strong>{% endif %}
+        </p>
+      </div>
+
+      <div class="d-flex gap-2 align-items-center">
+        {% if is_expired %}
+          <button class="btn btn-secondary disabled px-4 py-2 rounded-3" disabled>
+            <i class="bi bi-clock-history me-1"></i> Applications Closed
+          </button>
+        {% elif applied %}
+          <span class="btn btn-success disabled px-4 py-2 rounded-3">
+            <i class="bi bi-check2-circle me-1"></i> Already Applied
+          </span>
+          <a href="{% url 'candidates:applications' %}" class="btn btn-blue-outline">
+            View Application
+          </a>
+        {% elif request.user.is_authenticated %}
+          <a href="{% url 'candidates:apply' job.vacancy_id %}" class="btn-blue-primary px-4 py-2">
+            <i class="bi bi-send-fill me-1"></i> Apply Now
+          </a>
+        {% else %}
+          <a href="{% url 'account_login' %}?next={{ request.path|urlencode }}" class="btn-blue-primary px-4 py-2">
+            <i class="bi bi-box-arrow-in-right me-1"></i> Sign In to Apply
+          </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Job Details Content -->
+  <div class="col-12 col-lg-8">
+    <div class="portal-card mb-4">
+      <h5 class="fw-bold text-dark border-bottom pb-2 mb-3">Job Description</h5>
+      <div class="text-muted" style="line-height: 1.8;">
+        {{ job.description|linebreaks }}
+      </div>
+
+      {% if job.responsibilities %}
+        <h5 class="fw-bold text-dark border-bottom pb-2 mb-3 mt-4">Key Responsibilities</h5>
+        <div class="text-muted" style="line-height: 1.8;">
+          {{ job.responsibilities|linebreaks }}
+        </div>
+      {% endif %}
+
+      {% if job.qualifications %}
+        <h5 class="fw-bold text-dark border-bottom pb-2 mb-3 mt-4">Required Qualifications &amp; Skills</h5>
+        <div class="text-muted" style="line-height: 1.8;">
+          {{ job.qualifications|linebreaks }}
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Job Overview Sidebar -->
+  <div class="col-12 col-lg-4">
+    <div class="portal-card mb-4">
+      <h6 class="fw-bold text-dark border-bottom pb-2 mb-3">Position Overview</h6>
+      
+      <div class="d-flex flex-column gap-3 small">
+        <div class="d-flex justify-content-between pb-2 border-bottom border-light-subtle">
+          <span class="text-muted">Department</span>
+          <span class="fw-semibold text-dark">{{ job.department.name }}</span>
+        </div>
+        <div class="d-flex justify-content-between pb-2 border-bottom border-light-subtle">
+          <span class="text-muted">Location</span>
+          <span class="fw-semibold text-dark">{{ job.location }}</span>
+        </div>
+        <div class="d-flex justify-content-between pb-2 border-bottom border-light-subtle">
+          <span class="text-muted">Experience</span>
+          <span class="fw-semibold text-dark">{{ job.experience_required|default:"Any / Open" }}</span>
+        </div>
+        <div class="d-flex justify-content-between pb-2 border-bottom border-light-subtle">
+          <span class="text-muted">Status</span>
+          <span class="fw-semibold {% if is_expired %}text-danger{% else %}text-success{% endif %}">
+            {% if is_expired %}Closed{% else %}Open for Applications{% endif %}
+          </span>
+        </div>
+        <div class="d-flex justify-content-between">
+          <span class="text-muted">Closing Date</span>
+          <span class="fw-semibold text-dark">{{ job.closing_date|default:"Ongoing" }}</span>
+        </div>
+      </div>
+
+      <div class="mt-4 pt-3 border-top">
+        {% if not is_expired and not applied %}
+          <a href="{% url 'candidates:apply' job.vacancy_id %}" class="btn-blue-primary w-100 text-center">
+            Submit Application
+          </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
 </div>
 {% endblock content %}

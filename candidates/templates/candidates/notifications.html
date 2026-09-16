@@ -1,0 +1,108 @@
+{% extends "candidates/base_candidate.html" %}
+{% load static %}
+
+{% block title %}My Notifications | Candidate Portal{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-12 col-lg-10 col-xl-8">
+
+    <!-- Top Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+      <div>
+        <h3 class="fw-bold text-dark mb-1">
+          <i class="bi bi-bell-fill text-primary me-2"></i>Notifications
+        </h3>
+        <p class="text-muted small mb-0">Stay updated on your job applications, aptitude tests, and interview schedules.</p>
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        {% if unread_count > 0 %}
+          <a href="{% url 'candidates:mark_all_notifications_read' %}" class="btn btn-sm btn-blue-outline">
+            <i class="bi bi-check2-all me-1"></i> Mark All as Read
+          </a>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Filter Tabs -->
+    <div class="d-flex gap-2 mb-3 border-bottom pb-2">
+      <a href="{% url 'candidates:notifications' %}?filter=all" class="btn btn-sm {% if filter_type != 'unread' %}btn-primary text-white{% else %}btn-light border text-secondary{% endif %} rounded-pill px-3 fw-semibold">
+        All Notifications ({{ notifications.count }})
+      </a>
+      <a href="{% url 'candidates:notifications' %}?filter=unread" class="btn btn-sm {% if filter_type == 'unread' %}btn-primary text-white{% else %}btn-light border text-secondary{% endif %} rounded-pill px-3 fw-semibold">
+        Unread {% if unread_count > 0 %}<span class="badge bg-danger rounded-pill ms-1">{{ unread_count }}</span>{% endif %}
+      </a>
+    </div>
+
+    <!-- Notifications List -->
+    <div class="d-flex flex-column gap-3">
+      {% if notifications %}
+        {% for notif in notifications %}
+          <div class="portal-card p-3 p-md-4 {% if not notif.is_read %}border-primary border-opacity-50 bg-light bg-opacity-50{% endif %}" style="border-radius: 14px;">
+            <div class="d-flex justify-content-between align-items-start gap-3">
+              <div class="d-flex align-items-start gap-3 flex-grow-1">
+                <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                     style="width: 44px; height: 44px; {% if notif.notification_type == 'INTERVIEW_SCHEDULED' or notif.notification_type == 'INTERVIEW_UPDATE' %}background: #e0f2fe; color: #0284c7;{% elif notif.notification_type == 'APTITUDE_SCHEDULED' %}background: #fef3c7; color: #d97706;{% elif notif.notification_type == 'APTITUDE_RESULT' %}background: #dcfce7; color: #16a34a;{% else %}background: #eff6ff; color: #2563eb;{% endif %}">
+                  {% if notif.notification_type == 'INTERVIEW_SCHEDULED' or notif.notification_type == 'INTERVIEW_UPDATE' %}
+                    <i class="bi bi-calendar-event fs-5"></i>
+                  {% elif notif.notification_type == 'APTITUDE_SCHEDULED' or notif.notification_type == 'APTITUDE_RESULT' %}
+                    <i class="bi bi-patch-question fs-5"></i>
+                  {% elif notif.notification_type == 'STATUS_UPDATE' %}
+                    <i class="bi bi-arrow-repeat fs-5"></i>
+                  {% else %}
+                    <i class="bi bi-info-circle fs-5"></i>
+                  {% endif %}
+                </div>
+                <div>
+                  <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
+                    <span class="badge {% if notif.notification_type == 'INTERVIEW_SCHEDULED' or notif.notification_type == 'INTERVIEW_UPDATE' %}bg-info text-dark{% elif notif.notification_type == 'APTITUDE_SCHEDULED' %}bg-warning text-dark{% elif notif.notification_type == 'APTITUDE_RESULT' %}bg-success{% else %}bg-primary{% endif %} rounded-pill" style="font-size: 0.7rem;">
+                      {{ notif.get_notification_type_display }}
+                    </span>
+                    <span class="text-muted small">•</span>
+                    <span class="text-muted small"><i class="bi bi-clock me-1"></i>{{ notif.created_at|date:"M d, Y H:i" }} ({{ notif.created_at|timesince }} ago)</span>
+                    {% if not notif.is_read %}
+                      <span class="badge bg-danger rounded-pill" style="font-size: 0.65rem;">NEW</span>
+                    {% endif %}
+                  </div>
+                  <h5 class="fw-bold text-dark mb-1 fs-6">{{ notif.title }}</h5>
+                  <p class="text-secondary small mb-2" style="white-space: pre-line;">{{ notif.message }}</p>
+
+                  {% if notif.application %}
+                    <div class="small text-muted mb-2">
+                      <i class="bi bi-briefcase me-1"></i> Job: <strong>{{ notif.application.vacancy.title }}</strong>
+                    </div>
+                  {% endif %}
+
+                  <div class="d-flex align-items-center gap-2 flex-wrap mt-2">
+                    {% if notif.link_url %}
+                      <a href="{% url 'candidates:mark_notification_read' notif.pk %}?next={{ notif.link_url }}" class="btn btn-sm btn-blue-primary py-1 px-3" style="font-size: 0.8rem;">
+                        View Details <i class="bi bi-arrow-right ms-1"></i>
+                      </a>
+                    {% endif %}
+                    {% if not notif.is_read %}
+                      <a href="{% url 'candidates:mark_notification_read' notif.pk %}?next={{ request.get_full_path }}" class="btn btn-sm btn-light border py-1 px-2 text-muted" style="font-size: 0.8rem;">
+                        <i class="bi bi-check me-1"></i> Mark as read
+                      </a>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <div class="portal-card text-center py-5">
+          <i class="bi bi-bell-slash text-secondary opacity-50 display-4 mb-3 d-block"></i>
+          <h5 class="fw-bold text-dark">No Notifications Found</h5>
+          <p class="text-muted small mb-3">You do not have any notifications matching this filter.</p>
+          <a href="{% url 'candidates:dashboard' %}" class="btn btn-sm btn-blue-primary">
+            Return to Dashboard
+          </a>
+        </div>
+      {% endif %}
+    </div>
+
+  </div>
+</div>
+{% endblock %}
+

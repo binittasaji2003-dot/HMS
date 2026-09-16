@@ -72,11 +72,11 @@
               </td>
               <td>
                 <span class="btn-pill-action">
-                  <i class="bi bi-people me-1"></i>{{ department.employee_count|default:department.employees.count|default:"0" }} personnel
+                  <i class="bi bi-people me-1"></i>{{ department.employee_count|default:"0" }} personnel
                 </span>
               </td>
               <td>
-                {% if department.status == "Active" or department.is_active %}
+                {% if department.is_active %}
                   <span class="badge-status badge-status-active">Active</span>
                 {% else %}
                   <span class="badge-status badge-status-danger">Inactive</span>
@@ -85,17 +85,17 @@
               <td style="text-align: right;">
                 <div class="d-inline-flex align-items-center gap-1">
                   <!-- View Details -->
-                  <a href="{% url 'admin_module:department_detail' department.department_id %}" class="table-action-btn btn-action-view" title="View Department">
+                  <a href="{% url 'admin_module:department_detail' department.pk %}" class="table-action-btn btn-action-view" title="View Department">
                     <i class="bi bi-eye"></i>
                   </a>
 
                   <!-- Edit Department -->
-                  <a href="{% url 'admin_module:department_edit' department.department_id %}" class="table-action-btn btn-action-edit" title="Edit Department">
+                  <a href="{% url 'admin_module:department_edit' department.pk %}" class="table-action-btn btn-action-edit" title="Edit Department">
                     <i class="bi bi-pencil-square"></i>
                   </a>
 
                   <!-- Delete Department -->
-                  <a href="{% url 'admin_module:department_delete' department.department_id %}" class="table-action-btn btn-action-delete" title="Delete Department">
+                  <a href="{% url 'admin_module:department_delete' department.pk %}" class="table-action-btn btn-action-delete" title="Delete Department">
                     <i class="bi bi-trash"></i>
                   </a>
                 </div>

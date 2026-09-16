@@ -1,0 +1,179 @@
+{% extends "candidates/base_candidate.html" %}
+
+{% block title %}Aptitude Assessment - {{ test.title }} | Smart HRMS{% endblock title %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-xl-10">
+        <!-- Sticky Assessment Header with Timer -->
+        <div class="portal-card bg-white p-3 p-md-4 mb-4 sticky-top shadow-sm border-0" style="top: 75px; z-index: 100;">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+                <div>
+                    <span class="badge bg-primary-subtle text-primary fw-bold text-uppercase px-3 py-1 rounded-pill mb-1">
+                        Employment Assessment
+                    </span>
+                    <h4 class="fw-extrabold text-dark mb-0">{{ test.title }}</h4>
+                    <p class="text-muted small mb-0">
+                        Position: <strong>{{ application.vacancy.title }}</strong> &bull; Total Questions: <strong>{{ total_questions }}</strong>
+                    </p>
+                </div>
+
+                <!-- Live Countdown Timer -->
+                <div class="d-flex align-items-center gap-3 bg-light px-4 py-2 rounded-3 border">
+                    <div class="text-end">
+                        <span class="text-muted small d-block fw-semibold text-uppercase" style="font-size: 0.72rem;">Time Remaining</span>
+                        <div id="countdown-timer" class="fs-4 fw-bold font-monospace text-danger">
+                            --:--:--
+                        </div>
+                    </div>
+                    <div class="rounded-circle bg-danger-subtle text-danger p-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+                        <i class="bi bi-stopwatch fs-5"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Category Coverage Bar -->
+            <div class="d-flex flex-wrap gap-2 mt-3 pt-2 border-top small text-muted align-items-center">
+                <span class="fw-semibold text-dark me-1">Assessment Coverage:</span>
+                <span class="badge bg-primary-subtle text-primary border border-primary-subtle"><i class="bi bi-calculator me-1"></i>Quantitative Aptitude</span>
+                <span class="badge border" style="background-color: #f3e8ff; color: #6610f2; border-color: #d8b4fe !important;"><i class="bi bi-diagram-3 me-1"></i>Logical Reasoning</span>
+                <span class="badge bg-success-subtle text-success border border-success-subtle"><i class="bi bi-chat-quote me-1"></i>Verbal Ability</span>
+            </div>
+        </div>
+
+        <!-- Aptitude Questions Form -->
+        <form id="aptitude-form" method="POST" action="{% url 'candidates:submit_aptitude_test' application.pk %}">
+            {% csrf_token %}
+
+            <div class="d-flex flex-column gap-4 mb-4">
+                {% for q in questions %}
+                <div class="portal-card bg-white p-4 shadow-sm border" id="question-card-{{ q.question_id }}">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <span class="badge bg-dark text-white fw-bold px-3 py-1.5 rounded-pill">
+                            Question {{ forloop.counter }} of {{ total_questions }}
+                        </span>
+                        
+                        {% if q.category == 'QUANTITATIVE' %}
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2.5 py-1">
+                                <i class="bi bi-calculator me-1"></i>Quantitative Aptitude
+                            </span>
+                        {% elif q.category == 'LOGICAL' %}
+                            <span class="badge border px-2.5 py-1" style="background-color: #f3e8ff; color: #6610f2; border-color: #d8b4fe !important;">
+                                <i class="bi bi-diagram-3 me-1"></i>Logical Reasoning
+                            </span>
+                        {% else %}
+                            <span class="badge bg-success-subtle text-success border border-success-subtle px-2.5 py-1">
+                                <i class="bi bi-chat-quote me-1"></i>Verbal Ability
+                            </span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Question Body -->
+                    <h5 class="fw-bold text-dark mb-4 lh-base" style="font-size: 1.05rem;">
+                        {{ q.question }}
+                    </h5>
+
+                    <!-- Shuffled Options -->
+                    <div class="d-flex flex-column gap-2">
+                        {% for opt in q.options %}
+                        <label class="form-check p-3 rounded-3 border bg-light option-label d-flex align-items-center gap-3 cursor-pointer" for="opt_{{ q.question_id }}_{{ opt.key }}">
+                            <input class="form-check-input ms-0 mt-0 flex-shrink-0" type="radio" name="question_{{ q.question_id }}" id="opt_{{ q.question_id }}_{{ opt.key }}" value="{{ opt.key }}">
+                            <span class="badge bg-white text-dark border fw-bold px-2 py-1">{{ opt.key }}</span>
+                            <span class="text-dark fw-medium">{{ opt.text }}</span>
+                        </label>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Submit Section -->
+            <div class="portal-card bg-white p-4 text-center shadow-sm border mb-5">
+                <h5 class="fw-bold text-dark mb-2">Ready to Submit Your Assessment?</h5>
+                <p class="text-muted small mb-3">
+                    Please ensure you have reviewed all your answers before submitting. Once submitted, answers cannot be modified.
+                </p>
+                <button type="submit" id="submit-btn" class="btn-blue-primary px-5 py-2.5 fs-6" onclick="return confirm('Are you sure you want to submit your aptitude assessment?');">
+                    <i class="bi bi-send-check me-2"></i> Submit Assessment
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    .cursor-pointer { cursor: pointer; }
+    .option-label:hover {
+        background-color: #f0f4f8 !important;
+        border-color: #0d6efd !important;
+    }
+    .option-label input[type="radio"]:checked ~ span.badge {
+        background-color: #0d6efd !important;
+        color: #ffffff !important;
+        border-color: #0d6efd !important;
+    }
+</style>
+
+<script>
+    (function() {
+        let remainingSeconds = {{ time_remaining_seconds }};
+        const timerEl = document.getElementById("countdown-timer");
+        const formEl = document.getElementById("aptitude-form");
+        let isSubmitted = false;
+
+        function updateDisplay() {
+            if (remainingSeconds <= 0) {
+                timerEl.textContent = "00:00:00";
+                timerEl.classList.add("text-danger");
+                if (!isSubmitted) {
+                    isSubmitted = true;
+                    alert("Assessment time is up! Your answers are being submitted automatically.");
+                    formEl.submit();
+                }
+                return;
+            }
+
+            const hrs = Math.floor(remainingSeconds / 3600);
+            const mins = Math.floor((remainingSeconds % 3600) / 60);
+            const secs = remainingSeconds % 60;
+
+            const pad = (n) => n < 10 ? '0' + n : n;
+            timerEl.textContent = `${pad(hrs)}:${pad(mins)}:${pad(secs)}`;
+
+            if (remainingSeconds < 300) {
+                timerEl.classList.add("text-danger");
+                timerEl.classList.add("fw-extrabold");
+            }
+
+            remainingSeconds--;
+        }
+
+        updateDisplay();
+        const intervalId = setInterval(updateDisplay, 1000);
+
+        formEl.addEventListener("submit", function() {
+            isSubmitted = true;
+            clearInterval(intervalId);
+            const btn = document.getElementById("submit-btn");
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Submitting...';
+        });
+
+        // Highlight selected option labels
+        document.querySelectorAll(".option-label input[type='radio']").forEach(radio => {
+            radio.addEventListener("change", function() {
+                const parentGroup = this.closest(".d-flex.flex-column");
+                parentGroup.querySelectorAll(".option-label").forEach(l => {
+                    l.classList.remove("border-primary", "bg-primary-subtle");
+                    l.classList.add("bg-light");
+                });
+                if (this.checked) {
+                    this.closest(".option-label").classList.remove("bg-light");
+                    this.closest(".option-label").classList.add("border-primary", "bg-primary-subtle");
+                }
+            });
+        });
+    })();
+</script>
+{% endblock content %}
+

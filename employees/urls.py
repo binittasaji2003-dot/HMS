@@ -13,9 +13,19 @@ urlpatterns = [
     path("reports/", views.reports_list, name="reports_list"),
     path("reports/submit/", views.submit_report, name="submit_report"),
     path("reports/<int:report_id>/edit/", views.edit_report, name="edit_report"),
+    path(
+        "reports/<int:report_id>/dismiss-popup/",
+        views.dismiss_report_popup,
+        name="dismiss_report_popup",
+    ),
     path("performance/", views.performance_view, name="performance"),
     path("announcements/", views.announcements_view, name="announcements"),
     path("notifications/", views.notifications_view, name="notifications"),
+    path(
+        "notifications/mark-all-read/",
+        views.mark_all_notifications_read,
+        name="mark_all_notifications_read",
+    ),
     path(
         "notifications/<int:notification_id>/read/",
         views.mark_notification_read,

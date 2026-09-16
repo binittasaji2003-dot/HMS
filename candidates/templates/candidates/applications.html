@@ -1,14 +1,248 @@
-{% extends "base.html" %}
-{% block title %}My Applications{% endblock title %}
+{% extends "candidates/base_candidate.html" %}
+{% load static %}
+
+{% block title %}My Applications | Smart HRMS{% endblock title %}
+
 {% block content %}
-<div class="py-4">
-  <h1>My Applications</h1>
-  {% for application in applications %}
-    <div class="card p-3 mb-3">
-      <h2 class="h5">{{ application.vacancy.title }}</h2>
-      <p>{{ application.vacancy.location }} · {{ application.applied_at|date:"M j, Y" }}</p>
-      <span class="badge bg-secondary">{{ application.get_status_display }}</span>
+<div class="row g-4">
+  <!-- Top Banner -->
+  <div class="col-12">
+    <div class="portal-card bg-white p-4">
+      <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+        <div>
+          <span class="badge bg-primary-subtle text-primary fw-bold text-uppercase px-3 py-1.5 rounded-pill mb-2">
+            Recruitment Tracker
+          </span>
+          <h3 class="fw-extrabold text-dark mb-1">My Submitted Applications</h3>
+          <p class="text-muted small mb-0">Monitor the live progress of your job applications, scheduled aptitude assessments, and interviews.</p>
+        </div>
+        <a href="{% url 'candidates:job_list' %}" class="btn-blue-primary">
+          <i class="bi bi-search me-1"></i> Browse More Vacancies
+        </a>
+      </div>
     </div>
-  {% empty %}<p>You have not submitted any applications.</p>{% endfor %}
+  </div>
+
+  <!-- Applications List -->
+  <div class="col-12">
+    <div class="d-flex flex-column gap-4">
+      {% for app in applications %}
+        <div class="portal-card p-4">
+          <!-- Card Header: Job info & Current Status -->
+          <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 pb-3 border-bottom">
+            <div>
+              <div class="d-flex gap-2 align-items-center mb-1 flex-wrap">
+                <span class="portal-badge-blue">{{ app.vacancy.department.name }}</span>
+                <span class="portal-badge-gray"><i class="bi bi-geo-alt"></i> {{ app.vacancy.location }}</span>
+                <span class="portal-badge-gray">#APP-{{ app.pk }}</span>
+              </div>
+              <h4 class="fw-bold text-dark mb-1">
+                <a href="{% url 'candidates:job_detail' app.vacancy.vacancy_id %}" class="text-dark text-decoration-none hover-primary">
+                  {{ app.vacancy.title }}
+                </a>
+              </h4>
+              <p class="text-muted small mb-0">
+                Applied on <strong class="text-dark">{{ app.applied_at|date:"F d, Y" }}</strong>
+                {% if app.applied_resume %}
+                  &bull; <a href="{{ app.applied_resume.url }}" target="_blank" class="text-primary text-decoration-none fw-medium"><i class="bi bi-file-earmark-pdf"></i> View Submitted Resume</a>
+                {% endif %}
+              </p>
+            </div>
+
+            <!-- Status Pill & Primary Quick Action -->
+            <div class="d-flex flex-column align-items-md-end gap-2">
+              <span class="badge px-3 py-2 fs-6 {% if app.status == 'SELECTED' %}bg-success{% elif app.status == 'REJECTED' %}bg-danger{% elif app.status == 'SHORTLISTED' %}bg-primary{% elif app.status == 'INTERVIEW' %}bg-info text-dark{% elif app.status == 'APTITUDE' %}bg-warning text-dark{% else %}bg-secondary{% endif %}" style="border-radius: 20px;">
+                <i class="bi bi-circle-fill small me-1"></i> {{ app.get_status_display }}
+              </span>
+
+              <div class="d-flex flex-wrap gap-2">
+                {% if app.status == 'APTITUDE' and not app.aptitude_results.exists %}
+                  <a href="{% url 'candidates:take_aptitude_test' app.pk %}" class="btn btn-sm btn-warning text-dark fw-bold shadow-sm">
+                    <i class="bi bi-stopwatch me-1"></i> Start Aptitude Test
+                  </a>
+                {% elif app.aptitude_results.exists %}
+                  <a href="{% url 'candidates:aptitude_result' app.pk %}" class="btn btn-sm btn-outline-success">
+                    <i class="bi bi-award me-1"></i> View Test Result
+                  </a>
+                {% endif %}
+                <a href="{% url 'candidates:job_detail' app.vacancy.vacancy_id %}" class="btn btn-sm btn-light border">
+                  Job Details
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <!-- Application Recruitment Stepper Timeline -->
+          <div class="py-3">
+            <div class="row text-center g-2 small">
+              <!-- Step 1: Applied -->
+              <div class="col-6 col-md-2">
+                <div class="p-2 rounded-3 bg-success text-white fw-semibold">
+                  <i class="bi bi-check-circle-fill me-1"></i> 1. Applied
+                </div>
+              </div>
+              <!-- Step 2: Resume Review -->
+              <div class="col-6 col-md-2">
+                <div class="p-2 rounded-3 {% if app.status in 'RESUME_REVIEW,SHORTLISTED,APTITUDE,INTERVIEW,SELECTED' %}bg-success text-white{% elif app.status == 'REJECTED' %}bg-secondary text-white{% else %}bg-light text-muted border{% endif %} fw-semibold">
+                  {% if app.status in 'RESUME_REVIEW,SHORTLISTED,APTITUDE,INTERVIEW,SELECTED' %}<i class="bi bi-check-circle-fill me-1"></i>{% endif %} 2. Review
+                </div>
+              </div>
+              <!-- Step 3: Shortlisted -->
+              <div class="col-6 col-md-2">
+                <div class="p-2 rounded-3 {% if app.status in 'SHORTLISTED,APTITUDE,INTERVIEW,SELECTED' %}bg-success text-white{% elif app.status == 'REJECTED' %}bg-secondary text-white{% else %}bg-light text-muted border{% endif %} fw-semibold">
+                  {% if app.status in 'SHORTLISTED,APTITUDE,INTERVIEW,SELECTED' %}<i class="bi bi-check-circle-fill me-1"></i>{% endif %} 3. Shortlisted
+                </div>
+              </div>
+              <!-- Step 4: Aptitude -->
+              <div class="col-6 col-md-2">
+                <div class="p-2 rounded-3 {% if app.status in 'APTITUDE,INTERVIEW,SELECTED' or app.aptitude_results.exists %}bg-success text-white{% elif app.status == 'REJECTED' %}bg-secondary text-white{% else %}bg-light text-muted border{% endif %} fw-semibold">
+                  {% if app.status in 'APTITUDE,INTERVIEW,SELECTED' or app.aptitude_results.exists %}<i class="bi bi-check-circle-fill me-1"></i>{% endif %} 4. Aptitude
+                </div>
+              </div>
+              <!-- Step 5: Interview -->
+              <div class="col-6 col-md-2">
+                <div class="p-2 rounded-3 {% if app.status in 'INTERVIEW,SELECTED' or app.interviews.exists %}bg-success text-white{% elif app.status == 'REJECTED' %}bg-secondary text-white{% else %}bg-light text-muted border{% endif %} fw-semibold">
+                  {% if app.status in 'INTERVIEW,SELECTED' or app.interviews.exists %}<i class="bi bi-check-circle-fill me-1"></i>{% endif %} 5. Interview
+                </div>
+              </div>
+              <!-- Step 6: Final Decision -->
+              <div class="col-6 col-md-2">
+                <div class="p-2 rounded-3 {% if app.status == 'SELECTED' %}bg-success text-white{% elif app.status == 'REJECTED' %}bg-danger text-white{% else %}bg-light text-muted border{% endif %} fw-semibold">
+                  {% if app.status == 'SELECTED' %}<i class="bi bi-trophy-fill me-1"></i> Selected{% elif app.status == 'REJECTED' %}<i class="bi bi-x-circle-fill me-1"></i> Rejected{% else %}6. Decision{% endif %}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Recruitment Details Callouts (Aptitude & Interview) -->
+          <div class="d-flex flex-column gap-3 mt-2">
+
+            <!-- Aptitude Test Schedule Callout -->
+            {% if app.status == 'APTITUDE' or app.aptitude_date or app.aptitude_test %}
+              <div class="p-3 rounded-3 border {% if not app.aptitude_results.exists %}border-warning bg-warning bg-opacity-10{% else %}border-secondary-subtle bg-light{% endif %}">
+                <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-2">
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="p-2 bg-warning bg-opacity-25 text-dark rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                      <i class="bi bi-patch-question fs-5"></i>
+                    </div>
+                    <div>
+                      <h6 class="fw-bold text-dark mb-0">Aptitude Assessment Round</h6>
+                      <small class="text-muted">
+                        {% if app.aptitude_test %}{{ app.aptitude_test.title }}{% else %}Standard Quantitative &amp; Logical Assessment{% endif %}
+                      </small>
+                    </div>
+                  </div>
+                  {% if not app.aptitude_results.exists %}
+                    <a href="{% url 'candidates:take_aptitude_test' app.pk %}" class="btn btn-sm btn-warning text-dark fw-bold px-3">
+                      <i class="bi bi-play-circle-fill me-1"></i> Take Aptitude Test Now
+                    </a>
+                  {% endif %}
+                </div>
+
+                <div class="row g-2 small text-secondary mt-1">
+                  {% if app.aptitude_date %}
+                    <div class="col-12 col-sm-6 col-md-4">
+                      <strong><i class="bi bi-calendar-event me-1 text-primary"></i> Assessment Date:</strong> {{ app.aptitude_date|date:"F d, Y" }}
+                    </div>
+                  {% endif %}
+                  {% if app.aptitude_time %}
+                    <div class="col-12 col-sm-6 col-md-4">
+                      <strong><i class="bi bi-clock me-1 text-primary"></i> Scheduled Time:</strong> {{ app.aptitude_time|time:"H:i" }}
+                    </div>
+                  {% endif %}
+                  {% if app.aptitude_test %}
+                    <div class="col-12 col-sm-6 col-md-4">
+                      <strong><i class="bi bi-hourglass-split me-1 text-primary"></i> Duration:</strong> {{ app.aptitude_test.duration_minutes|default:30 }} Minutes
+                    </div>
+                  {% endif %}
+                  {% if app.aptitude_remarks %}
+                    <div class="col-12 mt-2">
+                      <div class="p-2 bg-white rounded border small">
+                        <strong>HR Instructions:</strong> {{ app.aptitude_remarks }}
+                      </div>
+                    </div>
+                  {% endif %}
+                </div>
+              </div>
+            {% endif %}
+
+            <!-- Aptitude Test Completed Results Callout -->
+            {% if app.aptitude_results.all %}
+              <div class="p-3 rounded-3 border border-success-subtle bg-success bg-opacity-10">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="p-2 bg-success bg-opacity-25 text-success rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                      <i class="bi bi-award fs-5"></i>
+                    </div>
+                    <div>
+                      <h6 class="fw-bold text-dark mb-0">Aptitude Assessment Result</h6>
+                      {% for res in app.aptitude_results.all %}
+                        <small class="text-secondary">
+                          Score: <strong>{{ res.score }} / {{ res.total_marks }} ({{ res.percentage }}%)</strong>
+                          &bull; Completed on {{ res.completed_at|date:"M d, Y H:i" }}
+                        </small>
+                      {% endfor %}
+                    </div>
+                  </div>
+                  <a href="{% url 'candidates:aptitude_result' app.pk %}" class="btn btn-sm btn-outline-success fw-semibold">
+                    <i class="bi bi-file-earmark-bar-graph me-1"></i> Detailed Scorecard
+                  </a>
+                </div>
+              </div>
+            {% endif %}
+
+            <!-- Interview Sessions Callout -->
+            {% if app.interviews.all %}
+              <div class="p-3 rounded-3 border border-info bg-info bg-opacity-10">
+                <div class="d-flex align-items-center gap-2 mb-2">
+                  <div class="p-2 bg-info bg-opacity-25 text-dark rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                    <i class="bi bi-calendar2-check fs-5"></i>
+                  </div>
+                  <div>
+                    <h6 class="fw-bold text-dark mb-0">Scheduled Interview Sessions</h6>
+                    <small class="text-muted">Interview meeting information and remarks</small>
+                  </div>
+                </div>
+
+                <div class="d-flex flex-column gap-2 mt-2">
+                  {% for intr in app.interviews.all %}
+                    <div class="p-2.5 p-3 bg-white rounded border">
+                      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-1">
+                        <div class="fw-bold text-dark">
+                          <i class="bi bi-calendar-event text-primary me-1"></i> {{ intr.interview_date|date:"l, F d, Y" }} at {{ intr.interview_time|time:"H:i" }}
+                        </div>
+                        <span class="badge {% if intr.status == 'COMPLETED' %}bg-success{% elif intr.status == 'CANCELLED' %}bg-danger{% else %}bg-primary{% endif %}">
+                          {{ intr.get_status_display }}
+                        </span>
+                      </div>
+                      <div class="small text-secondary">
+                        <strong>Interviewer:</strong> {{ intr.interviewer.user.name|default:intr.interviewer.user.email|default:"HR Recruitment Lead" }}
+                      </div>
+                      {% if intr.remarks %}
+                        <div class="small text-secondary bg-light p-2 rounded border mt-2">
+                          <strong>Interview Remarks:</strong> {{ intr.remarks }}
+                        </div>
+                      {% endif %}
+                    </div>
+                  {% endfor %}
+                </div>
+              </div>
+            {% endif %}
+
+          </div>
+
+        </div>
+      {% empty %}
+        <div class="portal-card text-center py-5">
+          <i class="bi bi-inbox fs-1 text-muted"></i>
+          <h5 class="fw-bold mt-3 mb-1">No Applications Yet</h5>
+          <p class="text-muted small mb-3">You haven't submitted any job applications yet.</p>
+          <a href="{% url 'candidates:job_list' %}" class="btn-blue-primary">
+            Explore Open Vacancies
+          </a>
+        </div>
+      {% endfor %}
+    </div>
+  </div>
 </div>
 {% endblock content %}

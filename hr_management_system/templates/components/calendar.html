@@ -1,0 +1,271 @@
+<!-- Reusable Holiday & Birthday Calendar Component -->
+<div class="card shadow-sm border-0 rounded-4 overflow-hidden calendar-widget-card">
+  <div class="card-header bg-white border-bottom border-light-subtle py-3 px-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <div>
+      <h5 class="fw-bold text-dark mb-0 d-flex align-items-center gap-2">
+        <i class="bi bi-calendar-range text-primary"></i>
+        <span>Company Calendar</span>
+      </h5>
+      <p class="text-muted small mb-0">Holidays (Kerala & India), Company Events & Birthdays</p>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <button class="btn btn-sm btn-outline-secondary rounded-pill px-3" id="calPrevBtn">
+        <i class="bi bi-chevron-left"></i> Prev
+      </button>
+      <span class="fw-bold text-primary px-2" id="calMonthYearLabel"></span>
+      <button class="btn btn-sm btn-outline-secondary rounded-pill px-3" id="calNextBtn">
+        Next <i class="bi bi-chevron-right"></i>
+      </button>
+      <button class="btn btn-sm btn-primary rounded-pill px-3 ms-2" id="calTodayBtn">Today</button>
+    </div>
+  </div>
+
+  <div class="card-body p-4 bg-light bg-opacity-25">
+    <!-- Days of Week Header -->
+    <div class="row text-center fw-semibold text-muted small mb-2 g-1">
+      <div class="col text-danger">Sun</div>
+      <div class="col">Mon</div>
+      <div class="col">Tue</div>
+      <div class="col">Wed</div>
+      <div class="col">Thu</div>
+      <div class="col">Fri</div>
+      <div class="col text-primary">Sat</div>
+    </div>
+
+    <!-- Calendar Grid Container -->
+    <div id="calendarGrid" class="row g-1">
+      <!-- Days dynamically injected by JS -->
+    </div>
+
+    <!-- Legend -->
+    <div class="d-flex flex-wrap gap-3 mt-3 pt-3 border-top border-light-subtle small align-items-center justify-content-between">
+      <div class="d-flex gap-3 flex-wrap">
+        <span class="d-flex align-items-center gap-1">
+          <span class="badge bg-danger rounded-circle p-1"> </span>
+          <span class="text-muted">Kerala / India Public Holiday</span>
+        </span>
+        <span class="d-flex align-items-center gap-1">
+          <span class="badge bg-primary rounded-circle p-1"> </span>
+          <span class="text-muted">Employee Birthday 🎂</span>
+        </span>
+        <span class="d-flex align-items-center gap-1">
+          <span class="badge bg-success rounded-circle p-1"> </span>
+          <span class="text-muted">Today</span>
+        </span>
+      </div>
+      <div id="calendarUpcomingSummary" class="text-muted small fw-medium"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Day Detail Modal -->
+<div class="modal fade" id="calendarEventModal" tabindex="-1" aria-labelledby="calModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content rounded-4 border-0 shadow">
+      <div class="modal-header border-bottom border-light-subtle bg-light bg-opacity-50">
+        <h6 class="modal-title fw-bold" id="calModalLabel">
+          <i class="bi bi-calendar-event text-primary me-1"></i> Events on <span id="calModalDate"></span>
+        </h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body p-4" id="calModalBody">
+        <!-- Injected list of events -->
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  .calendar-day-cell {
+    min-height: 85px;
+    background: #ffffff;
+    border-radius: 8px;
+    padding: 6px 8px;
+    border: 1px solid #edf2f7;
+    transition: all 0.2s ease;
+    cursor: pointer;
+  }
+  .calendar-day-cell:hover {
+    background: #f0f7ff;
+    border-color: #90cdf4;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(11, 79, 154, 0.08);
+  }
+  .calendar-day-cell.other-month {
+    background: #fafbfc;
+    color: #cbd5e0;
+    opacity: 0.5;
+  }
+  .calendar-day-cell.is-today {
+    border: 2px solid #0056b3;
+    background: #f0f8ff;
+  }
+  .calendar-day-number {
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+  .event-pill {
+    font-size: 0.68rem;
+    padding: 2px 4px;
+    border-radius: 4px;
+    margin-top: 2px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: block;
+  }
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  let currentDate = new Date();
+  let eventsData = [];
+
+  const monthNames = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+  ];
+
+  async function fetchEvents() {
+    try {
+      const res = await fetch("{% url 'calendar_events_api' %}");
+      if (res.ok) {
+        const data = await res.json();
+        eventsData = data.events || [];
+        renderCalendar();
+      }
+    } catch(err) {
+      console.warn("Could not fetch calendar events:", err);
+      renderCalendar();
+    }
+  }
+
+  function renderCalendar() {
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+
+    const monthLabel = document.getElementById("calMonthYearLabel");
+    if (monthLabel) monthLabel.textContent = `${monthNames[month]} ${year}`;
+
+    const firstDayIndex = new Date(year, month, 1).getDay();
+    const lastDay = new Date(year, month + 1, 0).getDate();
+    const prevLastDay = new Date(year, month, 0).getDate();
+
+    const grid = document.getElementById("calendarGrid");
+    if (!grid) return;
+    grid.innerHTML = "";
+
+    const today = new Date();
+    const isCurrentMonth = (today.getFullYear() === year && today.getMonth() === month);
+
+    // Prev month trailing days
+    for (let x = firstDayIndex; x > 0; x--) {
+      const dayNum = prevLastDay - x + 1;
+      grid.appendChild(createDayCell(dayNum, true, null));
+    }
+
+    // Current month days
+    for (let i = 1; i <= lastDay; i++) {
+      const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+      const dayEvents = eventsData.filter(e => e.date === dateStr);
+      const isTodayCell = isCurrentMonth && (i === today.getDate());
+      grid.appendChild(createDayCell(i, false, dateStr, dayEvents, isTodayCell));
+    }
+
+    // Next month starting days to complete the 7-col grid
+    const totalCells = firstDayIndex + lastDay;
+    const remainingCells = (7 - (totalCells % 7)) % 7;
+    for (let j = 1; j <= remainingCells; j++) {
+      grid.appendChild(createDayCell(j, true, null));
+    }
+
+    updateUpcomingSummary();
+  }
+
+  function createDayCell(dayNum, isOtherMonth, dateStr, dayEvents = [], isToday = false) {
+    const col = document.createElement("div");
+    col.className = "col";
+    col.style.width = "14.285%";
+    col.style.flex = "0 0 14.285%";
+    col.style.maxWidth = "14.285%";
+
+    const cell = document.createElement("div");
+    cell.className = `calendar-day-cell ${isOtherMonth ? 'other-month' : ''} ${isToday ? 'is-today' : ''}`;
+
+    const numSpan = document.createElement("div");
+    numSpan.className = `calendar-day-number ${isToday ? 'text-primary fw-bold' : ''}`;
+    numSpan.textContent = dayNum;
+    cell.appendChild(numSpan);
+
+    if (dayEvents && dayEvents.length > 0) {
+      dayEvents.slice(0, 2).forEach(ev => {
+        const pill = document.createElement("span");
+        pill.className = `event-pill ${ev.type === 'holiday' ? 'bg-danger text-white' : 'bg-primary text-white'}`;
+        pill.textContent = ev.title;
+        pill.title = ev.description;
+        cell.appendChild(pill);
+      });
+      if (dayEvents.length > 2) {
+        const more = document.createElement("span");
+        more.className = "event-pill bg-secondary text-white";
+        more.textContent = `+${dayEvents.length - 2} more`;
+        cell.appendChild(more);
+      }
+
+      cell.addEventListener("click", () => {
+        showEventModal(dateStr, dayEvents);
+      });
+    }
+
+    col.appendChild(cell);
+    return col;
+  }
+
+  function showEventModal(dateStr, events) {
+    const modalDate = document.getElementById("calModalDate");
+    const modalBody = document.getElementById("calModalBody");
+    if (!modalDate || !modalBody) return;
+
+    modalDate.textContent = dateStr;
+    modalBody.innerHTML = events.map(ev => `
+      <div class="p-3 mb-2 rounded-3 ${ev.type === 'holiday' ? 'bg-danger-subtle border border-danger-subtle' : 'bg-primary-subtle border border-primary-subtle'}">
+        <h6 class="fw-bold mb-1 ${ev.type === 'holiday' ? 'text-danger' : 'text-primary'}">${ev.title}</h6>
+        <p class="small text-muted mb-0">${ev.description}</p>
+      </div>
+    `).join("");
+
+    const modal = new bootstrap.Modal(document.getElementById("calendarEventModal"));
+    modal.show();
+  }
+
+  function updateUpcomingSummary() {
+    const summary = document.getElementById("calendarUpcomingSummary");
+    if (!summary) return;
+    const todayStr = new Date().toISOString().split("T")[0];
+    const upcoming = eventsData.filter(e => e.date >= todayStr).slice(0, 3);
+    if (upcoming.length > 0) {
+      summary.innerHTML = `Upcoming: <strong>${upcoming[0].title}</strong> (${upcoming[0].date})`;
+    } else {
+      summary.textContent = "No immediate upcoming events.";
+    }
+  }
+
+  document.getElementById("calPrevBtn")?.addEventListener("click", () => {
+    currentDate.setMonth(currentDate.getMonth() - 1);
+    renderCalendar();
+  });
+
+  document.getElementById("calNextBtn")?.addEventListener("click", () => {
+    currentDate.setMonth(currentDate.getMonth() + 1);
+    renderCalendar();
+  });
+
+  document.getElementById("calTodayBtn")?.addEventListener("click", () => {
+    currentDate = new Date();
+    renderCalendar();
+  });
+
+  fetchEvents();
+});
+</script>
+

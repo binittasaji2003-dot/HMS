@@ -39,7 +39,7 @@
                 {% for item in warnings %}
                 <tr>
                     <td>
-                        <strong>{{ item.employee.user.get_full_name|default:item.employee.user.username }}</strong><br>
+                        <strong>{{ item.employee.user.name|default:item.employee.user.email }}</strong><br>
                         <small class="text-muted">{{ item.employee.employee_code }} &bull; {{ item.employee.department.name }}</small>
                     </td>
                     <td>
@@ -114,7 +114,7 @@
                             <option value="">Select Employee...</option>
                             {% for emp in employees %}
                                 <option value="{{ emp.pk }}">
-                                    {{ emp.employee_code }} - {{ emp.user.get_full_name|default:emp.user.username }} ({{ emp.department.name }})
+                                    {{ emp.employee_code }} - {{ emp.user.name|default:emp.user.email }} ({{ emp.department.name }})
                                 </option>
                             {% endfor %}
                         </select>

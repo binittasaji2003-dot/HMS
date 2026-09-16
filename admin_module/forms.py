@@ -349,14 +349,17 @@ class EmployeeCreateForm(AdminUserCreateFormMixin):
 
     def save(self, admin_user=None):
         data = self.cleaned_data
+        emp_status = data.get("employment_status", "ACTIVE")
+        is_active = emp_status not in ["INACTIVE", "TERMINATED"]
+        user_status = User.StatusChoices.ACTIVE if is_active else User.StatusChoices.INACTIVE
 
         user = User.objects.create_user(
             email=data["email"],
             password=data["password"],
             name=data["full_name"],
             role=User.RoleChoices.EMPLOYEE,
-            status=User.StatusChoices.ACTIVE,
-            is_active=True,
+            status=user_status,
+            is_active=is_active,
         )
 
         employee = Employee.objects.create(
@@ -365,7 +368,7 @@ class EmployeeCreateForm(AdminUserCreateFormMixin):
             department=data["department"],
             designation=data["designation"],
             joining_date=data["joining_date"],
-            employment_status=data["employment_status"],
+            employment_status=emp_status,
             created_by=admin_user,
         )
 
@@ -523,16 +526,20 @@ class EmployeeProfileForm(forms.Form):
         if not self.employee:
             return None
 
+        emp_status = self.cleaned_data["employment_status"]
+        is_active = emp_status not in ["INACTIVE", "TERMINATED"]
+        user_status = User.StatusChoices.ACTIVE if is_active else User.StatusChoices.INACTIVE
+
         user = self.employee.user
         user.name = self.cleaned_data["full_name"]
         user.email = self.cleaned_data["email"]
-        user.save(update_fields=["name", "email"])
+        user.is_active = is_active
+        user.status = user_status
+        user.save(update_fields=["name", "email", "is_active", "status"])
 
         self.employee.department = self.cleaned_data["department"]
         self.employee.designation = self.cleaned_data["designation"]
-        self.employee.employment_status = (
-            self.cleaned_data["employment_status"]
-        )
+        self.employee.employment_status = emp_status
         self.employee.joining_date = self.cleaned_data["joining_date"]
 
         self.employee.save(
@@ -785,6 +792,29 @@ class AdminDecisionForm(forms.Form):
         return cleaned_data
 
 
+class AdminIssueWarningForm(forms.Form):
+    """Form for Admin to issue a formal warning message to an employee based on a PerformanceWarning report."""
+
+    warning_message = forms.CharField(
+        label=_("Admin Warning Message"),
+        required=True,
+        error_messages={"required": _("Warning message cannot be empty.")},
+        widget=forms.Textarea(
+            attrs={
+                "class": "form-control custom-input",
+                "rows": 5,
+                "placeholder": "Enter the formal warning directive / message to be issued to the employee...",
+            }
+        ),
+    )
+
+    def clean_warning_message(self):
+        msg = (self.cleaned_data.get("warning_message") or "").strip()
+        if not msg:
+            raise ValidationError(_("Warning message cannot be empty."))
+        return msg
+
+
 class AnnouncementForm(forms.ModelForm):
     """Create and edit Admin announcements."""
 
@@ -852,136 +882,3 @@ class AnnouncementForm(forms.ModelForm):
         return content
 
 
-class CandidateForm(forms.Form):
-    """Standardized form for creating and updating candidate applications."""
-
-    full_name = forms.CharField(
-        label=_("Full Name"),
-        max_length=200,
-        required=True,
-        widget=forms.TextInput(
-            attrs={"class": "form-control custom-input", "placeholder": "Candidate full name"}
-        ),
-    )
-    email = forms.EmailField(
-        label=_("Email Address"),
-        required=True,
-        widget=forms.EmailInput(
-            attrs={"class": "form-control custom-input", "placeholder": "candidate@example.com"}
-        ),
-    )
-    phone = forms.CharField(
-        label=_("Phone Number"),
-        max_length=30,
-        required=False,
-        widget=forms.TextInput(
-            attrs={"class": "form-control custom-input", "placeholder": "+1 (555) 000-0000"}
-        ),
-    )
-    job_vacancy = forms.ModelChoiceField(
-        label=_("Applied Position"),
-        queryset=JobVacancy.objects.none(),
-        required=True,
-        widget=forms.Select(attrs={"class": "form-select custom-input"}),
-    )
-    status = forms.ChoiceField(
-        label=_("Application Status"),
-        choices=JobApplication.STATUS_CHOICES,
-        required=True,
-        widget=forms.Select(attrs={"class": "form-select custom-input"}),
-    )
-    resume = forms.FileField(
-        label=_("Resume Document"),
-        required=False,
-        widget=forms.FileInput(attrs={"class": "form-control custom-input"}),
-    )
-
-    def __init__(self, *args, candidate=None, **kwargs):
-        self.candidate = candidate
-        super().__init__(*args, **kwargs)
-        self.fields["job_vacancy"].queryset = JobVacancy.objects.all().order_by("title")
-
-        if candidate:
-            name_parts = [candidate.first_name, candidate.middle_name, candidate.last_name]
-            full_name = " ".join([p for p in name_parts if p])
-            self.fields["full_name"].initial = full_name
-            self.fields["email"].initial = candidate.user.email if candidate.user else ""
-            self.fields["phone"].initial = candidate.phone
-            
-            latest_app = candidate.applications.order_by("-applied_at").first()
-            if latest_app:
-                self.fields["job_vacancy"].initial = latest_app.vacancy
-                self.fields["status"].initial = latest_app.status
-
-    def clean_email(self):
-        email = (self.cleaned_data.get("email") or "").strip().lower()
-        if self.candidate and self.candidate.user and self.candidate.user.email.lower() == email:
-            return email
-        if not self.candidate and User.objects.filter(email__iexact=email).exists():
-            raise ValidationError(_("An account with this email address already exists."))
-        return email
-
-    def save(self):
-        data = self.cleaned_data
-        full_name = data["full_name"].strip()
-        parts = full_name.split()
-        first_name = parts[0] if parts else "Candidate"
-        last_name = " ".join(parts[1:]) if len(parts) > 1 else ""
-
-        if self.candidate:
-            candidate = self.candidate
-            candidate.first_name = first_name
-            candidate.last_name = last_name
-            candidate.phone = data.get("phone") or ""
-            if data.get("resume"):
-                candidate.resume = data["resume"]
-            candidate.save()
-
-            if candidate.user:
-                candidate.user.name = full_name
-                candidate.user.email = data["email"]
-                candidate.user.save(update_fields=["name", "email"])
-
-            latest_app = candidate.applications.filter(vacancy=data["job_vacancy"]).first()
-            if not latest_app:
-                latest_app = candidate.applications.order_by("-applied_at").first()
-
-            if latest_app:
-                latest_app.vacancy = data["job_vacancy"]
-                latest_app.status = data["status"]
-                if data.get("resume"):
-                    latest_app.applied_resume = data["resume"]
-                latest_app.save()
-            else:
-                JobApplication.objects.create(
-                    candidate=candidate,
-                    vacancy=data["job_vacancy"],
-                    status=data["status"],
-                    applied_resume=data.get("resume"),
-                )
-            return candidate
-        else:
-            email = data["email"]
-            user = User.objects.filter(email__iexact=email).first()
-            if not user:
-                user = User.objects.create_user(
-                    email=email,
-                    name=full_name,
-                    role=User.RoleChoices.CANDIDATE,
-                    status=User.StatusChoices.ACTIVE,
-                    is_active=True,
-                )
-            candidate = Candidate.objects.create(
-                user=user,
-                first_name=first_name,
-                last_name=last_name,
-                phone=data.get("phone") or "",
-                resume=data.get("resume"),
-            )
-            JobApplication.objects.create(
-                candidate=candidate,
-                vacancy=data["job_vacancy"],
-                status=data["status"],
-                applied_resume=data.get("resume"),
-            )
-            return candidate

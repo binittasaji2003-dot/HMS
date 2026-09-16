@@ -57,12 +57,11 @@ urlpatterns = [
     path("users/", views.admin_placeholder_view, {"module_name": "users"}, name="users_list"),
     path("job-vacancies/", views.admin_placeholder_view, {"module_name": "job_vacancies"}, name="job_vacancies_list"),
     path("candidates/", views.admin_candidates_management_view, name="candidates_list"),
-    path("candidates/add/", views.admin_candidate_create_view, name="candidate_create"),
-    path("candidates/<int:candidate_id>/edit/", views.admin_candidate_edit_view, name="candidate_edit"),
     path("candidates/<int:candidate_id>/delete/", views.admin_candidate_delete_view, name="candidate_delete"),
     # Admin Responsibilities (Performance Warnings & HR Recommendations)
     path("responsibilities/warnings/", views.admin_responsibilities_warnings_view, name="admin_responsibilities_warnings"),
     path("responsibilities/warnings/<int:warning_id>/", views.admin_responsibilities_warning_detail_view, name="admin_responsibilities_warning_detail"),
+    path("responsibilities/warnings/<int:warning_id>/issue/", views.admin_responsibilities_issue_warning_view, name="admin_responsibilities_issue_warning"),
     path("responsibilities/recommendations/", views.admin_responsibilities_recommendations_view, name="admin_responsibilities_recommendations"),
     path("responsibilities/recommendations/<int:warning_id>/review/", views.admin_responsibilities_review_view, name="admin_responsibilities_review"),
     path("responsibilities/recommendations/<int:warning_id>/decision/", views.admin_responsibilities_decision_view, name="admin_responsibilities_decision"),

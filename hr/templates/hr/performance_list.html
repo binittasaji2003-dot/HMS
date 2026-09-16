@@ -40,7 +40,7 @@
                 {% for rev in reviews %}
                 <tr>
                     <td>
-                        <strong>{{ rev.employee.user.get_full_name|default:rev.employee.user.username }}</strong><br>
+                        <strong>{{ rev.employee.user.name|default:rev.employee.user.email }}</strong><br>
                         <small class="text-muted">{{ rev.employee.employee_code }} &bull; {{ rev.employee.department.name }}</small>
                     </td>
                     <td><span class="fw-semibold text-dark">{{ rev.review_period }}</span></td>
@@ -59,7 +59,7 @@
                         <span class="text-muted">{{ rev.comments|default:"No written feedback provided." }}</span>
                     </td>
                     <td>
-                        {{ rev.reviewed_by.user.get_full_name|default:rev.reviewed_by.user.username|default:"HR Team" }}
+                        {{ rev.reviewed_by.user.name|default:rev.reviewed_by.user.email|default:"HR Team" }}
                     </td>
                     <td>{{ rev.review_date|date:"M d, Y" }}</td>
                 </tr>
@@ -89,7 +89,7 @@
                         <select name="employee_id" class="form-select" required>
                             <option value="">Select Active Employee...</option>
                             {% for emp in employees %}
-                                <option value="{{ emp.pk }}">{{ emp.employee_code }} - {{ emp.user.get_full_name|default:emp.user.username }} ({{ emp.department.name }})</option>
+                                <option value="{{ emp.pk }}">{{ emp.employee_code }} - {{ emp.user.name|default:emp.user.email }} ({{ emp.department.name }})</option>
                             {% endfor %}
                         </select>
                     </div>

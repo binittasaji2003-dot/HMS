@@ -39,7 +39,7 @@
                 {% for item in interviews %}
                 <tr>
                     <td>
-                        <strong>{{ item.application.candidate.user.get_full_name|default:item.application.candidate.user.username }}</strong><br>
+                        <strong>{{ item.application.candidate.user.name|default:item.application.candidate.user.email }}</strong><br>
                         <small class="text-muted">{{ item.application.candidate.user.email }}</small>
                     </td>
                     <td><span class="fw-semibold text-dark">{{ item.application.vacancy.title }}</span></td>
@@ -47,7 +47,7 @@
                         <span class="text-primary fw-semibold">{{ item.interview_date|date:"M d, Y" }}</span><br>
                         <small class="text-muted">{{ item.interview_time|time:"H:i" }}</small>
                     </td>
-                    <td>{{ item.interviewer.user.get_full_name|default:item.interviewer.user.username|default:"HR Team" }}</td>
+                    <td>{{ item.interviewer.user.name|default:item.interviewer.user.email|default:"HR Team" }}</td>
                     <td>
                         {% if item.status == 'COMPLETED' %}
                             <span class="badge bg-success">Completed</span>
@@ -128,7 +128,7 @@
                             <option value="">Select Candidate Application...</option>
                             {% for app in applications %}
                                 <option value="{{ app.pk }}">
-                                    {{ app.candidate.user.get_full_name|default:app.candidate.user.username }} - {{ app.vacancy.title }}
+                                    {{ app.candidate.user.name|default:app.candidate.user.email }} - {{ app.vacancy.title }}
                                 </option>
                             {% endfor %}
                         </select>

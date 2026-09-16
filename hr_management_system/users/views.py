@@ -46,11 +46,16 @@ class UserRedirectView(LoginRequiredMixin, RedirectView):
     permanent = False
 
     def get_redirect_url(self) -> str:
-        if self.request.user.is_staff:
+        user = self.request.user
+        if user.is_superuser or user.is_staff or getattr(user, "role", "") == User.RoleChoices.ADMIN:
             return reverse("admin:index")
-        if hasattr(self.request.user, "employee_profile"):
+        if getattr(user, "role", "") == User.RoleChoices.HR or hasattr(user, "hr_profile"):
+            return reverse("hr:dashboard")
+        if getattr(user, "role", "") == User.RoleChoices.CANDIDATE or hasattr(user, "candidate_profile"):
+            return reverse("candidates:dashboard")
+        if hasattr(user, "employee_profile") or getattr(user, "role", "") == User.RoleChoices.EMPLOYEE:
             return reverse("employees:dashboard")
-        return reverse("users:detail", kwargs={"pk": self.request.user.pk})
+        return reverse("users:detail", kwargs={"pk": user.pk})
 
 
 user_redirect_view = UserRedirectView.as_view()

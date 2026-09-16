@@ -29,6 +29,17 @@
                         {{ form.status }}
                     </div>
                 </div>
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">Total Questions per Test</label>
+                        {{ form.total_questions }}
+                        <small class="text-muted" style="font-size: 0.75rem;">Balanced across Quant, Logical & Verbal</small>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">Passing Mark (%)</label>
+                        {{ form.pass_percentage }}
+                    </div>
+                </div>
                 <div class="mb-4">
                     <label class="form-label small fw-semibold">Instructions / Description</label>
                     {{ form.description }}

@@ -1,45 +1,163 @@
 {% extends "hr/base.html" %}
+{% load static %}
 
-{% block title %}Edit Profile | Smart HRMS{% endblock %}
+{% block title %}Edit Profile | HRMS Portal{% endblock %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-12 col-md-8">
-        <div class="card card-custom p-4">
-            <h4 class="fw-bold text-primary mb-3">Edit Profile</h4>
-            <form method="POST">
-                {% csrf_token %}
-                <div class="row g-3 mb-3">
-                    <div class="col-md-6">
-                        <label class="form-label small fw-semibold">First Name</label>
-                        <input type="text" name="first_name" class="form-control" value="{{ hr_profile.user.first_name }}">
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label small fw-semibold">Last Name</label>
-                        <input type="text" name="last_name" class="form-control" value="{{ hr_profile.user.last_name }}">
-                    </div>
-                    <div class="col-12">
-                        <label class="form-label small fw-semibold">Email Address</label>
-                        <input type="email" name="email" class="form-control" value="{{ hr_profile.user.email }}">
-                    </div>
-                    <div class="col-12">
-                        <label class="form-label small fw-semibold">Department</label>
-                        <select name="department" class="form-select">
-                            <option value="">-- Choose Department --</option>
-                            {% for dept in departments %}
-                                <option value="{{ dept.pk }}" {% if hr_profile.department_id == dept.pk %}selected{% endif %}>
-                                    {{ dept.name }}
-                                </option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                </div>
-                <div class="d-flex justify-content-end gap-2">
-                    <a href="{% url 'hr:profile' %}" class="btn btn-light border">Cancel</a>
-                    <button type="submit" class="btn btn-blue">Save Changes</button>
-                </div>
-            </form>
+<!-- Top Header & Breadcrumbs -->
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+    <div>
+        <div class="d-flex align-items-center gap-2 mb-1">
+            <a href="{% url 'hr:dashboard' %}" class="text-muted small text-decoration-none">Dashboard</a>
+            <span class="text-muted small">/</span>
+            <a href="{% url 'hr:profile' %}" class="text-muted small text-decoration-none">My Profile</a>
+            <span class="text-muted small">/</span>
+            <span class="text-dark small fw-medium">Edit Profile</span>
         </div>
+        <h3 class="fw-bold text-dark mb-0">Edit HR Profile</h3>
+        <p class="text-muted small mb-0">Update your personal identity, contact details, and organization settings.</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'hr:profile' %}" class="btn btn-outline-secondary btn-sm px-3">
+            <i class="bi bi-arrow-left me-1"></i> Back to Profile
+        </a>
     </div>
 </div>
+
+<form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+
+    {% if form.errors %}
+        <div class="alert alert-danger alert-dismissible fade show rounded-3 mb-4" role="alert">
+            <h6 class="fw-bold mb-1"><i class="bi bi-exclamation-triangle-fill me-2"></i>Please correct the errors below:</h6>
+            <ul class="mb-0 small ps-3">
+                {% for field, errors in form.errors.items %}
+                    {% for error in errors %}
+                        <li><strong>{{ field|title }}:</strong> {{ error }}</li>
+                    {% endfor %}
+                {% endfor %}
+            </ul>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        </div>
+    {% endif %}
+
+    <div class="row g-4">
+        <!-- Left Column: Personal & Contact Information -->
+        <div class="col-12 col-xl-7">
+            <div class="card card-custom p-4 mb-4">
+                <h5 class="fw-bold text-dark pb-3 mb-3 border-bottom">
+                    <i class="bi bi-person-lines-fill text-primary me-2"></i> Personal & Contact Details
+                </h5>
+
+                <div class="row g-3">
+                    <div class="col-12 col-md-6">
+                        <label class="form-label small fw-semibold text-dark">Full Name <span class="text-danger">*</span></label>
+                        {{ form.full_name }}
+                        {% if form.full_name.errors %}
+                            <div class="text-danger small mt-1">{{ form.full_name.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <label class="form-label small fw-semibold text-dark">Email Address <span class="text-danger">*</span></label>
+                        {{ form.email }}
+                        {% if form.email.errors %}
+                            <div class="text-danger small mt-1">{{ form.email.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <label class="form-label small fw-semibold text-dark">Phone Number</label>
+                        {{ form.phone }}
+                        {% if form.phone.errors %}
+                            <div class="text-danger small mt-1">{{ form.phone.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <label class="form-label small fw-semibold text-dark">Date of Birth</label>
+                        {{ form.date_of_birth }}
+                        {% if form.date_of_birth.errors %}
+                            <div class="text-danger small mt-1">{{ form.date_of_birth.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label small fw-semibold text-dark">Residential / Office Address</label>
+                        {{ form.address }}
+                        {% if form.address.errors %}
+                            <div class="text-danger small mt-1">{{ form.address.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label small fw-semibold text-dark">Profile Photo</label>
+                        <div class="d-flex align-items-center gap-3">
+                            {% if profile_photo %}
+                                <img src="{{ profile_photo.url }}" alt="Profile Photo" class="rounded border" style="width: 52px; height: 52px; object-fit: cover;">
+                            {% endif %}
+                            <div class="flex-grow-1">
+                                {{ form.profile_photo }}
+                                <div class="form-text text-muted small">Upload PNG, JPG, or JPEG image (max 5MB).</div>
+                            </div>
+                        </div>
+                        {% if form.profile_photo.errors %}
+                            <div class="text-danger small mt-1">{{ form.profile_photo.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Professional & System Details (Read-only / Org) -->
+        <div class="col-12 col-xl-5">
+            <div class="card card-custom p-4 mb-4">
+                <h5 class="fw-bold text-dark pb-3 mb-3 border-bottom">
+                    <i class="bi bi-building text-primary me-2"></i> Organization & System Information
+                </h5>
+
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label class="form-label small fw-semibold text-dark">Department</label>
+                        {{ form.department }}
+                        {% if form.department.errors %}
+                            <div class="text-danger small mt-1">{{ form.department.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <label class="form-label small fw-semibold text-muted">Employee Code</label>
+                        <input type="text" class="form-control bg-light" value="{{ hr_profile.employee_code|default:'Not provided' }}" readonly disabled>
+                        <div class="form-text text-muted" style="font-size: 0.75rem;">Controlled by Administrator</div>
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <label class="form-label small fw-semibold text-muted">Designation</label>
+                        <input type="text" class="form-control bg-light" value="{{ linked_employee.designation|default:'HR Manager' }}" readonly disabled>
+                        <div class="form-text text-muted" style="font-size: 0.75rem;">Standard System Role</div>
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <label class="form-label small fw-semibold text-muted">Joining Date</label>
+                        <input type="text" class="form-control bg-light" value="{% if hr_profile.joining_date %}{{ hr_profile.joining_date|date:'Y-m-d' }}{% else %}Not provided{% endif %}" readonly disabled>
+                        <div class="form-text text-muted" style="font-size: 0.75rem;">Controlled by Administrator</div>
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <label class="form-label small fw-semibold text-muted">Account Status</label>
+                        <input type="text" class="form-control bg-light" value="{{ user_obj.get_status_display|default:user_obj.status|default:'Active' }}" readonly disabled>
+                        <div class="form-text text-muted" style="font-size: 0.75rem;">System Account State</div>
+                    </div>
+                </div>
+
+                <div class="mt-4 pt-3 border-top d-flex justify-content-end gap-2">
+                    <a href="{% url 'hr:profile' %}" class="btn btn-light border px-3">Cancel</a>
+                    <button type="submit" class="btn btn-blue px-4">
+                        <i class="bi bi-check2 me-1"></i> Save Changes
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
 {% endblock %}

@@ -57,7 +57,20 @@ class AptitudeTest(models.Model):
         blank=True,
     )
 
-    duration_minutes = models.PositiveIntegerField()
+    duration_minutes = models.PositiveIntegerField(
+        default=30,
+        help_text="Duration of the test in minutes",
+    )
+
+    total_questions = models.PositiveIntegerField(
+        default=15,
+        help_text="Number of questions presented to candidates across categories",
+    )
+
+    pass_percentage = models.PositiveIntegerField(
+        default=50,
+        help_text="Passing percentage required",
+    )
 
     created_by = models.ForeignKey(
         HRManager,
@@ -81,12 +94,26 @@ class AptitudeTest(models.Model):
 
 
 class AptitudeQuestion(models.Model):
+    CATEGORY_CHOICES = [
+        ("QUANTITATIVE", "Quantitative Aptitude"),
+        ("LOGICAL", "Logical Reasoning"),
+        ("VERBAL", "Verbal Ability"),
+    ]
+
     question_id = models.AutoField(primary_key=True)
 
     test = models.ForeignKey(
         AptitudeTest,
         on_delete=models.CASCADE,
         related_name="questions",
+        null=True,
+        blank=True,
+    )
+
+    category = models.CharField(
+        max_length=50,
+        choices=CATEGORY_CHOICES,
+        default="QUANTITATIVE",
     )
 
     question = models.TextField()
@@ -109,10 +136,81 @@ class AptitudeQuestion(models.Model):
 
     correct_answer = models.CharField(
         max_length=1,
+        help_text="Choice letter: A, B, C, or D",
     )
 
+    is_active = models.BooleanField(
+        default=True,
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        null=True,
+        blank=True,
+    )
+
+    class Meta:
+        ordering = ["category", "-created_at", "question_id"]
+
     def __str__(self):
-        return self.question[:50]
+        return f"[{self.get_category_display()}] {self.question[:50]}"
+
+    @property
+    def correct_option_text(self):
+        mapping = {
+            "A": self.option_a,
+            "B": self.option_b,
+            "C": self.option_c,
+            "D": self.option_d,
+        }
+        return mapping.get(self.correct_answer.upper(), "")
+
+
+class AptitudeAttempt(models.Model):
+    attempt_id = models.AutoField(primary_key=True)
+
+    test = models.ForeignKey(
+        AptitudeTest,
+        on_delete=models.CASCADE,
+        related_name="attempts",
+    )
+
+    application = models.ForeignKey(
+        "candidates.JobApplication",
+        on_delete=models.CASCADE,
+        related_name="aptitude_attempts",
+    )
+
+    started_at = models.DateTimeField(
+        auto_now_add=True,
+    )
+
+    expires_at = models.DateTimeField()
+
+    completed_at = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+
+    is_completed = models.BooleanField(
+        default=False,
+    )
+
+    questions_data = models.JSONField(
+        default=list,
+        help_text="Randomized question and shuffled option snapshot for this attempt",
+    )
+
+    answers_data = models.JSONField(
+        default=dict,
+        help_text="Candidate submitted answers mapping {question_id: selected_key}",
+    )
+
+    class Meta:
+        ordering = ["-started_at"]
+
+    def __str__(self):
+        return f"Attempt #{self.attempt_id} by {self.application.candidate} - {self.test.title}"
 
 
 class AptitudeResult(models.Model):
@@ -134,12 +232,20 @@ class AptitudeResult(models.Model):
 
     total_marks = models.PositiveIntegerField()
 
+    percentage = models.FloatField(
+        default=0.0,
+    )
+
+    passed = models.BooleanField(
+        default=False,
+    )
+
     completed_at = models.DateTimeField(
         auto_now_add=True,
     )
 
     def __str__(self):
-        return f"{self.application} - {self.score}/{self.total_marks}"
+        return f"{self.application} - {self.score}/{self.total_marks} ({'Pass' if self.passed else 'Fail'})"
 
 
 class Interview(models.Model):

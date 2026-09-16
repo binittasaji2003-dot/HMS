@@ -9,7 +9,7 @@
         <div class="col-lg-8">
             <div class="d-flex align-items-center gap-2 mb-2">
                 <h3 class="fw-bold mb-0 text-dark">
-                    Good Day, {{ request.user.first_name|default:request.user.username }}! 👋
+                    Good Day, {{ request.user.name|default:request.user.email }}! 👋
                 </h3>
             </div>
             <p class="text-muted small mb-3">Welcome to your HR Management workspace. Here is an overview of ongoing recruitment, reviews, and escalations.</p>
@@ -133,7 +133,7 @@
                         <tr>
                             <td>
                                 <strong>{{ report.employee.employee_code }}</strong><br>
-                                <span class="text-muted">{{ report.employee.user.username }}</span>
+                                <span class="text-muted">{{ report.employee.user.name|default:report.employee.user.email }}</span>
                             </td>
                             <td>{{ report.week_start_date|date:"M d" }} - {{ report.week_end_date|date:"M d" }}</td>
                             <td>

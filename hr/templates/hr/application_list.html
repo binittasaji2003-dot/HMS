@@ -1,25 +1,43 @@
 {% extends "hr/base.html" %}
+{% load static %}
 
 {% block title %}Applications | Smart HRMS{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
     <div>
         <h4 class="fw-bold text-primary mb-1">Recruitment Applications</h4>
         <p class="text-muted small mb-0">Track candidate progression through hiring stages</p>
     </div>
     
     <!-- Status Filter Pills -->
-    <div class="d-flex gap-2">
-        <a href="{% url 'hr:application_list' %}" class="btn btn-sm {% if not selected_status %}btn-blue{% else %}btn-light border{% endif %}">All</a>
-        <a href="{% url 'hr:application_list' %}?status=APPLIED" class="btn btn-sm {% if selected_status == 'APPLIED' %}btn-blue{% else %}btn-light border{% endif %}">Applied</a>
-        <a href="{% url 'hr:application_list' %}?status=SHORTLISTED" class="btn btn-sm {% if selected_status == 'SHORTLISTED' %}btn-blue{% else %}btn-light border{% endif %}">Shortlisted</a>
-        <a href="{% url 'hr:application_list' %}?status=SELECTED" class="btn btn-sm {% if selected_status == 'SELECTED' %}btn-blue{% else %}btn-light border{% endif %}">Selected</a>
-        <a href="{% url 'hr:application_list' %}?status=REJECTED" class="btn btn-sm {% if selected_status == 'REJECTED' %}btn-blue{% else %}btn-light border{% endif %}">Rejected</a>
+    <div class="d-flex gap-2 flex-wrap">
+        <a href="{% url 'hr:application_list' %}{% if search_query %}?q={{ search_query }}{% endif %}" class="btn btn-sm {% if not selected_status %}btn-blue{% else %}btn-light border{% endif %}">All</a>
+        <a href="{% url 'hr:application_list' %}?status=APPLIED{% if search_query %}&q={{ search_query }}{% endif %}" class="btn btn-sm {% if selected_status == 'APPLIED' %}btn-blue{% else %}btn-light border{% endif %}">Applied</a>
+        <a href="{% url 'hr:application_list' %}?status=RESUME_REVIEW{% if search_query %}&q={{ search_query }}{% endif %}" class="btn btn-sm {% if selected_status == 'RESUME_REVIEW' %}btn-blue{% else %}btn-light border{% endif %}">Under Review</a>
+        <a href="{% url 'hr:application_list' %}?status=SHORTLISTED{% if search_query %}&q={{ search_query }}{% endif %}" class="btn btn-sm {% if selected_status == 'SHORTLISTED' %}btn-blue{% else %}btn-light border{% endif %}">Shortlisted</a>
+        <a href="{% url 'hr:application_list' %}?status=APTITUDE{% if search_query %}&q={{ search_query }}{% endif %}" class="btn btn-sm {% if selected_status == 'APTITUDE' %}btn-blue{% else %}btn-light border{% endif %}">Aptitude</a>
+        <a href="{% url 'hr:application_list' %}?status=INTERVIEW{% if search_query %}&q={{ search_query }}{% endif %}" class="btn btn-sm {% if selected_status == 'INTERVIEW' %}btn-blue{% else %}btn-light border{% endif %}">Interview</a>
+        <a href="{% url 'hr:application_list' %}?status=SELECTED{% if search_query %}&q={{ search_query }}{% endif %}" class="btn btn-sm {% if selected_status == 'SELECTED' %}btn-blue{% else %}btn-light border{% endif %}">Selected</a>
+        <a href="{% url 'hr:application_list' %}?status=REJECTED{% if search_query %}&q={{ search_query }}{% endif %}" class="btn btn-sm {% if selected_status == 'REJECTED' %}btn-blue{% else %}btn-light border{% endif %}">Rejected</a>
     </div>
 </div>
 
 <div class="card card-custom p-3">
+    <!-- Search Bar -->
+    <form method="GET" class="mb-3">
+        {% if selected_status %}
+            <input type="hidden" name="status" value="{{ selected_status }}">
+        {% endif %}
+        <div class="input-group">
+            <input type="text" name="q" class="form-control form-control-sm" placeholder="Search by candidate name, email, or applied position..." value="{{ search_query }}">
+            <button class="btn btn-outline-secondary btn-sm" type="submit"><i class="bi bi-search"></i> Search</button>
+            {% if search_query %}
+                <a href="{% url 'hr:application_list' %}{% if selected_status %}?status={{ selected_status }}{% endif %}" class="btn btn-outline-secondary btn-sm">Clear</a>
+            {% endif %}
+        </div>
+    </form>
+
     <div class="table-responsive">
         <table class="table table-hover align-middle mb-0">
             <thead class="table-light">
@@ -35,34 +53,70 @@
                 {% for app in applications %}
                 <tr>
                     <td>
-                        <strong>{{ app.candidate.user.get_full_name|default:app.candidate.user.username }}</strong><br>
-                        <small class="text-muted">{{ app.candidate.user.email }}</small>
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="user-avatar" style="width: 34px; height: 34px; font-size: 0.8rem;">
+                                {{ app.candidate.first_name|default:app.candidate.user.name|default:app.candidate.user.email|slice:":1"|upper }}
+                            </div>
+                            <div>
+                                <strong>{{ app.candidate.user.name|default:app.candidate.first_name|default:app.candidate.user.email }}</strong><br>
+                                <small class="text-muted">{{ app.candidate.user.email }}</small>
+                            </div>
+                        </div>
                     </td>
                     <td>
-                        <span class="fw-semibold">{{ app.job.title }}</span><br>
-                        <small class="text-muted">{{ app.job.department_name }}</small>
+                        {% if app.vacancy %}
+                            <span class="fw-semibold text-dark">{{ app.vacancy.title }}</span><br>
+                            <small class="text-muted">{{ app.vacancy.department.name|default:"Unassigned" }}</small>
+                        {% else %}
+                            <span class="text-muted fst-italic">Not available</span>
+                        {% endif %}
                     </td>
                     <td>{{ app.applied_at|date:"M d, Y" }}</td>
                     <td>
-                        <span class="badge {% if app.status == 'SELECTED' %}bg-success{% elif app.status == 'SHORTLISTED' %}bg-primary{% elif app.status == 'REJECTED' %}bg-danger{% else %}bg-secondary{% endif %}">
+                        <span class="badge {% if app.status == 'SELECTED' %}bg-success{% elif app.status == 'SHORTLISTED' %}bg-primary{% elif app.status == 'REJECTED' %}bg-danger{% elif app.status == 'INTERVIEW' %}bg-info text-dark{% elif app.status == 'APTITUDE' %}bg-warning text-dark{% else %}bg-secondary{% endif %}">
                             {{ app.get_status_display }}
                         </span>
                     </td>
                     <td class="text-end">
                         <a href="{% url 'hr:application_detail' app.pk %}" class="btn btn-sm btn-outline-blue">
-                            View Candidate
+                            <i class="bi bi-eye me-1"></i> View Details
                         </a>
                     </td>
                 </tr>
                 {% empty %}
                 <tr>
                     <td colspan="5" class="text-center text-muted py-4">
-                        No candidate applications found for this stage.
+                        <i class="bi bi-inbox d-block fs-3 text-secondary opacity-50 mb-1"></i>
+                        No candidate applications found{% if selected_status %} for stage "{{ selected_status }}"{% endif %}.
                     </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <div class="d-flex justify-content-between align-items-center mt-3 pt-3 border-top flex-wrap gap-2">
+        <small class="text-muted">
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }} ({{ paginator.count }} total)
+        </small>
+        <ul class="pagination pagination-sm mb-0">
+            {% if page_obj.has_previous %}
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if selected_status %}&status={{ selected_status }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}">&laquo;</a></li>
+            {% endif %}
+            {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                    <li class="page-item active"><span class="page-link">{{ num }}</span></li>
+                {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                    <li class="page-item"><a class="page-link" href="?page={{ num }}{% if selected_status %}&status={{ selected_status }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}">{{ num }}</a></li>
+                {% endif %}
+            {% endfor %}
+            {% if page_obj.has_next %}
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}{% if selected_status %}&status={{ selected_status }}{% endif %}{% if search_query %}&q={{ search_query }}{% endif %}">&raquo;</a></li>
+            {% endif %}
+        </ul>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

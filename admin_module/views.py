@@ -10,10 +10,10 @@ from django.utils.translation import gettext_lazy as _
 from .decorators import admin_required
 from .forms import (
     AdminDecisionForm,
+    AdminIssueWarningForm,
     AdminLoginForm,
     AdminRegistrationForm,
     AnnouncementForm,
-    CandidateForm,
     DepartmentForm,
     EmployeeCreateForm,
     EmployeeProfileForm,
@@ -26,6 +26,7 @@ from employees.models import (
     Employee,
     EmployeePerformance,
     EmployeeReport,
+    Notification,
     PerformanceWarning,
 )
 from hr.models import AptitudeTest, HRManager, Interview
@@ -46,7 +47,7 @@ def get_sidebar_context():
 
     return {
         "employees_count": Employee.objects.count(),
-        "hr_managers_count": HRManager.objects.count(),
+        "hr_managers_count": HRManager.objects.filter(user__role=User.RoleChoices.HR).count(),
         "departments_count": Department.objects.count(),
         "open_vacancies_count": JobVacancy.objects.filter(status="OPEN").count(),
         "candidates_count": Candidate.objects.count(),
@@ -156,7 +157,7 @@ def admin_dashboard_view(request):
         "-created_at"
     )[:5]
 
-    recent_hr_managers = HRManager.objects.select_related("user", "department").order_by(
+    recent_hr_managers = HRManager.objects.filter(user__role=User.RoleChoices.HR).select_related("user", "department").order_by(
         "-created_at"
     )[:5]
 
@@ -212,7 +213,7 @@ def admin_departments_management_view(request):
     """List all departments with workforce metrics."""
     departments = Department.objects.annotate(
         employee_count=Count("employees"),
-        hr_count=Count("hr_managers"),
+        hr_count=Count("hr_managers", filter=Q(hr_managers__user__role=User.RoleChoices.HR)),
     ).order_by("name")
 
     context = get_sidebar_context()
@@ -220,6 +221,7 @@ def admin_departments_management_view(request):
         "page_title": "Departments Directory - Smart HRMS Admin",
         "current_page": "departments",
         "departments": departments,
+        "show_add_button": True,
     })
     return render(request, "admin_module/manage_departments.html", context)
 
@@ -256,7 +258,7 @@ def admin_department_detail_view(request, department_id):
     """Detailed view for a department, showing workforce and vacancies."""
     department = get_object_or_404(Department, pk=department_id)
     dept_employees = department.employees.select_related("user").order_by("-created_at")
-    dept_hr_managers = department.hr_managers.select_related("user").order_by("-created_at")
+    dept_hr_managers = department.hr_managers.filter(user__role=User.RoleChoices.HR).select_related("user").order_by("-created_at")
     dept_vacancies = department.job_vacancies.all().order_by("-posted_date")
 
     context = get_sidebar_context()
@@ -265,6 +267,7 @@ def admin_department_detail_view(request, department_id):
         "current_page": "departments",
         "department": department,
         "employees": dept_employees,
+        "employee_count": dept_employees.count(),
         "hr_managers": dept_hr_managers,
         "vacancies": dept_vacancies,
     })
@@ -403,23 +406,32 @@ def admin_employee_create_view(request):
 
 @admin_required
 def admin_employee_profile_view(request, employee_id):
-    """Profile view for a single employee."""
+    """Profile view for a single employee displaying aggregated account, personal, employment, documents, and historical records."""
     employee = get_object_or_404(
-        Employee.objects.select_related("user", "department", "candidate"),
+        Employee.objects.select_related("user", "department", "candidate", "created_by"),
         pk=employee_id,
     )
-    performance_reviews = employee.performance_reviews.all().order_by("-review_date")
-    warnings = employee.performance_warnings.all().order_by("-warning_date")
-    reports = employee.reports.all().order_by("-week_start_date")
+    documents = employee.documents.all().order_by("-uploaded_at")
+    performance_reviews = employee.performance_reviews.select_related("reviewed_by__user").order_by("-review_date")
+    warnings = employee.performance_warnings.select_related("issued_by__user", "decided_by").order_by("-warning_date")
+    reports = employee.reports.select_related("reviewed_by__user").order_by("-submitted_at")
+    notifications = employee.notifications.all().order_by("-created_at")[:10]
+
+    profile_photo = employee.profile_photo if employee.profile_photo else (
+        employee.candidate.profile_photo if (employee.candidate and employee.candidate.profile_photo) else None
+    )
 
     context = get_sidebar_context()
     context.update({
         "page_title": f"{employee.user.name or employee.user.email} - Employee Profile",
         "current_page": "employees",
         "employee": employee,
+        "profile_photo": profile_photo,
+        "documents": documents,
         "performance_reviews": performance_reviews,
         "warnings": warnings,
         "reports": reports,
+        "notifications": notifications,
         "back_url": "admin_module:employees_list",
         "title": "Employee Profile",
     })
@@ -459,32 +471,42 @@ def admin_employee_edit_view(request, employee_id):
 
 @admin_required
 def admin_employee_delete_view(request, employee_id):
-    """Delete an employee and their corresponding user profile."""
+    """Deactivate and terminate an employee profile while preserving all historical records."""
     employee = get_object_or_404(
-        Employee.objects.select_related("user"),
+        Employee.objects.select_related("user", "department"),
         pk=employee_id,
     )
 
     if request.method == "POST":
         name = employee.user.name or employee.user.email
+        # Safely mark employee as TERMINATED
+        employee.employment_status = "TERMINATED"
+        employee.save(update_fields=["employment_status", "updated_at"])
+
+        # Deactivate corresponding user account
         user = employee.user
-        employee.delete()
-        user.delete()
-        messages.success(request, f"Employee '{name}' and associated user account were deleted.")
+        user.is_active = False
+        user.status = User.StatusChoices.INACTIVE
+        user.save(update_fields=["is_active", "status"])
+
+        messages.success(
+            request,
+            f"Employee '{name}' has been deactivated and marked as Terminated. All historical records have been preserved.",
+        )
         return redirect("admin_module:employees_list")
 
     return render(
         request,
         "admin_module/confirm_delete.html",
         {
-            "page_title": f"Delete Employee: {employee.user.name or employee.user.email}",
+            "page_title": f"Terminate Employee: {employee.user.name or employee.user.email}",
             "current_page": "employees",
             "object_type": "Employee",
             "object_name": f"{employee.user.name or employee.user.email} ({employee.designation})",
             "object_id": employee_id,
             "delete_url": "admin_module:employee_delete",
             "back_url": "admin_module:employees_list",
-            "warning_message": "This will permanently remove the employee profile, associated user account, and all historical records.",
+            "warning_message": "Terminating this employee will deactivate their login account while preserving all historical work reports, performance reviews, warnings, and documents.",
         },
     )
 
@@ -497,7 +519,7 @@ def admin_employee_delete_view(request, employee_id):
 @admin_required
 def admin_hr_managers_management_view(request):
     """List and manage HR Managers."""
-    hr_managers = HRManager.objects.select_related("user", "department").order_by("-created_at")
+    hr_managers = HRManager.objects.filter(user__role=User.RoleChoices.HR).select_related("user", "department").order_by("-created_at")
 
     search_query = request.GET.get("q", "").strip()
     dept_filter = request.GET.get("department", "")
@@ -556,21 +578,36 @@ def admin_hr_manager_create_view(request):
 
 @admin_required
 def admin_hr_manager_profile_view(request, manager_id):
-    """Profile detail for an HR Manager."""
+    """Profile detail for an HR Manager displaying aggregated profile, account, documents, and activity."""
     manager = get_object_or_404(
-        HRManager.objects.select_related("user", "department"),
+        HRManager.objects.filter(user__role=User.RoleChoices.HR).select_related("user", "department"),
         pk=manager_id,
     )
+    linked_employee = getattr(manager.user, "employee_profile", None)
+    documents = linked_employee.documents.all().order_by("-uploaded_at") if linked_employee else []
+    profile_photo = linked_employee.profile_photo if (linked_employee and linked_employee.profile_photo) else None
+
     aptitude_tests = manager.aptitude_tests.all().order_by("-created_at")
     interviews = manager.interviews.select_related("application", "application__candidate").order_by("-interview_date")
+    posted_jobs = manager.posted_jobs.all().order_by("-created_at")
+    reviewed_reports = manager.reviewed_employee_reports.select_related("employee__user").order_by("-reviewed_at")
+    performance_reviews = manager.employee_performance_reviews.select_related("employee__user").order_by("-review_date")
+    issued_warnings = manager.issued_warnings.select_related("employee__user").order_by("-warning_date")
 
     context = get_sidebar_context()
     context.update({
         "page_title": f"{manager.user.name or manager.user.email} - HR Manager Profile",
         "current_page": "hr_managers",
         "manager": manager,
+        "linked_employee": linked_employee,
+        "profile_photo": profile_photo,
+        "documents": documents,
         "aptitude_tests": aptitude_tests,
         "interviews": interviews,
+        "posted_jobs": posted_jobs,
+        "reviewed_reports": reviewed_reports,
+        "performance_reviews": performance_reviews,
+        "issued_warnings": issued_warnings,
         "back_url": "admin_module:hr_managers_list",
         "title": "HR Manager Profile",
     })
@@ -581,7 +618,7 @@ def admin_hr_manager_profile_view(request, manager_id):
 def admin_hr_manager_edit_view(request, manager_id):
     """Update HR Manager profile."""
     manager = get_object_or_404(
-        HRManager.objects.select_related("user", "department"),
+        HRManager.objects.filter(user__role=User.RoleChoices.HR).select_related("user", "department"),
         pk=manager_id,
     )
 
@@ -612,7 +649,7 @@ def admin_hr_manager_edit_view(request, manager_id):
 def admin_hr_manager_delete_view(request, manager_id):
     """Delete HR Manager profile and account."""
     manager = get_object_or_404(
-        HRManager.objects.select_related("user"),
+        HRManager.objects.filter(user__role=User.RoleChoices.HR).select_related("user"),
         pk=manager_id,
     )
 
@@ -643,7 +680,7 @@ def admin_hr_manager_delete_view(request, manager_id):
 @admin_required
 def admin_hr_manager_toggle_status_view(request, manager_id):
     """Toggle active status for an HR Manager."""
-    manager = get_object_or_404(HRManager.objects.select_related("user"), pk=manager_id)
+    manager = get_object_or_404(HRManager.objects.filter(user__role=User.RoleChoices.HR).select_related("user"), pk=manager_id)
     if request.method == "POST":
         new_active = not manager.is_active
         manager.is_active = new_active
@@ -845,59 +882,6 @@ def admin_candidates_management_view(request):
     })
     return render(request, "admin_module/manage_candidates.html", context)
 
-
-@admin_required
-def admin_candidate_create_view(request):
-    """Register a new candidate application."""
-    if request.method == "POST":
-        form = CandidateForm(request.POST, request.FILES)
-        if form.is_valid():
-            candidate = form.save()
-            messages.success(request, f"Candidate application for '{form.cleaned_data['full_name']}' registered.")
-            return redirect("admin_module:candidates_list")
-        messages.error(request, "Please correct the errors in the candidate application below.")
-    else:
-        form = CandidateForm()
-
-    context = get_sidebar_context()
-    context.update({
-        "page_title": "Register Candidate - Smart HRMS Admin",
-        "current_page": "candidates",
-        "form": form,
-        "title": "Register Candidate Application",
-        "submit_label": "Create Candidate Application",
-        "back_url": "admin_module:candidates_list",
-    })
-    return render(request, "admin_module/candidate_form.html", context)
-
-
-@admin_required
-def admin_candidate_edit_view(request, candidate_id):
-    """Edit candidate details and application."""
-    candidate = get_object_or_404(Candidate.objects.select_related("user"), pk=candidate_id)
-
-    if request.method == "POST":
-        form = CandidateForm(request.POST, request.FILES, candidate=candidate)
-        if form.is_valid():
-            form.save()
-            messages.success(request, f"Candidate '{form.cleaned_data['full_name']}' updated.")
-            return redirect("admin_module:candidates_list")
-        messages.error(request, "Please correct the errors below.")
-    else:
-        form = CandidateForm(candidate=candidate)
-
-    full_name = f"{candidate.first_name} {candidate.last_name}".strip()
-    context = get_sidebar_context()
-    context.update({
-        "page_title": f"Edit Candidate: {full_name}",
-        "current_page": "candidates",
-        "form": form,
-        "candidate": candidate,
-        "title": "Edit Candidate Application",
-        "submit_label": "Update Application",
-        "back_url": "admin_module:candidates_list",
-    })
-    return render(request, "admin_module/candidate_form.html", context)
 
 
 @admin_required
@@ -1379,6 +1363,13 @@ def admin_responsibilities_decision_view(request, warning_id):
                 warning.employee.user.is_active = False
                 warning.employee.user.status = User.StatusChoices.INACTIVE
                 warning.employee.user.save(update_fields=["is_active", "status"])
+            Notification.objects.create(
+                employee=warning.employee,
+                title="Employment Status Notice: Terminated",
+                message=f"Your employment has been terminated following administrative review.\nDirective: {comments}",
+                notification_type="WARNING",
+                is_read=False,
+            )
             messages.warning(
                 request,
                 f"Termination decision recorded. Employee '{warning.employee.user.name or warning.employee.user.email}' has been terminated.",
@@ -1391,6 +1382,13 @@ def admin_responsibilities_decision_view(request, warning_id):
                 issued_by=warning.issued_by,
                 reason=new_reason,
                 status="OPEN",
+            )
+            Notification.objects.create(
+                employee=warning.employee,
+                title="Performance Warning Notice",
+                message=f"A performance warning has been issued by Administration.\nReason: {warning.reason}\nDirective: {comments}",
+                notification_type="WARNING",
+                is_read=False,
             )
             messages.info(
                 request,
@@ -1414,6 +1412,65 @@ def admin_responsibilities_decision_view(request, warning_id):
     return render(request, "admin_module/responsibilities_review.html", context)
 
 
+@admin_required
+def admin_responsibilities_issue_warning_view(request, warning_id):
+    """Allow Admin to issue a formal warning directive and notification directly to the employee."""
+    warning = get_object_or_404(
+        PerformanceWarning.objects.select_related(
+            "employee", "employee__user", "employee__department", "issued_by", "issued_by__user"
+        ),
+        pk=warning_id,
+    )
+    emp_name = warning.employee.user.name or warning.employee.user.email
+
+    if request.method == "POST":
+        form = AdminIssueWarningForm(request.POST)
+        if form.is_valid():
+            warning_message = form.cleaned_data["warning_message"]
+
+            # Update existing PerformanceWarning
+            warning.admin_decision = "ANOTHER_WARNING"
+            warning.admin_comments = warning_message
+            warning.decided_by = request.user
+            warning.decision_date = timezone.now()
+            warning.status = "RESOLVED"
+            warning.save(update_fields=["admin_decision", "admin_comments", "decided_by", "decision_date", "status"])
+
+            # Create an Employee Notification for THAT EXACT employee
+            Notification.objects.create(
+                employee=warning.employee,
+                title="Performance Warning Notice",
+                message=f"A formal performance warning has been issued by Administration.\n\nReason: {warning.reason}\n\nAdmin Warning Message:\n{warning_message}",
+                notification_type="WARNING",
+                is_read=False,
+            )
+
+            messages.success(
+                request,
+                f"Warning issued to {emp_name} successfully.",
+            )
+            return redirect("admin_module:admin_responsibilities_warnings")
+        else:
+            messages.error(request, "Please correct the errors in the warning form below.")
+    else:
+        initial = {}
+        if warning.admin_comments:
+            initial["warning_message"] = warning.admin_comments
+        form = AdminIssueWarningForm(initial=initial)
+
+    context = get_sidebar_context()
+    context.update({
+        "page_title": f"Issue Warning: {emp_name}",
+        "current_page": "responsibilities",
+        "warning": warning,
+        "employee": warning.employee,
+        "form": form,
+        "back_url": "admin_module:admin_responsibilities_warnings",
+    })
+    return render(request, "admin_module/responsibilities_issue_warning.html", context)
+
+
+
 # ============================================================================
 # ADMIN REPORTS VIEWS
 # ============================================================================
@@ -1422,7 +1479,7 @@ def admin_responsibilities_decision_view(request, warning_id):
 @admin_required
 def admin_reports_hr_weekly_view(request):
     """HR operations weekly summary report."""
-    hr_managers = HRManager.objects.select_related("user", "department").all()
+    hr_managers = HRManager.objects.filter(user__role=User.RoleChoices.HR).select_related("user", "department").all()
 
     reports = []
     for m in hr_managers:
@@ -1545,14 +1602,39 @@ def admin_reports_departments_view(request):
     """Department allocation and headcount report."""
     departments = Department.objects.annotate(
         employee_count=Count("employees"),
-        hr_count=Count("hr_managers"),
+        hr_count=Count("hr_managers", filter=Q(hr_managers__user__role=User.RoleChoices.HR)),
     ).order_by("name")
+
+    total_departments = departments.count()
+    total_employees = Employee.objects.count()
+    active_employees = Employee.objects.filter(employment_status="ACTIVE").count()
+    avg_headcount = round(total_employees / total_departments, 1) if total_departments > 0 else 0
+
+    rows = []
+    chart_labels = []
+    chart_values = []
+    for dept in departments:
+        dept_employees = dept.employees.select_related("user").order_by("-created_at")
+        rows.append({
+            "department": dept,
+            "employee_count": dept.employee_count,
+            "employees": dept_employees,
+        })
+        chart_labels.append(dept.name)
+        chart_values.append(dept.employee_count)
 
     context = get_sidebar_context()
     context.update({
         "page_title": "Departments Workforce Report - Smart HRMS Admin",
         "current_page": "reports",
         "departments": departments,
+        "total_departments": total_departments,
+        "total_employees": total_employees,
+        "active_employees": active_employees,
+        "avg_headcount": avg_headcount,
+        "rows": rows,
+        "chart_labels": chart_labels,
+        "chart_values": chart_values,
     })
     return render(request, "admin_module/reports_departments.html", context)
 

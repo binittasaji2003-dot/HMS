@@ -14,118 +14,373 @@
     </div>
     <h1 class="h3 mb-0 fw-bold">{{ title }}</h1>
   </div>
-  <a href="{% url back_url %}" class="btn-secondary-admin">
-    <i class="bi bi-arrow-left"></i> Back to HR Managers
-  </a>
+  <div class="d-flex gap-2">
+    <a href="{% url 'admin_module:hr_manager_edit' manager.pk %}" class="btn-primary-admin">
+      <i class="bi bi-pencil-square"></i> Edit Profile
+    </a>
+    <a href="{% url back_url %}" class="btn-secondary-admin">
+      <i class="bi bi-arrow-left"></i> Back to HR Managers
+    </a>
+  </div>
 </div>
 
-<div class="row justify-content-center">
-  <div class="col-12 col-lg-9 col-xl-8">
-    <!-- Profile Hero Card -->
-    <div class="saas-card mb-4">
-      <div class="p-4">
-        <div class="d-flex align-items-center justify-content-between flex-wrap gap-3">
-          <div class="d-flex align-items-center gap-3">
-            <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold text-white fs-3"
-                 style="width: 60px; height: 60px; background: linear-gradient(135deg, #3B82F6, #1D4ED8); box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);">
-              {{ manager.user.name|default:manager.user.email|slice:":1"|upper }}
-            </div>
-            <div>
-              <h2 class="h5 mb-1 text-dark fw-bold">{{ manager.user.name|default:manager.user.email }}</h2>
-              <div class="d-flex align-items-center gap-2 flex-wrap">
-                <span class="text-muted small"><i class="bi bi-envelope me-1"></i>{{ manager.user.email }}</span>
-                <span class="text-muted small">&bull;</span>
-                <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2 py-0">
-                  {{ manager.department.name|default:"Unassigned" }}
-                </span>
-                <span class="text-muted small">&bull;</span>
-                <span class="text-secondary small">HR Operations Manager</span>
-              </div>
-            </div>
-          </div>
-
-          <div>
-            {% if manager.user.status == 'Active' %}
-              <span class="badge-status badge-status-active">
-                <i class="bi bi-check-circle-fill"></i> Active
-              </span>
-            {% else %}
-              <span class="badge-status badge-status-danger">
-                {{ manager.user.status }}
-              </span>
-            {% endif %}
-          </div>
+<!-- Profile Hero Card -->
+<div class="saas-card mb-4 p-4">
+  <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
+    <div class="d-flex align-items-center gap-3">
+      {% if profile_photo %}
+        <img src="{{ profile_photo.url }}" alt="{{ manager.user.name|default:manager.user.email }}"
+             style="width: 68px; height: 68px; border-radius: 16px; object-fit: cover; border: 2px solid rgba(59, 130, 246, 0.4); box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);">
+      {% else %}
+        <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold text-white fs-3"
+             style="width: 68px; height: 68px; border-radius: 16px !important; background: linear-gradient(135deg, #3B82F6, #1D4ED8); box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);">
+          {{ manager.user.name|default:manager.user.email|slice:":1"|upper }}
+        </div>
+      {% endif %}
+      <div>
+        <h2 class="h4 mb-1 text-dark fw-bold">{{ manager.user.name|default:manager.user.email }}</h2>
+        <div class="d-flex align-items-center gap-2 flex-wrap text-secondary small">
+          <span><i class="bi bi-envelope me-1"></i>{{ manager.user.email }}</span>
+          <span>&bull;</span>
+          <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2 py-0">
+            {{ manager.department.name|default:"Unassigned" }}
+          </span>
+          <span>&bull;</span>
+          <span class="badge bg-secondary bg-opacity-10 text-secondary border px-2 py-0">
+            <i class="bi bi-person-badge me-1"></i>{{ manager.employee_code|default:"Not provided" }}
+          </span>
+          <span>&bull;</span>
+          <span class="text-secondary">{{ linked_employee.designation|default:"HR Manager" }}</span>
         </div>
       </div>
     </div>
 
-    <!-- Edit Profile Card -->
-    <div class="saas-card">
-      <div class="card-header">
-        <h2 class="card-title">
-          <i class="bi bi-sliders text-primary"></i>
-          <span>Edit HR Manager Profile Parameters</span>
-        </h2>
-        <span class="badge-status badge-status-info">
-          HR Lead Editor
+    <div class="d-flex align-items-center gap-2">
+      {% if manager.user.status == 'Active' %}
+        <span class="badge-status badge-status-active" style="font-size: 0.85rem; padding: 0.35rem 0.85rem;">
+          <i class="bi bi-check-circle-fill me-1"></i> Active
+        </span>
+      {% else %}
+        <span class="badge-status badge-status-danger" style="font-size: 0.85rem; padding: 0.35rem 0.85rem;">
+          <i class="bi bi-x-circle-fill me-1"></i> {{ manager.user.status|default:"Inactive" }}
+        </span>
+      {% endif %}
+
+      <!-- Action Form / Buttons -->
+      <form method="post" action="{% url 'admin_module:hr_manager_toggle_status' manager.pk %}" class="d-inline m-0 p-0">
+        {% csrf_token %}
+        {% if manager.user.status == 'Active' %}
+          <button type="submit" class="btn-secondary-admin py-1 px-2" title="Deactivate HR Manager" style="font-size: 0.8rem; color: #f59e0b;">
+            <i class="bi bi-person-slash me-1"></i> Deactivate
+          </button>
+        {% else %}
+          <button type="submit" class="btn-secondary-admin py-1 px-2" title="Activate HR Manager" style="font-size: 0.8rem; color: #10b981;">
+            <i class="bi bi-person-check me-1"></i> Activate
+          </button>
+        {% endif %}
+      </form>
+    </div>
+  </div>
+
+  <!-- Quick Metrics Ribbon -->
+  <div class="row g-2">
+    <div class="col-6 col-md-3">
+      <div class="profile-stat-box" style="background-color: var(--bg-main); border: 1px solid var(--border-color); border-radius: 10px; padding: 0.75rem;">
+        <span class="profile-stat-label">Employee Code</span>
+        <span class="profile-stat-val text-dark text-truncate">{{ manager.employee_code|default:"Not provided" }}</span>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="profile-stat-box" style="background-color: var(--bg-main); border: 1px solid var(--border-color); border-radius: 10px; padding: 0.75rem;">
+        <span class="profile-stat-label">Department</span>
+        <span class="profile-stat-val text-dark text-truncate">{{ manager.department.name|default:"Unassigned" }}</span>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="profile-stat-box" style="background-color: var(--bg-main); border: 1px solid var(--border-color); border-radius: 10px; padding: 0.75rem;">
+        <span class="profile-stat-label">Joining Date</span>
+        <span class="profile-stat-val text-primary" style="font-size: 0.9rem;">
+          {% if manager.joining_date %}{{ manager.joining_date|date:"M d, Y" }}{% else %}Not provided{% endif %}
         </span>
       </div>
-
-      <!-- Card Body with Form -->
-      <div class="form-window-body">
-        <form method="post" novalidate id="hrManagerProfileForm">
-          {% csrf_token %}
-
-          {% if form.non_field_errors %}
-            <div class="alert alert-danger mb-4 p-3">
-              {% for error in form.non_field_errors %}
-                <div class="d-flex align-items-center gap-2">
-                  <i class="bi bi-exclamation-circle-fill text-danger"></i>
-                  <span>{{ error }}</span>
-                </div>
-              {% endfor %}
-            </div>
-          {% endif %}
-
-          <div class="form-section">
-            <div class="form-section-title">
-              <i class="bi bi-pencil-square"></i> Update HR Manager Record & Credentials
-            </div>
-            <div class="row g-3">
-              {% for field in form %}
-                <div class="col-12 {% if field.name == 'address' or field.name == 'bio' or field.name == 'notes' %}col-12{% else %}col-md-6{% endif %}">
-                  <div class="mb-1">
-                    <label for="{{ field.id_for_label }}" class="form-label mb-1">
-                      {{ field.label }}
-                      {% if field.field.required %}<span class="text-danger">*</span>{% endif %}
-                    </label>
-                    {{ field }}
-                    {% if field.help_text %}
-                      <small class="text-muted d-block mt-1" style="font-size: 0.78rem;">{{ field.help_text }}</small>
-                    {% endif %}
-                    {% if field.errors %}
-                      <div class="text-danger small mt-1">
-                        <i class="bi bi-exclamation-circle me-1"></i>{{ field.errors|join:", " }}
-                      </div>
-                    {% endif %}
-                  </div>
-                </div>
-              {% endfor %}
-            </div>
-          </div>
-
-          <!-- Form Actions Footer -->
-          <div class="form-actions-bar">
-            <a href="{% url back_url %}" class="btn-secondary-admin">
-              <i class="bi bi-x-lg"></i> Cancel
-            </a>
-            <button type="submit" class="btn-primary-admin">
-              <i class="bi bi-check2-circle"></i> {{ submit_label }}
-            </button>
-          </div>
-        </form>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="profile-stat-box" style="background-color: var(--bg-main); border: 1px solid var(--border-color); border-radius: 10px; padding: 0.75rem;">
+        <span class="profile-stat-label">System Role</span>
+        <span class="profile-stat-val text-primary" style="font-size: 0.9rem;">{{ manager.user.get_role_display|default:manager.user.role|default:"HR Manager" }}</span>
       </div>
     </div>
   </div>
 </div>
+
+<!-- Detailed Information Sections -->
+<div class="row g-4">
+  <!-- Left Column: Personal & Professional Info -->
+  <div class="col-12 col-xl-7">
+    <div class="d-flex flex-column gap-4">
+
+      <!-- Section: Personal Information -->
+      <div class="saas-card p-4">
+        <h2 class="card-title pb-3 mb-3 border-bottom">
+          <i class="bi bi-person-lines-fill text-primary"></i> Personal Information
+        </h2>
+        <div class="row g-3">
+          <div class="col-12 col-md-6">
+            <label class="form-label text-muted small mb-1">Full Name</label>
+            <div class="text-dark fw-semibold">
+              {% if manager.user.name %}{{ manager.user.name }}{% else %}<span class="text-muted fst-italic">Not provided</span>{% endif %}
+            </div>
+          </div>
+          <div class="col-12 col-md-6">
+            <label class="form-label text-muted small mb-1">Email Address</label>
+            <div class="text-dark fw-semibold">
+              {% if manager.user.email %}{{ manager.user.email }}{% else %}<span class="text-muted fst-italic">Not provided</span>{% endif %}
+            </div>
+          </div>
+          <div class="col-12">
+            <label class="form-label text-muted small mb-1">Profile Photo</label>
+            <div>
+              {% if profile_photo %}
+                <div class="d-flex align-items-center gap-3">
+                  <img src="{{ profile_photo.url }}" alt="Profile Photo" class="rounded border" style="width: 48px; height: 48px; object-fit: cover;">
+                  <a href="{{ profile_photo.url }}" target="_blank" rel="noopener" class="btn-pill-action">
+                    <i class="bi bi-eye me-1"></i> View Photo
+                  </a>
+                </div>
+              {% else %}
+                <span class="text-muted fst-italic">Not uploaded</span>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section: Professional Information -->
+      <div class="saas-card p-4">
+        <h2 class="card-title pb-3 mb-3 border-bottom">
+          <i class="bi bi-briefcase-fill text-primary"></i> Professional Information
+        </h2>
+        <div class="row g-3">
+          <div class="col-12 col-md-6">
+            <label class="form-label text-muted small mb-1">Employee Code</label>
+            <div class="text-dark fw-semibold">
+              {% if manager.employee_code %}{{ manager.employee_code }}{% else %}<span class="text-muted fst-italic">Not provided</span>{% endif %}
+            </div>
+          </div>
+          <div class="col-12 col-md-6">
+            <label class="form-label text-muted small mb-1">Designation</label>
+            <div class="text-dark fw-semibold">
+              {{ linked_employee.designation|default:"HR Manager" }}
+            </div>
+          </div>
+          <div class="col-12 col-md-6">
+            <label class="form-label text-muted small mb-1">Department</label>
+            <div>
+              {% if manager.department %}
+                <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2 py-1">
+                  {{ manager.department.name }}
+                </span>
+              {% else %}
+                <span class="text-muted fst-italic">Unassigned</span>
+              {% endif %}
+            </div>
+          </div>
+          <div class="col-12 col-md-6">
+            <label class="form-label text-muted small mb-1">Joining Date</label>
+            <div class="text-dark fw-semibold">
+              {% if manager.joining_date %}
+                {{ manager.joining_date|date:"F d, Y" }}
+              {% else %}
+                <span class="text-muted fst-italic">Not provided</span>
+              {% endif %}
+            </div>
+          </div>
+          <div class="col-12 col-md-6">
+            <label class="form-label text-muted small mb-1">HR Active Status</label>
+            <div>
+              {% if manager.is_active %}
+                <span class="badge-status badge-status-active">Active HR Lead</span>
+              {% else %}
+                <span class="badge-status badge-status-danger">Inactive</span>
+              {% endif %}
+            </div>
+          </div>
+          <div class="col-12 col-md-6">
+            <label class="form-label text-muted small mb-1">Record Created</label>
+            <div class="text-dark fw-medium">
+              {% if manager.created_at %}
+                {{ manager.created_at|date:"F d, Y H:i" }}
+              {% else %}
+                <span class="text-muted fst-italic">Not recorded</span>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section: Documents -->
+      <div class="saas-card p-4">
+        <h2 class="card-title pb-3 mb-3 border-bottom">
+          <i class="bi bi-folder2-open text-primary"></i> Documents
+        </h2>
+        {% if documents %}
+          <div class="table-responsive">
+            <table class="table-saas align-middle">
+              <thead>
+                <tr>
+                  <th>Document Type</th>
+                  <th>Uploaded Date</th>
+                  <th class="text-end">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for doc in documents %}
+                  <tr>
+                    <td>
+                      <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-file-earmark-text text-primary fs-5"></i>
+                        <span class="fw-semibold text-dark">{{ doc.get_document_type_display }}</span>
+                      </div>
+                    </td>
+                    <td>
+                      <span class="text-secondary small">{{ doc.uploaded_at|date:"M d, Y H:i" }}</span>
+                    </td>
+                    <td class="text-end">
+                      <a href="{{ doc.document.url }}" target="_blank" rel="noopener" class="btn-pill-action">
+                        <i class="bi bi-download me-1"></i> View / Download
+                      </a>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="text-muted fst-italic p-3 bg-light rounded text-center">
+            <i class="bi bi-folder-x me-1"></i> Not uploaded
+          </div>
+        {% endif %}
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Right Column: Account Information & Operations Scope -->
+  <div class="col-12 col-xl-5">
+    <div class="d-flex flex-column gap-4">
+
+      <!-- Section: Account Information (Never shows passwords/hashes) -->
+      <div class="saas-card p-4">
+        <h2 class="card-title pb-3 mb-3 border-bottom">
+          <i class="bi bi-shield-lock-fill text-primary"></i> Account Information
+        </h2>
+        <div class="d-flex flex-column gap-3">
+          <div class="d-flex justify-content-between align-items-center py-1 border-bottom border-light">
+            <span class="text-muted small">User ID</span>
+            <span class="fw-semibold text-dark">#{{ manager.user.pk }}</span>
+          </div>
+          <div class="d-flex justify-content-between align-items-center py-1 border-bottom border-light">
+            <span class="text-muted small">Account Email</span>
+            <span class="fw-semibold text-dark">{{ manager.user.email }}</span>
+          </div>
+          <div class="d-flex justify-content-between align-items-center py-1 border-bottom border-light">
+            <span class="text-muted small">System Role</span>
+            <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2 py-0">
+              {{ manager.user.get_role_display|default:manager.user.role|default:"HR Manager" }}
+            </span>
+          </div>
+          <div class="d-flex justify-content-between align-items-center py-1 border-bottom border-light">
+            <span class="text-muted small">Account Status</span>
+            {% if manager.user.status == 'Active' %}
+              <span class="badge-status badge-status-active">Active</span>
+            {% else %}
+              <span class="badge-status badge-status-danger">{{ manager.user.status|default:"Inactive" }}</span>
+            {% endif %}
+          </div>
+          <div class="d-flex justify-content-between align-items-center py-1 border-bottom border-light">
+            <span class="text-muted small">Login Access</span>
+            {% if manager.user.is_active %}
+              <span class="text-success small fw-semibold"><i class="bi bi-check-circle me-1"></i>Enabled</span>
+            {% else %}
+              <span class="text-danger small fw-semibold"><i class="bi bi-x-circle me-1"></i>Disabled</span>
+            {% endif %}
+          </div>
+          <div class="d-flex justify-content-between align-items-center py-1 border-bottom border-light">
+            <span class="text-muted small">Date Joined</span>
+            <span class="text-dark small">
+              {% if manager.user.date_joined %}
+                {{ manager.user.date_joined|date:"M d, Y H:i" }}
+              {% else %}
+                <span class="text-muted fst-italic">Not recorded</span>
+              {% endif %}
+            </span>
+          </div>
+          <div class="d-flex justify-content-between align-items-center py-1 border-bottom border-light">
+            <span class="text-muted small">Last Login</span>
+            <span class="text-dark small">
+              {% if manager.user.last_login %}
+                {{ manager.user.last_login|date:"M d, Y H:i" }}
+              {% else %}
+                <span class="text-muted fst-italic">Never logged in</span>
+              {% endif %}
+            </span>
+          </div>
+          <div class="d-flex justify-content-between align-items-center py-1">
+            <span class="text-muted small">Password Security</span>
+            <span class="badge bg-secondary bg-opacity-10 text-secondary border px-2 py-1">
+              <i class="bi bi-shield-check me-1 text-success"></i> Encrypted (Hidden)
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section: HR Operations Summary -->
+      <div class="saas-card p-4">
+        <h2 class="card-title pb-3 mb-3 border-bottom">
+          <i class="bi bi-activity text-primary"></i> HR Operations Activity
+        </h2>
+        <div class="row g-2 mb-3">
+          <div class="col-6">
+            <div class="profile-stat-box" style="background-color: var(--bg-main); border: 1px solid var(--border-color); border-radius: 8px; padding: 0.6rem;">
+              <span class="profile-stat-label">Jobs Posted</span>
+              <span class="profile-stat-val text-primary">{{ posted_jobs|length }}</span>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="profile-stat-box" style="background-color: var(--bg-main); border: 1px solid var(--border-color); border-radius: 8px; padding: 0.6rem;">
+              <span class="profile-stat-label">Aptitude Tests</span>
+              <span class="profile-stat-val text-primary">{{ aptitude_tests|length }}</span>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="profile-stat-box" style="background-color: var(--bg-main); border: 1px solid var(--border-color); border-radius: 8px; padding: 0.6rem;">
+              <span class="profile-stat-label">Interviews</span>
+              <span class="profile-stat-val text-primary">{{ interviews|length }}</span>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="profile-stat-box" style="background-color: var(--bg-main); border: 1px solid var(--border-color); border-radius: 8px; padding: 0.6rem;">
+              <span class="profile-stat-label">Reports Reviewed</span>
+              <span class="profile-stat-val text-primary">{{ reviewed_reports|length }}</span>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="profile-stat-box" style="background-color: var(--bg-main); border: 1px solid var(--border-color); border-radius: 8px; padding: 0.6rem;">
+              <span class="profile-stat-label">Performance Reviews</span>
+              <span class="profile-stat-val text-primary">{{ performance_reviews|length }}</span>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="profile-stat-box" style="background-color: var(--bg-main); border: 1px solid var(--border-color); border-radius: 8px; padding: 0.6rem;">
+              <span class="profile-stat-label">Warnings Issued</span>
+              <span class="profile-stat-val text-primary">{{ issued_warnings|length }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
 {% endblock %}
+

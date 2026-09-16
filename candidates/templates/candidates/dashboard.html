@@ -1,19 +1,140 @@
-{% extends "base.html" %}
-{% block title %}Candidate Dashboard{% endblock title %}
+{% extends "candidates/base_candidate.html" %}
+
+{% block title %}Candidate Dashboard | Smart HRMS{% endblock title %}
+
 {% block content %}
-<div class="py-4">
-  <h1>Candidate Dashboard</h1>
-  <p>Welcome, {{ request.user.name|default:request.user.email }}.</p>
-  <div class="row g-3 mb-4">
-    <div class="col-md-6"><div class="card p-3"><strong>{{ application_count }}</strong><span>Applications</span></div></div>
-    <div class="col-md-6"><div class="card p-3"><strong>{{ open_jobs }}</strong><span>Open vacancies</span></div></div>
+<div class="row g-4">
+  <!-- Welcome Banner -->
+  <div class="col-12">
+    <div class="portal-card bg-white p-4 d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 border-start border-4 border-primary shadow-sm">
+      <div>
+        <span class="badge bg-primary-subtle text-primary fw-bold text-uppercase px-3 py-1.5 rounded-pill mb-2">
+          Candidate Portal
+        </span>
+        <h3 class="fw-bold text-dark mb-1">Welcome back, {{ request.user.name|default:request.user.email }}! 👋</h3>
+        <p class="text-muted small mb-0">Track your job applications, explore open vacancies, and manage your applicant profile.</p>
+      </div>
+      <div class="d-flex gap-2 flex-wrap">
+        <a href="{% url 'candidates:job_list' %}" class="btn-blue-primary">
+          <i class="bi bi-search"></i> Explore Jobs
+        </a>
+        <a href="{% url 'candidates:profile' %}" class="btn-blue-outline">
+          <i class="bi bi-person-gear"></i> Update Profile
+        </a>
+      </div>
+    </div>
   </div>
-  <p><a class="btn btn-primary" href="{% url 'candidates:job_list' %}">Browse vacancies</a> <a class="btn btn-outline-primary" href="{% url 'candidates:profile' %}">My profile</a></p>
-  <h2 class="h4 mt-4">Recent applications</h2>
-  {% for application in applications %}
-    <div class="border rounded p-3 mb-2">{{ application.vacancy.title }} <span class="badge bg-secondary">{{ application.get_status_display }}</span></div>
-  {% empty %}
-    <p>No applications yet.</p>
-  {% endfor %}
+
+  <!-- Metric Overview Cards -->
+  <div class="col-12 col-md-4">
+    <div class="portal-card text-center p-4">
+      <div class="mx-auto mb-3 bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 56px; height: 56px; font-size: 24px;">
+        <i class="bi bi-file-earmark-text-fill"></i>
+      </div>
+      <h2 class="fw-extrabold text-primary mb-1">{{ application_count }}</h2>
+      <span class="text-muted small fw-semibold">Submitted Applications</span>
+    </div>
+  </div>
+
+  <div class="col-12 col-md-4">
+    <div class="portal-card text-center p-4">
+      <div class="mx-auto mb-3 bg-info-subtle text-info rounded-circle d-flex align-items-center justify-content-center" style="width: 56px; height: 56px; font-size: 24px;">
+        <i class="bi bi-briefcase-fill"></i>
+      </div>
+      <h2 class="fw-extrabold text-dark mb-1">{{ open_jobs }}</h2>
+      <span class="text-muted small fw-semibold">Active Job Openings</span>
+    </div>
+  </div>
+
+  <div class="col-12 col-md-4">
+    <div class="portal-card text-center p-4">
+      <div class="mx-auto mb-3 bg-success-subtle text-success rounded-circle d-flex align-items-center justify-content-center" style="width: 56px; height: 56px; font-size: 24px;">
+        <i class="bi bi-check-circle-fill"></i>
+      </div>
+      <h2 class="fw-extrabold text-success mb-1">
+        {% if candidate.profile_completed %}Complete{% else %}In Progress{% endif %}
+      </h2>
+      <span class="text-muted small fw-semibold">Profile Readiness</span>
+    </div>
+  </div>
+
+  <!-- Open Jobs Section -->
+  <div class="col-12 col-lg-7">
+    <div class="portal-card h-100">
+      <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+        <h5 class="fw-bold text-dark mb-0">
+          <i class="bi bi-fire text-danger me-1"></i> Latest Job Openings
+        </h5>
+        <a href="{% url 'candidates:job_list' %}" class="small text-primary fw-semibold text-decoration-none">
+          View All ({{ open_jobs }}) &rarr;
+        </a>
+      </div>
+
+      <div class="d-flex flex-column gap-3">
+        {% for job in available_jobs %}
+          <div class="p-3 rounded-3 border border-light-subtle bg-light bg-opacity-25 hover-shadow transition-all d-flex justify-content-between align-items-center flex-wrap gap-2">
+            <div>
+              <h6 class="fw-bold mb-1">
+                <a href="{% url 'candidates:job_detail' job.vacancy_id %}" class="text-dark text-decoration-none hover-primary">
+                  {{ job.title }}
+                </a>
+              </h6>
+              <div class="d-flex gap-2 align-items-center small text-muted flex-wrap">
+                <span class="portal-badge-blue">{{ job.department.name }}</span>
+                <span><i class="bi bi-geo-alt"></i> {{ job.location }}</span>
+                <span><i class="bi bi-clock"></i> Posted {{ job.posted_date|timesince }} ago</span>
+              </div>
+            </div>
+            <a href="{% url 'candidates:apply' job.vacancy_id %}" class="btn btn-sm btn-blue-primary">
+              Apply Now
+            </a>
+          </div>
+        {% empty %}
+          <div class="text-center py-4 text-muted">
+            <i class="bi bi-inbox fs-2 text-muted"></i>
+            <p class="mt-2 mb-0 small">No open positions currently available.</p>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Recent Applications Column -->
+  <div class="col-12 col-lg-5">
+    <div class="portal-card h-100">
+      <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+        <h5 class="fw-bold text-dark mb-0">
+          <i class="bi bi-file-earmark-check text-primary me-1"></i> My Recent Applications
+        </h5>
+        <a href="{% url 'candidates:applications' %}" class="small text-primary fw-semibold text-decoration-none">
+          View All &rarr;
+        </a>
+      </div>
+
+      {% if applications %}
+        <div class="d-flex flex-column gap-2">
+          {% for app in applications %}
+            <div class="p-3 rounded-3 border border-light-subtle bg-white">
+              <div class="d-flex justify-content-between align-items-start mb-1">
+                <h6 class="fw-bold mb-0 text-dark">{{ app.vacancy.title }}</h6>
+                <span class="badge {% if app.status == 'SELECTED' %}bg-success{% elif app.status == 'REJECTED' %}bg-danger{% elif app.status == 'INTERVIEW' %}bg-primary{% else %}bg-secondary{% endif %}">
+                  {{ app.get_status_display }}
+                </span>
+              </div>
+              <p class="text-muted small mb-0">{{ app.vacancy.department.name }} &bull; Applied {{ app.applied_at|date:"M d, Y" }}</p>
+            </div>
+          {% endfor %}
+        </div>
+      {% else %}
+        <div class="text-center py-5 text-muted">
+          <i class="bi bi-file-earmark-x fs-1 text-muted"></i>
+          <p class="mt-2 mb-3 small">You haven't applied for any positions yet.</p>
+          <a href="{% url 'candidates:job_list' %}" class="btn btn-sm btn-blue-primary">
+            Find Your Next Role
+          </a>
+        </div>
+      {% endif %}
+    </div>
+  </div>
 </div>
 {% endblock content %}

@@ -82,9 +82,11 @@
               <i class="bi bi-bell text-base"></i>
               <span>Notifications</span>
             </div>
+            {% if unread_notifications_count > 0 %}
             <span class="w-5 h-5 bg-hrms-blue text-white text-[11px] font-bold rounded-full flex items-center justify-center">
               {{ unread_notifications_count }}
             </span>
+            {% endif %}
           </a>
           <div class="pt-4 mt-4 border-t border-slate-100 space-y-1.5">
             <a href="{% url 'employees:profile' %}"
@@ -130,9 +132,11 @@
           <a href="{% url 'employees:notifications' %}"
              class="relative p-2 text-slate-600 hover:text-hrms-blue transition-colors">
             <i class="bi bi-bell text-lg"></i>
+            {% if unread_notifications_count > 0 %}
             <span class="absolute top-1.5 right-1.5 w-4 h-4 bg-hrms-blue text-white text-[9px] font-bold rounded-full flex items-center justify-center border-2 border-white">
               {{ unread_notifications_count }}
             </span>
+            {% endif %}
           </a>
           <div class="h-8 w-px bg-slate-200"></div>
           <a href="{% url 'employees:profile' %}"
@@ -516,57 +520,28 @@
                 <a href="{% url 'employees:notifications' %}"
                    class="text-xs font-bold text-hrms-blue hover:underline">View All</a>
               </div>
-              <div class="space-y-4">
-                <div class="flex items-start gap-3 p-2.5 rounded-xl hover:bg-slate-50 transition-colors">
-                  <div class="w-8 h-8 rounded-lg bg-blue-50 text-hrms-blue flex items-center justify-center text-sm shrink-0">
-                    <i class="bi bi-calendar-event"></i>
-                  </div>
-                  <div class="flex-1 min-w-0">
-                    <div class="text-xs font-bold text-slate-900 truncate">Weekly Report Reminder</div>
-                    <div class="text-[11px] text-slate-500">Please submit your weekly report.</div>
-                  </div>
-                  <span class="text-[10px] font-semibold text-slate-400">2 hours ago</span>
-                </div>
-                <div class="flex items-start gap-3 p-2.5 rounded-xl hover:bg-slate-50 transition-colors">
-                  <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center text-sm shrink-0">
-                    <i class="bi bi-chat-text"></i>
-                  </div>
-                  <div class="flex-1 min-w-0">
-                    <div class="text-xs font-bold text-slate-900 truncate">HR Feedback</div>
-                    <div class="text-[11px] text-slate-500">Your report has been reviewed.</div>
-                  </div>
-                  <span class="text-[10px] font-semibold text-slate-400">1 day ago</span>
-                </div>
-                <div class="flex items-start gap-3 p-2.5 rounded-xl hover:bg-slate-50 transition-colors">
-                  <div class="w-8 h-8 rounded-lg bg-red-50 text-red-600 flex items-center justify-center text-sm shrink-0">
-                    <i class="bi bi-exclamation-triangle"></i>
-                  </div>
-                  <div class="flex-1 min-w-0">
-                    <div class="text-xs font-bold text-slate-900 truncate">Performance Warning</div>
-                    <div class="text-[11px] text-slate-500">Please improve your punctuality.</div>
-                  </div>
-                  <span class="text-[10px] font-semibold text-slate-400">2 days ago</span>
-                </div>
-                <div class="flex items-start gap-3 p-2.5 rounded-xl hover:bg-slate-50 transition-colors">
-                  <div class="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center text-sm shrink-0">
-                    <i class="bi bi-megaphone"></i>
-                  </div>
-                  <div class="flex-1 min-w-0">
-                    <div class="text-xs font-bold text-slate-900 truncate">Company Announcement</div>
-                    <div class="text-[11px] text-slate-500">New company policy announced.</div>
-                  </div>
-                  <span class="text-[10px] font-semibold text-slate-400">3 days ago</span>
-                </div>
-                <div class="flex items-start gap-3 p-2.5 rounded-xl hover:bg-slate-50 transition-colors">
-                  <div class="w-8 h-8 rounded-lg bg-sky-50 text-sky-600 flex items-center justify-center text-sm shrink-0">
-                    <i class="bi bi-person-check"></i>
-                  </div>
-                  <div class="flex-1 min-w-0">
-                    <div class="text-xs font-bold text-slate-900 truncate">Profile Update</div>
-                    <div class="text-[11px] text-slate-500">Your profile has been updated.</div>
-                  </div>
-                  <span class="text-[10px] font-semibold text-slate-400">1 week ago</span>
-                </div>
+              <div class="space-y-3">
+                {% if notifications %}
+                  {% for n in notifications %}
+                    <div class="flex items-start gap-3 p-2.5 rounded-xl {% if not n.is_read %}bg-blue-50/50 border border-blue-100{% else %}hover:bg-slate-50 border border-transparent{% endif %} transition-colors">
+                      <div class="w-8 h-8 rounded-lg {% if not n.is_read %}bg-blue-100 text-hrms-blue{% else %}bg-slate-100 text-slate-500{% endif %} flex items-center justify-center text-sm shrink-0">
+                        <i class="bi bi-bell"></i>
+                      </div>
+                      <div class="flex-1 min-w-0">
+                        <div class="flex items-center justify-between gap-1">
+                          <span class="text-xs font-bold text-slate-900 truncate">{{ n.title }}</span>
+                          {% if not n.is_read %}
+                            <span class="w-2 h-2 rounded-full bg-hrms-blue shrink-0"></span>
+                          {% endif %}
+                        </div>
+                        <div class="text-[11px] text-slate-500 line-clamp-1">{{ n.message }}</div>
+                      </div>
+                      <span class="text-[10px] font-semibold text-slate-400 whitespace-nowrap">{{ n.created_at|timesince }} ago</span>
+                    </div>
+                  {% endfor %}
+                {% else %}
+                  <div class="text-xs text-slate-400 py-4 text-center">No notifications yet.</div>
+                {% endif %}
               </div>
             </div>
           </div>
@@ -577,5 +552,110 @@
         </footer>
       </main>
     </div>
+
+    <!-- HR Report Review Popup Modal -->
+    {% if show_report_popup and latest_reviewed_report %}
+    <div id="hrReviewPopupModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity duration-300">
+      <div class="bg-white rounded-3xl shadow-2xl border border-slate-100 max-w-lg w-full overflow-hidden transform transition-all scale-100 animate-in fade-in zoom-in duration-200">
+        <!-- Modal Top Header Bar -->
+        <div class="{% if latest_reviewed_report.status == 'REVIEWED' %}bg-gradient-to-r from-blue-600 to-indigo-600{% elif latest_reviewed_report.status == 'NEEDS_CORRECTION' %}bg-gradient-to-r from-amber-500 to-orange-600{% else %}bg-gradient-to-r from-blue-600 to-sky-600{% endif %} p-6 text-white text-center relative">
+          <button type="button" onclick="closeHrReviewModal()" class="absolute top-4 right-4 text-white/80 hover:text-white bg-white/10 hover:bg-white/20 rounded-full w-8 h-8 flex items-center justify-center transition-colors">
+            <i class="bi bi-x-lg text-sm"></i>
+          </button>
+          <div class="w-16 h-16 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center mx-auto mb-3 text-2xl shadow-inner border border-white/20">
+            {% if latest_reviewed_report.status == 'REVIEWED' %}
+              <i class="bi bi-check-circle-fill text-emerald-300"></i>
+            {% elif latest_reviewed_report.status == 'NEEDS_CORRECTION' %}
+              <i class="bi bi-exclamation-triangle-fill text-amber-200"></i>
+            {% else %}
+              <i class="bi bi-chat-quote-fill text-white"></i>
+            {% endif %}
+          </div>
+          <h3 class="text-xl font-bold tracking-tight">
+            {% if latest_reviewed_report.status == 'REVIEWED' %}
+              Weekly Report Reviewed
+            {% elif latest_reviewed_report.status == 'NEEDS_CORRECTION' %}
+              Report Needs Correction
+            {% else %}
+              HR Feedback Update
+            {% endif %}
+          </h3>
+          <p class="text-xs text-white/85 mt-1">HR has reviewed your weekly submission</p>
+        </div>
+
+        <!-- Modal Content Body -->
+        <div class="p-6 space-y-4">
+          <!-- Report Info Card -->
+          <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 space-y-2">
+            <div class="flex items-center justify-between text-xs">
+              <span class="font-bold text-slate-500 uppercase tracking-wider">Report Week</span>
+              <span class="font-semibold text-slate-800">{{ latest_reviewed_report.week_start_date|date:"d M Y" }} - {{ latest_reviewed_report.week_end_date|date:"d M Y" }}</span>
+            </div>
+            <div class="flex items-center justify-between text-xs">
+              <span class="font-bold text-slate-500 uppercase tracking-wider">Review Status</span>
+              <span>
+                {% if latest_reviewed_report.status == 'REVIEWED' %}
+                  <span class="px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold rounded-full text-[11px] inline-flex items-center gap-1">
+                    <i class="bi bi-check-circle-fill"></i> Reviewed & Approved
+                  </span>
+                {% elif latest_reviewed_report.status == 'NEEDS_CORRECTION' %}
+                  <span class="px-2.5 py-1 bg-amber-50 text-amber-700 border border-amber-200 font-bold rounded-full text-[11px] inline-flex items-center gap-1">
+                    <i class="bi bi-exclamation-circle-fill"></i> Needs Revision
+                  </span>
+                {% else %}
+                  <span class="px-2.5 py-1 bg-blue-50 text-hrms-blue border border-blue-200 font-bold rounded-full text-[11px]">
+                    {{ latest_reviewed_report.get_status_display }}
+                  </span>
+                {% endif %}
+              </span>
+            </div>
+            {% if latest_reviewed_report.reviewed_by %}
+            <div class="flex items-center justify-between text-xs">
+              <span class="font-bold text-slate-500 uppercase tracking-wider">Reviewed By</span>
+              <span class="font-semibold text-slate-700">{{ latest_reviewed_report.reviewed_by.user.name|default:latest_reviewed_report.reviewed_by.user.email }}</span>
+            </div>
+            {% endif %}
+          </div>
+
+          <!-- HR Feedback Section -->
+          <div>
+            <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5 flex items-center gap-1.5">
+              <i class="bi bi-chat-left-text text-hrms-blue"></i> HR Comments & Feedback
+            </label>
+            <div class="bg-blue-50/50 border border-blue-100 text-slate-800 rounded-2xl p-4 text-sm leading-relaxed whitespace-pre-line font-medium">
+              {{ latest_reviewed_report.hr_comments|default:"Good progress made this week. Keep up the consistent work!" }}
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="flex items-center gap-3 pt-2">
+            <a href="{% url 'employees:reports_list' %}" class="flex-1 text-center py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-colors">
+              View All Reports
+            </a>
+            <button type="button" onclick="closeHrReviewModal()" class="flex-1 py-2.5 px-4 bg-hrms-blue hover:bg-hrms-hover text-white font-bold text-xs rounded-xl shadow-md shadow-blue-500/20 transition-all flex items-center justify-center gap-1.5">
+              <i class="bi bi-check2"></i> Acknowledge
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function closeHrReviewModal() {
+        const modal = document.getElementById('hrReviewPopupModal');
+        if (modal) {
+          modal.classList.add('opacity-0', 'pointer-events-none');
+          setTimeout(() => modal.remove(), 250);
+        }
+        fetch("{% url 'employees:dismiss_report_popup' latest_reviewed_report.pk %}", {
+          method: "POST",
+          headers: {
+            "X-CSRFToken": "{{ csrf_token }}",
+            "Content-Type": "application/json"
+          }
+        }).catch(err => console.log('Popup dismissal logged'));
+      }
+    </script>
+    {% endif %}
   </body>
 </html>

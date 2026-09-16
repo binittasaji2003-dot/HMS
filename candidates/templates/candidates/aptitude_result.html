@@ -1,0 +1,83 @@
+{% extends "candidates/base_candidate.html" %}
+
+{% block title %}Assessment Result - {{ application.vacancy.title }} | Smart HRMS{% endblock title %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-12 col-md-8 col-lg-7">
+        <div class="portal-card bg-white p-4 p-md-5 text-center shadow-sm border">
+            <!-- Status Icon -->
+            <div class="mb-3">
+                {% if result.passed or result.percentage >= 50 %}
+                    <div class="rounded-circle bg-success-subtle text-success p-4 d-inline-flex align-items-center justify-content-center mb-2" style="width: 80px; height: 80px;">
+                        <i class="bi bi-check-circle-fill fs-1"></i>
+                    </div>
+                    <h3 class="fw-extrabold text-success mb-1">Assessment Passed!</h3>
+                    <p class="text-muted small">You have successfully met the aptitude assessment criteria for this position.</p>
+                {% else %}
+                    <div class="rounded-circle bg-warning-subtle text-warning p-4 d-inline-flex align-items-center justify-content-center mb-2" style="width: 80px; height: 80px;">
+                        <i class="bi bi-award fs-1"></i>
+                    </div>
+                    <h3 class="fw-extrabold text-dark mb-1">Assessment Completed</h3>
+                    <p class="text-muted small">Your aptitude assessment submission has been recorded and submitted to HR for evaluation.</p>
+                {% endif %}
+            </div>
+
+            <!-- Score Summary Card -->
+            <div class="p-4 rounded-3 bg-light border mb-4">
+                <div class="row g-3 align-items-center">
+                    <div class="col-4 border-end">
+                        <span class="text-muted small text-uppercase fw-semibold d-block">Score</span>
+                        <h2 class="fw-extrabold text-dark mb-0">{{ result.score }}</h2>
+                    </div>
+                    <div class="col-4 border-end">
+                        <span class="text-muted small text-uppercase fw-semibold d-block">Total Marks</span>
+                        <h2 class="fw-extrabold text-secondary mb-0">{{ result.total_marks }}</h2>
+                    </div>
+                    <div class="col-4">
+                        <span class="text-muted small text-uppercase fw-semibold d-block">Percentage</span>
+                        <h2 class="fw-extrabold {% if result.passed or result.percentage >= 50 %}text-success{% else %}text-primary{% endif %} mb-0">{{ result.percentage }}%</h2>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Details List -->
+            <div class="text-start border rounded-3 p-3 mb-4 bg-white">
+                <div class="d-flex justify-content-between py-2 border-bottom small">
+                    <span class="text-muted">Job Vacancy:</span>
+                    <strong class="text-dark">{{ application.vacancy.title }}</strong>
+                </div>
+                <div class="d-flex justify-content-between py-2 border-bottom small">
+                    <span class="text-muted">Department:</span>
+                    <span class="text-dark fw-semibold">{{ application.vacancy.department.name }}</span>
+                </div>
+                <div class="d-flex justify-content-between py-2 border-bottom small">
+                    <span class="text-muted">Candidate:</span>
+                    <span class="text-dark fw-semibold">{{ application.candidate.full_name }}</span>
+                </div>
+                <div class="d-flex justify-content-between py-2 border-bottom small">
+                    <span class="text-muted">Assessment Completed On:</span>
+                    <span class="text-dark">{{ result.completed_at|date:"F d, Y, h:i A" }}</span>
+                </div>
+                <div class="d-flex justify-content-between py-2 small">
+                    <span class="text-muted">Current Application Status:</span>
+                    <span class="badge px-3 py-1.5 {% if application.status == 'INTERVIEW' %}bg-primary{% elif application.status == 'SELECTED' %}bg-success{% elif application.status == 'REJECTED' %}bg-danger{% else %}bg-warning text-dark{% endif %}">
+                        {{ application.get_status_display }}
+                    </span>
+                </div>
+            </div>
+
+            <!-- Next Steps & Navigation -->
+            <div class="d-flex flex-column flex-sm-row justify-content-center gap-2">
+                <a href="{% url 'candidates:applications' %}" class="btn-blue-primary px-4 py-2">
+                    <i class="bi bi-arrow-left me-1"></i> Return to My Applications
+                </a>
+                <a href="{% url 'candidates:dashboard' %}" class="btn btn-light border px-4 py-2">
+                    <i class="bi bi-speedometer2 me-1"></i> Go to Dashboard
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+

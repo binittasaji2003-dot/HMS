@@ -19,12 +19,21 @@ from django.views.generic import (
 )
 from employees.models import (
     Employee,
+    EmployeeDocument,
     EmployeePerformance,
     EmployeeReport,
+    Notification,
     PerformanceWarning,
 )
 
+from .forms import (
+    AptitudeQuestionForm,
+    AptitudeTestForm,
+    HRDocumentUploadForm,
+    HRProfileEditForm,
+)
 from .models import (
+    AptitudeAttempt,
     AptitudeQuestion,
     AptitudeResult,
     AptitudeTest,
@@ -32,6 +41,9 @@ from .models import (
     Interview,
     JobVacancy,
 )
+from .question_bank import seed_default_questions
+
+User = get_user_model()
 
 ''' 
 from django.views.generic import TemplateView,ListView, CreateView, UpdateView,DetailView
@@ -108,11 +120,16 @@ class HRDashboardView(LoginRequiredMixin, TemplateView):
 #Login Page Related Stuff
 
 class HRRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
-    """Enforces access control strictly for HR Managers or Superusers."""
+    """Enforces access control strictly for HR Managers, Staff, or Superusers."""
 
     def test_func(self):
         user = self.request.user
-        return user.is_superuser or hasattr(user, "hr_profile")
+        return (
+            user.is_superuser
+            or user.is_staff
+            or getattr(user, "role", "") == "HR"
+            or hasattr(user, "hr_profile")
+        )
 
     def handle_no_permission(self):
         if not self.request.user.is_authenticated:
@@ -121,59 +138,159 @@ class HRRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
         return redirect("home")
 
 
-class HRProfileView(HRRequiredMixin, TemplateView):
-    """View HR profile details."""
+class HRProfileView(HRRequiredMixin, View):
+    """View aggregated HR profile details and manage document uploads."""
     template_name = "hr/profile.html"
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        hr_profile, _ = HRManager.objects.get_or_create(
-            user=self.request.user,
-            defaults={"employee_code": f"HR-{self.request.user.id:04d}"},
+    def get_context(self, request, doc_form=None):
+        user = request.user
+        hr_profile = getattr(user, "hr_profile", None)
+        if not hr_profile and getattr(user, "role", "") == User.RoleChoices.HR:
+            hr_profile, _ = HRManager.objects.get_or_create(
+                user=user,
+                defaults={"employee_code": f"HR-{user.id:04d}"},
+            )
+        linked_employee = getattr(user, "employee_profile", None)
+        linked_candidate = getattr(user, "candidate_profile", None) or (
+            getattr(linked_employee, "candidate", None) if linked_employee else None
         )
-        context["hr_profile"] = hr_profile
-        return context
+        documents = linked_employee.documents.all().order_by("-uploaded_at") if linked_employee else []
+        profile_photo = (
+            linked_employee.profile_photo
+            if (linked_employee and linked_employee.profile_photo)
+            else (linked_candidate.profile_photo if (linked_candidate and linked_candidate.profile_photo) else None)
+        )
+
+        name_parts = (user.name or "").strip().split(" ", 1)
+        first_name_fallback = name_parts[0] if name_parts else ""
+        last_name_fallback = name_parts[1] if len(name_parts) > 1 else ""
+
+        return {
+            "hr_profile": hr_profile,
+            "user_obj": user,
+            "linked_employee": linked_employee,
+            "linked_candidate": linked_candidate,
+            "documents": documents,
+            "profile_photo": profile_photo,
+            "first_name_fallback": first_name_fallback,
+            "last_name_fallback": last_name_fallback,
+            "doc_form": doc_form or HRDocumentUploadForm(),
+        }
+
+    def get(self, request):
+        return render(request, self.template_name, self.get_context(request))
+
+    def post(self, request):
+        action = request.POST.get("action")
+        user = request.user
+        hr_profile = getattr(user, "hr_profile", None)
+        if not hr_profile and getattr(user, "role", "") == User.RoleChoices.HR:
+            hr_profile, _ = HRManager.objects.get_or_create(
+                user=user,
+                defaults={"employee_code": f"HR-{user.id:04d}"},
+            )
+
+        linked_employee = getattr(user, "employee_profile", None)
+        if not linked_employee:
+            linked_employee = Employee.objects.create(
+                user=user,
+                employee_code=hr_profile.employee_code or f"HR-{user.id:04d}",
+                department=hr_profile.department or Department.objects.first(),
+                designation="HR Manager",
+                joining_date=hr_profile.joining_date or timezone.now().date(),
+                employment_status="ACTIVE",
+            )
+
+        if action == "upload_document":
+            doc_form = HRDocumentUploadForm(request.POST, request.FILES)
+            if doc_form.is_valid():
+                doc = doc_form.save(commit=False)
+                doc.employee = linked_employee
+                doc.save()
+                messages.success(request, "Document uploaded successfully.")
+                return redirect("hr:profile")
+            else:
+                messages.error(request, "Please correct the errors in the document upload form.")
+                return render(request, self.template_name, self.get_context(request, doc_form=doc_form))
+
+        elif action == "delete_document":
+            doc_id = request.POST.get("document_id")
+            doc = get_object_or_404(EmployeeDocument, pk=doc_id, employee=linked_employee)
+            doc.delete()
+            messages.success(request, "Document deleted successfully.")
+            return redirect("hr:profile")
+
+        return redirect("hr:profile")
 
 
 class HRProfileEditView(HRRequiredMixin, View):
     """Update user identity details and HR profile records."""
     template_name = "hr/profile_edit.html"
 
+    def get_context(self, request, form=None):
+        user = request.user
+        hr_profile = getattr(user, "hr_profile", None)
+        if not hr_profile and getattr(user, "role", "") == User.RoleChoices.HR:
+            hr_profile, _ = HRManager.objects.get_or_create(
+                user=user,
+                defaults={"employee_code": f"HR-{user.id:04d}"},
+            )
+        linked_employee = getattr(user, "employee_profile", None)
+        linked_candidate = getattr(user, "candidate_profile", None) or (
+            getattr(linked_employee, "candidate", None) if linked_employee else None
+        )
+        profile_photo = (
+            linked_employee.profile_photo
+            if (linked_employee and linked_employee.profile_photo)
+            else (linked_candidate.profile_photo if (linked_candidate and linked_candidate.profile_photo) else None)
+        )
+        if form is None:
+            form = HRProfileEditForm(
+                user=user,
+                hr_profile=hr_profile,
+                linked_employee=linked_employee,
+                linked_candidate=linked_candidate,
+            )
+        return {
+            "form": form,
+            "hr_profile": hr_profile,
+            "user_obj": user,
+            "linked_employee": linked_employee,
+            "linked_candidate": linked_candidate,
+            "profile_photo": profile_photo,
+        }
+
     def get(self, request):
-        hr_profile, _ = HRManager.objects.get_or_create(
-            user=request.user,
-            defaults={"employee_code": f"HR-{request.user.id:04d}"},
-        )
-        departments = Department.objects.all()
-        return render(
-            request,
-            self.template_name,
-            {"hr_profile": hr_profile, "departments": departments},
-        )
+        return render(request, self.template_name, self.get_context(request))
 
     def post(self, request):
-        hr_profile, _ = HRManager.objects.get_or_create(
-            user=request.user,
-            defaults={"employee_code": f"HR-{request.user.id:04d}"},
-        )
         user = request.user
+        hr_profile = getattr(user, "hr_profile", None)
+        if not hr_profile and getattr(user, "role", "") == User.RoleChoices.HR:
+            hr_profile, _ = HRManager.objects.get_or_create(
+                user=user,
+                defaults={"employee_code": f"HR-{user.id:04d}"},
+            )
+        linked_employee = getattr(user, "employee_profile", None)
+        linked_candidate = getattr(user, "candidate_profile", None) or (
+            getattr(linked_employee, "candidate", None) if linked_employee else None
+        )
 
-        # User personal information
-        user.first_name = request.POST.get("first_name", "").strip()
-        user.last_name = request.POST.get("last_name", "").strip()
-        user.email = request.POST.get("email", "").strip()
-        user.save()
+        form = HRProfileEditForm(
+            request.POST,
+            request.FILES,
+            user=user,
+            hr_profile=hr_profile,
+            linked_employee=linked_employee,
+            linked_candidate=linked_candidate,
+        )
+        if form.is_valid():
+            form.save(user=user, hr_profile=hr_profile)
+            messages.success(request, "HR Profile updated successfully.")
+            return redirect("hr:profile")
 
-        # Department assignment
-        dept_id = request.POST.get("department")
-        if dept_id:
-            hr_profile.department = get_object_or_404(Department, pk=dept_id)
-        else:
-            hr_profile.department = None
-
-        hr_profile.save()
-        messages.success(request, "HR Profile updated successfully.")
-        return redirect("hr:profile")
+        messages.error(request, "Please correct the errors in the form below.")
+        return render(request, self.template_name, self.get_context(request, form=form))
 
 
 class HRPasswordChangeView(HRRequiredMixin, View):
@@ -224,8 +341,36 @@ class JobVacancyCreateView(HRRequiredMixin, CreateView):
         # Assign HRManager profile instead of standard User
         form.instance.posted_by = getattr(self.request.user, "hr_profile", None)
         form.instance.status = "OPEN"
+        response = super().form_valid(form)
+        try:
+            from candidates.models import JobVacancy as CandJobVacancy
+            dept_obj = None
+            dept_name = form.cleaned_data.get("department_name")
+            if dept_name:
+                dept_obj, _ = Department.objects.get_or_create(
+                    name=dept_name,
+                    defaults={"is_active": True, "description": f"{dept_name} Department"}
+                )
+            else:
+                dept_obj = Department.objects.first()
+            CandJobVacancy.objects.get_or_create(
+                title=form.instance.title,
+                defaults={
+                    "department": dept_obj,
+                    "description": form.instance.description,
+                    "responsibilities": form.instance.requirements,
+                    "qualifications": form.instance.requirements,
+                    "skills_required": form.instance.requirements,
+                    "experience_required": form.instance.experience_required,
+                    "location": "Headquarters",
+                    "posted_by": self.request.user,
+                    "status": "OPEN",
+                }
+            )
+        except Exception:
+            pass
         messages.success(self.request, "Job vacancy published successfully.")
-        return super().form_valid(form)
+        return response
 
 
 class JobVacancyUpdateView(HRRequiredMixin, UpdateView):
@@ -254,6 +399,11 @@ class JobVacancyCloseView(HRRequiredMixin, View):
         job = get_object_or_404(JobVacancy, pk=pk)
         job.status = "CLOSED"
         job.save()
+        try:
+            from candidates.models import JobVacancy as CandJobVacancy
+            CandJobVacancy.objects.filter(title=job.title).update(status="CLOSED")
+        except Exception:
+            pass
         messages.info(request, f'Job vacancy "{job.title}" has been closed.')
         return redirect("hr:job_list")
 
@@ -265,19 +415,34 @@ class ApplicationListView(HRRequiredMixin, ListView):
     paginate_by = 10
 
     def get_queryset(self):
-        # 'vacancy' is the exact FK on JobApplication
-        queryset = JobApplication.objects.select_related(
-            "candidate__user", "vacancy"
-        ).order_by("-applied_at")
+        queryset = (
+            JobApplication.objects.select_related(
+                "candidate__user", "candidate", "vacancy", "vacancy__department"
+            ).order_by("-applied_at")
+        )
 
         status_filter = self.request.GET.get("status")
+        search_query = self.request.GET.get("q", "").strip()
+
         if status_filter:
             queryset = queryset.filter(status=status_filter)
+
+        if search_query:
+            queryset = queryset.filter(
+                Q(candidate__first_name__icontains=search_query)
+                | Q(candidate__last_name__icontains=search_query)
+                | Q(candidate__user__name__icontains=search_query)
+                | Q(candidate__user__email__icontains=search_query)
+                | Q(vacancy__title__icontains=search_query)
+                | Q(vacancy__department__name__icontains=search_query)
+            )
+
         return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["selected_status"] = self.request.GET.get("status", "")
+        context["search_query"] = self.request.GET.get("q", "").strip()
         return context
 
 
@@ -288,22 +453,94 @@ class ApplicationDetailView(HRRequiredMixin, DetailView):
     pk_url_kwarg = "pk"
 
     def get_queryset(self):
-        return JobApplication.objects.select_related(
-            "candidate__user", "vacancy"
-        ).prefetch_related("aptitude_results__test", "interviews__interviewer")
+        return (
+            JobApplication.objects.select_related(
+                "candidate__user", "vacancy", "vacancy__department", "aptitude_test"
+            ).prefetch_related(
+                "aptitude_results__test",
+                "interviews__interviewer",
+                "interviews__interviewer__user",
+            )
+        )
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["aptitude_tests"] = AptitudeTest.objects.filter(status="ACTIVE")
+        context["hr_managers"] = HRManager.objects.select_related("user").all()
+        return context
 
 
 class ApplicationStatusUpdateView(HRRequiredMixin, View):
-    """Allows HR to progress an application through Alan's exact STATUS_CHOICES."""
+    """Allows HR to progress an application through Alan's exact STATUS_CHOICES and dispatches candidate notifications."""
 
     def post(self, request, pk):
-        application = get_object_or_404(JobApplication, pk=pk)
+        application = get_object_or_404(
+            JobApplication.objects.select_related("candidate", "vacancy"),
+            pk=pk,
+        )
         new_status = request.POST.get("status")
 
         valid_choices = [c[0] for c in JobApplication.STATUS_CHOICES]
         if new_status in valid_choices:
             application.status = new_status
+
+            # Handle Aptitude scheduling inputs
+            apt_date = request.POST.get("aptitude_date")
+            apt_time = request.POST.get("aptitude_time")
+            apt_test_id = request.POST.get("aptitude_test_id")
+            apt_remarks = request.POST.get("aptitude_remarks", "").strip()
+
+            if apt_date:
+                application.aptitude_date = apt_date
+            if apt_time:
+                application.aptitude_time = apt_time
+            if apt_remarks:
+                application.aptitude_remarks = apt_remarks
+            if apt_test_id:
+                application.aptitude_test_id = apt_test_id
+
             application.save()
+
+            # Dispatch targeted notification to the affected candidate
+            from candidates.models import send_candidate_notification
+
+            notif_title = "Application Status Updated"
+            notif_msg = f"Your application for '{application.vacancy.title}' has been updated to {application.get_status_display()}."
+            notif_type = "STATUS_UPDATE"
+
+            if new_status == "SHORTLISTED":
+                notif_title = "Application Shortlisted"
+                notif_msg = f"Great news! Your application for '{application.vacancy.title}' has been shortlisted by our recruitment team."
+            elif new_status == "APTITUDE":
+                notif_title = "Aptitude Assessment Scheduled"
+                notif_type = "APTITUDE_SCHEDULED"
+                if application.aptitude_date and application.aptitude_time:
+                    notif_msg = f"Your aptitude assessment for '{application.vacancy.title}' has been scheduled for {application.aptitude_date} at {application.aptitude_time}."
+                else:
+                    notif_msg = f"Your application for '{application.vacancy.title}' has entered the Aptitude Assessment round."
+            elif new_status == "INTERVIEW":
+                notif_title = "Interview Stage Reached"
+                notif_type = "INTERVIEW_SCHEDULED"
+                notif_msg = f"Your application for '{application.vacancy.title}' has advanced to the Interview stage."
+            elif new_status == "SELECTED":
+                notif_title = "Application Selected"
+                notif_msg = f"Congratulations! You have been selected for the position of '{application.vacancy.title}'."
+            elif new_status == "REJECTED":
+                notif_title = "Application Status Update"
+                notif_msg = f"Thank you for your interest in '{application.vacancy.title}'. At this time, we have chosen to proceed with other candidates."
+            elif new_status == "RESUME_REVIEW":
+                notif_title = "Application Under Review"
+                notif_msg = f"Your application for '{application.vacancy.title}' is currently under review by our HR team."
+
+            send_candidate_notification(
+                candidate=application.candidate,
+                application=application,
+                title=notif_title,
+                message=notif_msg,
+                notification_type=notif_type,
+                link_url=reverse_lazy("candidates:applications"),
+            )
+
             messages.success(
                 request,
                 f"Application status updated to '{application.get_status_display()}'.",
@@ -328,19 +565,25 @@ class AptitudeTestListView(HRRequiredMixin, ListView):
 class AptitudeTestCreateView(HRRequiredMixin, CreateView):
     model = AptitudeTest
     template_name = "hr/aptitude_test_form.html"
-    fields = ["title", "description", "duration_minutes", "status"]
+    form_class = AptitudeTestForm
     success_url = reverse_lazy("hr:aptitude_test_list")
 
     def form_valid(self, form):
         form.instance.created_by = getattr(self.request.user, "hr_profile", None)
-        messages.success(self.request, "Aptitude test created successfully.")
-        return super().form_valid(form)
+        response = super().form_valid(form)
+        # Seed predefined questions for the new test
+        try:
+            seed_default_questions(test=self.object)
+        except Exception:
+            pass
+        messages.success(self.request, "Aptitude test created with standard question bank.")
+        return response
 
 
 class AptitudeTestUpdateView(HRRequiredMixin, UpdateView):
     model = AptitudeTest
     template_name = "hr/aptitude_test_form.html"
-    fields = ["title", "description", "duration_minutes", "status"]
+    form_class = AptitudeTestForm
     pk_url_kwarg = "pk"
     success_url = reverse_lazy("hr:aptitude_test_list")
 
@@ -350,49 +593,134 @@ class AptitudeTestUpdateView(HRRequiredMixin, UpdateView):
 
 
 class AptitudeQuestionManageView(HRRequiredMixin, View):
-    """View to list existing questions for a test and add new ones."""
+    """View to list existing questions for a test with category filtering and add new ones."""
     template_name = "hr/aptitude_questions.html"
 
     def get(self, request, test_id):
         test = get_object_or_404(AptitudeTest, pk=test_id)
-        questions = test.questions.all()
-        return render(request, self.template_name, {"test": test, "questions": questions})
+
+        # Auto-seed predefined question bank if test has no questions yet
+        if not test.questions.exists():
+            seed_default_questions(test=test)
+
+        all_questions = test.questions.all()
+
+        total_count = all_questions.count()
+        quant_count = all_questions.filter(category="QUANTITATIVE").count()
+        logical_count = all_questions.filter(category="LOGICAL").count()
+        verbal_count = all_questions.filter(category="VERBAL").count()
+        active_count = all_questions.filter(is_active=True).count()
+
+        category = request.GET.get("category", "").strip()
+        status_filter = request.GET.get("status", "").strip()
+
+        questions = all_questions
+        if category in ["QUANTITATIVE", "LOGICAL", "VERBAL"]:
+            questions = questions.filter(category=category)
+        if status_filter == "ACTIVE":
+            questions = questions.filter(is_active=True)
+        elif status_filter == "INACTIVE":
+            questions = questions.filter(is_active=False)
+
+        form = AptitudeQuestionForm()
+
+        return render(
+            request,
+            self.template_name,
+            {
+                "test": test,
+                "questions": questions,
+                "form": form,
+                "selected_category": category,
+                "selected_status": status_filter,
+                "total_count": total_count,
+                "quant_count": quant_count,
+                "logical_count": logical_count,
+                "verbal_count": verbal_count,
+                "active_count": active_count,
+            },
+        )
 
     def post(self, request, test_id):
         test = get_object_or_404(AptitudeTest, pk=test_id)
-        
-        question_text = request.POST.get("question", "").strip()
-        opt_a = request.POST.get("option_a", "").strip()
-        opt_b = request.POST.get("option_b", "").strip()
-        opt_c = request.POST.get("option_c", "").strip()
-        opt_d = request.POST.get("option_d", "").strip()
-        correct = request.POST.get("correct_answer", "").strip().upper()
+        form = AptitudeQuestionForm(request.POST)
 
-        if question_text and opt_a and opt_b and opt_c and opt_d and correct:
-            AptitudeQuestion.objects.create(
-                test=test,
-                question=question_text,
-                option_a=opt_a,
-                option_b=opt_b,
-                option_c=opt_c,
-                option_d=opt_d,
-                correct_answer=correct,
-            )
-            messages.success(request, "Question added to test successfully.")
+        if form.is_valid():
+            question = form.save(commit=False)
+            question.test = test
+            question.save()
+            messages.success(request, f"New question added to {question.get_category_display()} successfully.")
         else:
-            messages.error(request, "Please fill in all question fields and options.")
+            for field, errors in form.errors.items():
+                for err in errors:
+                    messages.error(request, f"{field.replace('_', ' ').title()}: {err}")
 
+        return redirect("hr:aptitude_questions", test_id=test.pk)
+
+
+class AptitudeQuestionUpdateView(HRRequiredMixin, View):
+    """Update an existing aptitude question."""
+
+    def post(self, request, question_id):
+        question = get_object_or_404(AptitudeQuestion, pk=question_id)
+        test_id = question.test.pk if question.test else None
+
+        form = AptitudeQuestionForm(request.POST, instance=question)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Question updated successfully.")
+        else:
+            for field, errors in form.errors.items():
+                for err in errors:
+                    messages.error(request, f"{field.replace('_', ' ').title()}: {err}")
+
+        if test_id:
+            return redirect("hr:aptitude_questions", test_id=test_id)
+        return redirect("hr:aptitude_test_list")
+
+
+class AptitudeQuestionToggleStatusView(HRRequiredMixin, View):
+    """Toggle active/inactive status of a question."""
+
+    def post(self, request, question_id):
+        question = get_object_or_404(AptitudeQuestion, pk=question_id)
+        test_id = question.test.pk if question.test else None
+
+        question.is_active = not question.is_active
+        question.save(update_fields=["is_active"])
+
+        status_text = "Active" if question.is_active else "Inactive"
+        messages.info(request, f"Question marked as {status_text}.")
+
+        if test_id:
+            return redirect("hr:aptitude_questions", test_id=test_id)
+        return redirect("hr:aptitude_test_list")
+
+
+class AptitudeQuestionLoadBankView(HRRequiredMixin, View):
+    """Load or refresh the predefined question bank into a test."""
+
+    def post(self, request, test_id):
+        test = get_object_or_404(AptitudeTest, pk=test_id)
+        created, existing = seed_default_questions(test=test)
+        messages.success(
+            request,
+            f"Question bank synced successfully: {created} new questions added, {existing} questions verified.",
+        )
         return redirect("hr:aptitude_questions", test_id=test.pk)
 
 
 class AptitudeQuestionDeleteView(HRRequiredMixin, View):
     """Delete a question from a test."""
+
     def post(self, request, question_id):
         question = get_object_or_404(AptitudeQuestion, pk=question_id)
-        test_id = question.test.pk
+        test_id = question.test.pk if question.test else None
         question.delete()
-        messages.info(request, "Question removed.")
-        return redirect("hr:aptitude_questions", test_id=test_id)
+        messages.info(request, "Question removed successfully.")
+        if test_id:
+            return redirect("hr:aptitude_questions", test_id=test_id)
+        return redirect("hr:aptitude_test_list")
 
     
 class InterviewListView(HRRequiredMixin, ListView):
@@ -401,49 +729,81 @@ class InterviewListView(HRRequiredMixin, ListView):
     context_object_name = "interviews"
 
     def get_queryset(self):
-        # Notice application.vacancy (matches Alan's model) and interviewer.user
-        return Interview.objects.select_related(
+        queryset = Interview.objects.select_related(
             "application__candidate__user",
             "application__vacancy",
             "interviewer__user"
         ).order_by("-interview_date", "-interview_time")
+        status_filter = self.request.GET.get("status")
+        if status_filter:
+            queryset = queryset.filter(status=status_filter)
+        return queryset
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["selected_status"] = self.request.GET.get("status", "")
+        context["applications"] = JobApplication.objects.filter(
+            status__in=["APPLIED", "RESUME_REVIEW", "SHORTLISTED", "APTITUDE", "INTERVIEW"]
+        ).select_related("candidate__user", "vacancy")
+        return context
 
 
 class InterviewScheduleView(HRRequiredMixin, View):
-    template_name = "hr/interview_schedule.html"
-
     def get(self, request, application_id):
+        get_object_or_404(
+            JobApplication.objects.select_related("candidate__user", "vacancy"),
+            pk=application_id
+        )
+        return redirect("hr:interview_list")
+
+    def post(self, request, application_id):
         application = get_object_or_404(
             JobApplication.objects.select_related("candidate__user", "vacancy"),
             pk=application_id
         )
-        return render(request, self.template_name, {"application": application})
-
-    def post(self, request, application_id):
-        application = get_object_or_404(JobApplication, pk=application_id)
         interview_date = request.POST.get("interview_date")
         interview_time = request.POST.get("interview_time")
         remarks = request.POST.get("remarks", "").strip()
+        interviewer_id = request.POST.get("interviewer_id")
 
         if interview_date and interview_time:
-            hr_profile = getattr(request.user, "hr_profile", None)
-            Interview.objects.create(
+            interviewer = None
+            if interviewer_id:
+                interviewer = HRManager.objects.filter(pk=interviewer_id).first()
+            if not interviewer:
+                interviewer = getattr(request.user, "hr_profile", None)
+
+            interview = Interview.objects.create(
                 application=application,
-                interviewer=hr_profile,
+                interviewer=interviewer,
                 interview_date=interview_date,
                 interview_time=interview_time,
                 remarks=remarks,
                 status="SCHEDULED",
             )
-            # Update Alan's application status to his defined choice "INTERVIEW"
+            # Update application status to defined choice "INTERVIEW"
             application.status = "INTERVIEW"
             application.save()
 
-            messages.success(request, "Interview successfully scheduled.")
-            return redirect("hr:interview_list")
+            from candidates.models import send_candidate_notification
+            send_candidate_notification(
+                candidate=application.candidate,
+                application=application,
+                title="Interview Scheduled",
+                message=f"Your interview for '{application.vacancy.title}' has been scheduled on {interview.interview_date} at {interview.interview_time}." + (f" Note: {remarks}" if remarks else ""),
+                notification_type="INTERVIEW_SCHEDULED",
+                link_url=reverse_lazy("candidates:applications"),
+            )
+
+            messages.success(request, f"Interview successfully scheduled for {application.candidate.user.get_full_name() or application.candidate.user.username}.")
+            next_url = request.POST.get("next")
+            if next_url:
+                return redirect(next_url)
+            return redirect("hr:application_detail", pk=application.pk)
 
         messages.error(request, "Please provide a valid date and time.")
-        return render(request, self.template_name, {"application": application})
+        return redirect("hr:application_detail", pk=application.pk)
+
 
 class InterviewCreateView(HRRequiredMixin, View):
     def post(self, request):
@@ -451,22 +811,39 @@ class InterviewCreateView(HRRequiredMixin, View):
         interview_date = request.POST.get("interview_date")
         interview_time = request.POST.get("interview_time")
         remarks = request.POST.get("remarks", "").strip()
+        interviewer_id = request.POST.get("interviewer_id")
 
-        application = get_object_or_404(JobApplication, pk=application_id)
-        hr_profile = getattr(request.user, "hr_profile", None)
+        application = get_object_or_404(
+            JobApplication.objects.select_related("candidate__user", "vacancy"),
+            pk=application_id
+        )
+        interviewer = None
+        if interviewer_id:
+            interviewer = HRManager.objects.filter(pk=interviewer_id).first()
+        if not interviewer:
+            interviewer = getattr(request.user, "hr_profile", None)
 
-        Interview.objects.create(
+        interview = Interview.objects.create(
             application=application,
-            interviewer=hr_profile,
+            interviewer=interviewer,
             interview_date=interview_date,
             interview_time=interview_time,
             remarks=remarks,
             status="SCHEDULED",
         )
 
-        if hasattr(application, "status"):
-            application.status = "INTERVIEW_SCHEDULED"
-            application.save()
+        application.status = "INTERVIEW"
+        application.save()
+
+        from candidates.models import send_candidate_notification
+        send_candidate_notification(
+            candidate=application.candidate,
+            application=application,
+            title="Interview Scheduled",
+            message=f"Your interview for '{application.vacancy.title}' has been scheduled on {interview.interview_date} at {interview.interview_time}." + (f" Note: {remarks}" if remarks else ""),
+            notification_type="INTERVIEW_SCHEDULED",
+            link_url=reverse_lazy("candidates:applications"),
+        )
 
         messages.success(
             request,
@@ -474,9 +851,13 @@ class InterviewCreateView(HRRequiredMixin, View):
         )
         return redirect("hr:interview_list")
 
+
 class InterviewStatusUpdateView(HRRequiredMixin, View):
     def post(self, request, pk):
-        interview = get_object_or_404(Interview, pk=pk)
+        interview = get_object_or_404(
+            Interview.objects.select_related("application__candidate", "application__vacancy"),
+            pk=pk
+        )
         new_status = request.POST.get("status")
         remarks = request.POST.get("remarks", "").strip()
 
@@ -485,7 +866,21 @@ class InterviewStatusUpdateView(HRRequiredMixin, View):
             if remarks:
                 interview.remarks = remarks
             interview.save()
+
+            from candidates.models import send_candidate_notification
+            send_candidate_notification(
+                candidate=interview.application.candidate,
+                application=interview.application,
+                title=f"Interview {interview.get_status_display()}",
+                message=f"Your interview for '{interview.application.vacancy.title}' on {interview.interview_date} has been marked as {interview.get_status_display()}." + (f" Remarks: {remarks}" if remarks else ""),
+                notification_type="INTERVIEW_UPDATE",
+                link_url=reverse_lazy("candidates:applications"),
+            )
+
             messages.info(request, f"Interview marked as {interview.get_status_display()}.")
+        next_url = request.POST.get("next")
+        if next_url:
+            return redirect(next_url)
         return redirect("hr:interview_list")
 
 User = get_user_model()
@@ -556,7 +951,7 @@ class WarningStatusUpdateView(HRRequiredMixin, View):
 '''
 class AptitudeResultListView(HRRequiredMixin, ListView):
     model = AptitudeResult
-    template_name = "hr/aptitude_results.html"
+    template_name = "hr/aptitude_test_list.html"
     context_object_name = "results"
     paginate_by = 15
 
@@ -636,6 +1031,13 @@ class EmployeeReportReviewView(HRRequiredMixin, View):
     report.reviewed_at = timezone.now()
     report.save()
 
+    Notification.objects.create(
+        employee=report.employee,
+        title="Weekly Report Reviewed",
+        message=f"HR has reviewed your report '{report.title}' ({report.get_status_display()}).",
+        notification_type="REPORT_FEEDBACK",
+    )
+
     return redirect("hr:employee_report_list")
 
 
@@ -680,6 +1082,12 @@ class WarningCreateView(HRRequiredMixin, View):
         reason=reason,
         hr_recommendation=hr_recommendation,
         status="OPEN",
+    )
+    Notification.objects.create(
+        employee=employee,
+        title="Performance Warning Notice",
+        message=f"A performance warning has been issued: {reason}",
+        notification_type="WARNING",
     )
     messages.success(
         request, f"Warning issued for {employee.employee_code}."
@@ -743,6 +1151,12 @@ class PerformanceReviewCreateView(HRRequiredMixin, View):
         review_period=review_period,
         rating=rating,
         comments=comments,
+    )
+    Notification.objects.create(
+        employee=employee,
+        title="Performance Review Logged",
+        message=f"HR has completed your performance appraisal for {review_period}.",
+        notification_type="GENERAL",
     )
     messages.success(
         request,

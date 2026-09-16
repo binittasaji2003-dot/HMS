@@ -1,0 +1,61 @@
+<!-- Birthday Celebration Modal Component -->
+{% if request.user.is_authenticated and not request.session.birthday_greeted %}
+<div class="modal fade" id="birthdayCelebrationModal" tabindex="-1" aria-labelledby="bdayModalLabel" aria-hidden="true" data-bs-backdrop="static">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content rounded-4 border-0 shadow-lg text-center overflow-hidden position-relative">
+      <!-- Top festive banner -->
+      <div class="py-4 px-4 bg-gradient text-white position-relative" style="background: linear-gradient(135deg, #0b4f9a 0%, #2563eb 50%, #38bdf8 100%);">
+        <div style="font-size: 3.5rem; animation: bounce 1.5s infinite;">🎂</div>
+        <h3 class="fw-bold mt-2 mb-1" id="bdayModalLabel">Happy Birthday!</h3>
+        <p class="text-white-50 small mb-0">Warmest wishes on your special day</p>
+      </div>
+
+      <div class="modal-body p-4 bg-white">
+        <h5 class="fw-bold text-dark mb-2">
+          Wishing you a wonderful year ahead, 
+          <span class="text-primary">{{ request.user.name|default:request.user.email }}</span>! 🎉
+        </h5>
+        <p class="text-muted small mb-4">
+          On behalf of the entire Smart HRMS team, we celebrate your presence, dedication, and contributions. May this upcoming year bring you continued success, good health, and abundant joy!
+        </p>
+
+        <div class="d-flex justify-content-center gap-2">
+          <button type="button" class="btn btn-primary px-4 py-2 rounded-pill fw-semibold shadow-sm" id="dismissBdayBtn" data-bs-dismiss="modal">
+            <i class="bi bi-heart-fill text-danger me-1"></i> Thank You!
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  @keyframes bounce {
+    0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+    40% { transform: translateY(-15px); }
+    60% { transform: translateY(-7px); }
+  }
+</style>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  // Check if today matches user's birthday or trigger once per session
+  if (!sessionStorage.getItem("bday_greeted_session")) {
+    const bdayModalEl = document.getElementById("birthdayCelebrationModal");
+    if (bdayModalEl && typeof bootstrap !== "undefined") {
+      const bdayModal = new bootstrap.Modal(bdayModalEl);
+      // Small delay for smooth entry
+      setTimeout(() => {
+        bdayModal.show();
+      }, 800);
+
+      document.getElementById("dismissBdayBtn")?.addEventListener("click", function() {
+        sessionStorage.setItem("bday_greeted_session", "true");
+        fetch("{% url 'dismiss_birthday_popup' %}", { method: "POST", headers: { "X-CSRFToken": "{{ csrf_token }}" } });
+      });
+    }
+  }
+});
+</script>
+{% endif %}
+

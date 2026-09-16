@@ -1,0 +1,365 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}Candidate Portal | Smart HRMS{% endblock %}</title>
+  <link rel="icon" href="{% static 'images/favicons/favicon.ico' %}" />
+
+  <!-- Fonts & Bootstrap 5 CDN -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+
+  <style>
+    :root {
+      --primary-blue: #0b4f9a;
+      --secondary-blue: #2563eb;
+      --accent-blue: #38bdf8;
+      --light-blue-bg: #f0f7ff;
+      --surface-white: #ffffff;
+      --border-color: #e2e8f0;
+      --text-dark: #0f172a;
+      --text-muted: #64748b;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      background-color: #f8fafc;
+      color: var(--text-dark);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Modern White + Blue Candidate Navbar */
+    .candidate-navbar {
+      background: #ffffff;
+      border-bottom: 1px solid var(--border-color);
+      box-shadow: 0 2px 12px rgba(11, 79, 154, 0.04);
+      padding: 12px 0;
+    }
+
+    .brand-logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+      color: var(--primary-blue);
+      font-weight: 800;
+      font-size: 20px;
+      letter-spacing: -0.5px;
+    }
+
+    .brand-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      background: linear-gradient(135deg, var(--primary-blue), var(--secondary-blue));
+      color: #ffffff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+      box-shadow: 0 4px 10px rgba(37, 99, 235, 0.2);
+    }
+
+    .nav-link-custom {
+      color: #475569;
+      font-weight: 600;
+      font-size: 14px;
+      padding: 8px 16px;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .nav-link-custom:hover {
+      color: var(--primary-blue);
+      background: var(--light-blue-bg);
+    }
+
+    .nav-link-custom.active {
+      color: var(--primary-blue);
+      background: var(--light-blue-bg);
+      font-weight: 700;
+    }
+
+    /* White & Blue UI Cards */
+    .portal-card {
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+      transition: all 0.2s ease;
+    }
+
+    .portal-card:hover {
+      border-color: #bfdbfe;
+      box-shadow: 0 8px 24px rgba(37, 99, 235, 0.06);
+    }
+
+    .btn-blue-primary {
+      background: linear-gradient(135deg, var(--primary-blue), var(--secondary-blue));
+      color: #ffffff !important;
+      border: none;
+      font-weight: 600;
+      border-radius: 10px;
+      padding: 10px 20px;
+      box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      text-decoration: none;
+    }
+
+    .btn-blue-primary:hover {
+      background: linear-gradient(135deg, #09407d, var(--primary-blue));
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(37, 99, 235, 0.3);
+    }
+
+    .btn-blue-outline {
+      background: transparent;
+      color: var(--primary-blue) !important;
+      border: 1.5px solid #bfdbfe;
+      font-weight: 600;
+      border-radius: 10px;
+      padding: 9px 18px;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      text-decoration: none;
+    }
+
+    .btn-blue-outline:hover {
+      background: var(--light-blue-bg);
+      border-color: var(--secondary-blue);
+      color: var(--secondary-blue) !important;
+    }
+
+    .portal-badge-blue {
+      background: #e0f2fe;
+      color: #0369a1;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 6px;
+      display: inline-block;
+    }
+
+    .portal-badge-gray {
+      background: #f1f5f9;
+      color: #475569;
+      font-size: 12px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 6px;
+      display: inline-block;
+    }
+
+    .portal-badge-green {
+      background: #dcfce7;
+      color: #15803d;
+      font-size: 12px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 6px;
+      display: inline-block;
+    }
+
+    /* Form Inputs */
+    .form-control, .form-select {
+      border: 1px solid #cbd5e1;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 14px;
+      background-color: #ffffff;
+      transition: all 0.2s ease;
+    }
+
+    .form-control:focus, .form-select:focus {
+      border-color: var(--secondary-blue);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+      outline: none;
+    }
+
+    .form-label {
+      font-weight: 600;
+      font-size: 13.5px;
+      color: #334155;
+      margin-bottom: 6px;
+    }
+
+    /* Footer */
+    .candidate-footer {
+      background: #ffffff;
+      border-top: 1px solid var(--border-color);
+      padding: 24px 0;
+      margin-top: auto;
+      color: var(--text-muted);
+      font-size: 13.5px;
+    }
+  </style>
+  {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+  <!-- CANDIDATE WHITE + BLUE NAVBAR -->
+  <nav class="candidate-navbar sticky-top">
+    <div class="container d-flex justify-content-between align-items-center">
+      <a href="{% url 'candidates:dashboard' %}" class="brand-logo">
+        <div class="brand-icon">
+          <i class="bi bi-briefcase-fill"></i>
+        </div>
+        <span>Career<span class="text-primary">Portal</span></span>
+      </a>
+
+      <!-- Navigation Links -->
+      <div class="d-none d-md-flex align-items-center gap-2">
+        <a href="{% url 'candidates:dashboard' %}" class="nav-link-custom {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}">
+          <i class="bi bi-speedometer2"></i> Dashboard
+        </a>
+        <a href="{% url 'candidates:job_list' %}" class="nav-link-custom {% if request.resolver_match.url_name in 'job_list,job_detail,apply' %}active{% endif %}">
+          <i class="bi bi-search"></i> Open Jobs
+        </a>
+        <a href="{% url 'candidates:applications' %}" class="nav-link-custom {% if request.resolver_match.url_name == 'applications' %}active{% endif %}">
+          <i class="bi bi-file-earmark-check"></i> My Applications
+        </a>
+        <a href="{% url 'candidates:profile' %}" class="nav-link-custom {% if request.resolver_match.url_name == 'profile' %}active{% endif %}">
+          <i class="bi bi-person-gear"></i> My Profile
+        </a>
+      </div>
+
+      <!-- Right Profile / User Area -->
+      <div class="d-flex align-items-center gap-2">
+        {% if request.user.is_authenticated %}
+          <!-- Notifications Bell Dropdown -->
+          <div class="dropdown">
+            <button class="btn btn-sm btn-light border position-relative rounded-circle d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;" data-bs-toggle="dropdown" aria-expanded="false" title="Notifications">
+              <i class="bi bi-bell-fill text-secondary"></i>
+              {% if candidate_unread_notifications_count > 0 %}
+                <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-light" style="font-size: 0.65rem; padding: 0.25em 0.5em;">
+                  {{ candidate_unread_notifications_count }}
+                </span>
+              {% endif %}
+            </button>
+            <div class="dropdown-menu dropdown-menu-end shadow border-0 rounded-4 mt-2 p-0" style="width: 320px; max-width: 90vw;">
+              <div class="p-3 border-bottom d-flex justify-content-between align-items-center bg-light rounded-top-4">
+                <div class="fw-bold small text-dark">
+                  <i class="bi bi-bell me-1 text-primary"></i> Notifications
+                  {% if candidate_unread_notifications_count > 0 %}
+                    <span class="badge bg-primary rounded-pill ms-1">{{ candidate_unread_notifications_count }} new</span>
+                  {% endif %}
+                </div>
+                {% if candidate_unread_notifications_count > 0 %}
+                  <a href="{% url 'candidates:mark_all_notifications_read' %}?next={{ request.path }}" class="small text-decoration-none text-primary" style="font-size: 0.75rem;">Mark all read</a>
+                {% endif %}
+              </div>
+              <div class="list-group list-group-flush" style="max-height: 280px; overflow-y: auto;">
+                {% if candidate_recent_notifications %}
+                  {% for notif in candidate_recent_notifications %}
+                    <a href="{% if notif.link_url %}{% url 'candidates:mark_notification_read' notif.pk %}?next={{ notif.link_url }}{% else %}{% url 'candidates:mark_notification_read' notif.pk %}{% endif %}" class="list-group-item list-group-item-action p-3 {% if not notif.is_read %}bg-light bg-opacity-75{% endif %}">
+                      <div class="d-flex w-100 justify-content-between align-items-center mb-1">
+                        <span class="badge {% if notif.notification_type == 'INTERVIEW_SCHEDULED' or notif.notification_type == 'INTERVIEW_UPDATE' %}bg-info text-dark{% elif notif.notification_type == 'APTITUDE_SCHEDULED' %}bg-warning text-dark{% elif notif.notification_type == 'APTITUDE_RESULT' %}bg-success{% else %}bg-primary{% endif %} rounded-pill" style="font-size: 0.65rem;">
+                          {{ notif.get_notification_type_display }}
+                        </span>
+                        <small class="text-muted" style="font-size: 0.7rem;">{{ notif.created_at|timesince }} ago</small>
+                      </div>
+                      <div class="fw-semibold text-dark small mb-1">{{ notif.title }}</div>
+                      <p class="mb-0 text-muted small text-truncate" style="font-size: 0.78rem;">{{ notif.message }}</p>
+                    </a>
+                  {% endfor %}
+                {% else %}
+                  <div class="p-4 text-center text-muted small">
+                    <i class="bi bi-bell-slash fs-4 d-block mb-1 text-secondary opacity-50"></i>
+                    No notifications yet.
+                  </div>
+                {% endif %}
+              </div>
+              <div class="p-2 border-top text-center bg-light rounded-bottom-4">
+                <a href="{% url 'candidates:notifications' %}" class="small text-decoration-none fw-bold text-primary">View all notifications</a>
+              </div>
+            </div>
+          </div>
+
+          <!-- User Profile Dropdown -->
+          <div class="dropdown">
+            <button class="btn btn-sm btn-light border d-flex align-items-center gap-2 rounded-pill px-3 py-1.5" data-bs-toggle="dropdown">
+              <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center fw-bold" style="width: 26px; height: 26px; font-size: 12px;">
+                {{ request.user.name|default:request.user.email|make_list|first|upper }}
+              </div>
+              <span class="small fw-semibold d-none d-sm-inline">{{ request.user.name|default:request.user.email }}</span>
+              <i class="bi bi-chevron-down small text-muted"></i>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3 mt-2">
+              <li><a class="dropdown-item py-2 small" href="{% url 'candidates:profile' %}"><i class="bi bi-person me-2 text-primary"></i> Edit Profile</a></li>
+              <li><a class="dropdown-item py-2 small" href="{% url 'candidates:applications' %}"><i class="bi bi-file-earmark-text me-2 text-primary"></i> Applications</a></li>
+              <li><a class="dropdown-item py-2 small" href="{% url 'candidates:notifications' %}"><i class="bi bi-bell me-2 text-primary"></i> Notifications</a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item py-2 small text-danger" href="{% url 'account_logout' %}"><i class="bi bi-box-arrow-right me-2"></i> Sign Out</a></li>
+            </ul>
+          </div>
+        {% else %}
+          <a href="{% url 'role_select' %}" class="btn btn-sm btn-blue-outline">Sign In</a>
+          <a href="{% url 'candidates:register' %}" class="btn btn-sm btn-blue-primary">Register</a>
+        {% endif %}
+      </div>
+    </div>
+  </nav>
+
+  <!-- Flash Messages -->
+  <div class="container mt-3">
+    {% if messages %}
+      {% for message in messages %}
+        <div class="alert alert-{{ message.tags|default:'primary' }} alert-dismissible fade show rounded-4 shadow-sm border-0 d-flex align-items-center justify-content-between p-3 mb-3" role="alert">
+          <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-info-circle-fill text-primary"></i>
+            <span>{{ message }}</span>
+          </div>
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+      {% endfor %}
+    {% endif %}
+  </div>
+
+  <!-- Main Content Area -->
+  <main class="container py-4 flex-grow-1">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- Footer -->
+  <footer class="candidate-footer">
+    <div class="container d-flex flex-column flex-md-row justify-content-between align-items-center gap-2">
+      <div>&copy; 2026 Smart HRMS — Candidate &amp; Career Portal.</div>
+      <div class="d-flex gap-3">
+        <a href="/" class="text-muted text-decoration-none">Home</a>
+        <a href="{% url 'candidates:job_list' %}" class="text-muted text-decoration-none">All Vacancies</a>
+        <a href="{% url 'about' %}" class="text-muted text-decoration-none">About Company</a>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>
+

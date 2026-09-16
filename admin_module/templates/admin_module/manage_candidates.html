@@ -11,9 +11,6 @@
     <p class="text-secondary mb-0 small">Track candidate applications, interview evaluations, and recruitment qualifications.</p>
   </div>
   <div class="d-flex gap-2">
-    <a href="{% url 'admin_module:candidate_create' %}" class="btn-primary-admin">
-      <i class="bi bi-person-plus-fill"></i> New Candidate Application
-    </a>
     <a href="{% url 'admin_module:recruitment_list' %}" class="btn-secondary-admin">
       <i class="bi bi-briefcase"></i> Job Vacancies
     </a>
@@ -91,9 +88,9 @@
               </td>
               <td style="text-align: right;">
                 <div class="d-inline-flex align-items-center gap-1">
-                  <!-- Edit Application -->
-                  <a href="{% url 'admin_module:candidate_edit' cand.pk %}" class="table-action-btn btn-action-edit" title="Edit Application">
-                    <i class="bi bi-pencil-square"></i>
+                  <!-- View Candidate Details -->
+                  <a href="{% url 'admin_module:recruitment_candidate_detail' cand.pk %}" class="table-action-btn btn-action-view" title="View Application Details">
+                    <i class="bi bi-eye"></i>
                   </a>
 
                   <!-- Delete Application -->
@@ -111,10 +108,7 @@
     <div class="empty-state-box">
       <i class="bi bi-person-lines-fill empty-state-icon"></i>
       <h5 class="empty-state-title">No Candidates in Pipeline</h5>
-      <p class="empty-state-desc">Add or register your first candidate to commence the evaluation workflow.</p>
-      <a href="{% url 'admin_module:candidate_create' %}" class="btn-primary-admin">
-        <i class="bi bi-person-plus-fill"></i> Register First Candidate
-      </a>
+      <p class="empty-state-desc">Candidates will appear here as they register and apply via the Careers Portal.</p>
     </div>
   {% endif %}
 </div>

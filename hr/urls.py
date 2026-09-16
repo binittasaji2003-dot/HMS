@@ -27,12 +27,16 @@ urlpatterns = [
     path("aptitude-tests/create/", views.AptitudeTestCreateView.as_view(), name="aptitude_test_create"),
     path("aptitude-tests/<int:pk>/edit/", views.AptitudeTestUpdateView.as_view(), name="aptitude_test_edit"),
     path("aptitude-tests/<int:test_id>/questions/", views.AptitudeQuestionManageView.as_view(), name="aptitude_questions"),
+    path("aptitude-tests/<int:test_id>/load-bank/", views.AptitudeQuestionLoadBankView.as_view(), name="aptitude_question_load_bank"),
+    path("aptitude-tests/questions/<int:question_id>/edit/", views.AptitudeQuestionUpdateView.as_view(), name="aptitude_question_edit"),
+    path("aptitude-tests/questions/<int:question_id>/toggle-status/", views.AptitudeQuestionToggleStatusView.as_view(), name="aptitude_question_toggle_status"),
     path("aptitude-tests/questions/<int:question_id>/delete/", views.AptitudeQuestionDeleteView.as_view(), name="aptitude_question_delete"),
     path("aptitude-results/", views.AptitudeResultListView.as_view(), name="aptitude_results"),
 
     # Interviews
     path("interviews/", views.InterviewListView.as_view(), name="interview_list"),
     path("interviews/create/", views.InterviewCreateView.as_view(), name="interview_create"),
+    path("interviews/<int:application_id>/schedule/", views.InterviewScheduleView.as_view(), name="interview_schedule"),
     path("interviews/<int:pk>/status/", views.InterviewStatusUpdateView.as_view(), name="interview_status_update"),
 
     # Employee Weekly Work Reports

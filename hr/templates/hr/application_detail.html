@@ -1,126 +1,803 @@
 {% extends "hr/base.html" %}
+{% load static %}
 
-{% block title %}Candidate Details | Smart HRMS{% endblock %}
+{% block title %}Application #APP-{{ app.pk }} - {{ app.candidate.first_name }} {{ app.candidate.last_name }} | Smart HRMS{% endblock %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-4">
+<!-- Top Header & Breadcrumbs -->
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
     <div>
-        <a href="{% url 'hr:application_list' %}" class="btn btn-sm btn-light border mb-2">
-            <i class="bi bi-arrow-left me-1"></i> Back to Applications
-        </a>
-        <h4 class="fw-bold text-primary mb-0">{{ app.candidate.user.get_full_name|default:app.candidate.user.username }}</h4>
-        <span class="text-muted small">Application ID: #APP-{{ app.pk }}</span>
-    </div>
-    
-    <!-- Status Control Bar -->
-    <div class="d-flex align-items-center gap-2">
-        <a href="{% url 'hr:interview_schedule' app.pk %}" class="btn btn-sm btn-outline-info">
-            <i class="bi bi-calendar-plus me-1"></i> Schedule Interview
-        </a>
-
-        <form method="POST" action="{% url 'hr:application_status_update' app.pk %}" class="d-inline">
-            {% csrf_token %}
-            <input type="hidden" name="status" value="SHORTLISTED">
-            <button type="submit" class="btn btn-sm btn-outline-primary" {% if app.status == 'SHORTLISTED' %}disabled{% endif %}>
-                <i class="bi bi-check-circle me-1"></i> Shortlist
-            </button>
-        </form>
-
-        <form method="POST" action="{% url 'hr:application_status_update' app.pk %}" class="d-inline">
-            {% csrf_token %}
-            <input type="hidden" name="status" value="SELECTED">
-            <button type="submit" class="btn btn-sm btn-outline-success" {% if app.status == 'SELECTED' %}disabled{% endif %}>
-                <i class="bi bi-person-check me-1"></i> Select
-            </button>
-        </form>
-
-        <form method="POST" action="{% url 'hr:application_status_update' app.pk %}" class="d-inline">
-            {% csrf_token %}
-            <input type="hidden" name="status" value="REJECTED">
-            <button type="submit" class="btn btn-sm btn-outline-danger" {% if app.status == 'REJECTED' %}disabled{% endif %} onclick="return confirm('Reject this candidate?');">
-                <i class="bi bi-x-circle me-1"></i> Reject
-            </button>
-        </form>
-    </div>
-</div>
-
-<div class="row g-4">
-    <!-- Candidate Info Card -->
-    <div class="col-12 col-lg-4">
-        <div class="card card-custom p-4">
-            <h6 class="fw-bold text-dark border-bottom pb-2 mb-3">Applicant Profile</h6>
-            <div class="mb-3">
-                <span class="text-muted small d-block">Full Name</span>
-                <strong>{{ app.candidate.user.get_full_name|default:app.candidate.user.username }}</strong>
-            </div>
-            <div class="mb-3">
-                <span class="text-muted small d-block">Email</span>
-                <span>{{ app.candidate.user.email }}</span>
-            </div>
-            <div class="mb-3">
-                <span class="text-muted small d-block">Phone</span>
-                <span>{{ app.candidate.phone|default:"Not provided" }}</span>
-            </div>
-            <div class="mb-3">
-                <span class="text-muted small d-block">Current Stage</span>
-                <span class="badge bg-primary">{{ app.get_status_display }}</span>
-            </div>
-            
-            {% if app.applied_resume %}
-            <div class="mt-3">
-                <a href="{{ app.applied_resume.url }}" target="_blank" class="btn btn-blue btn-sm w-100">
-                    <i class="bi bi-file-earmark-arrow-down me-1"></i> Download Application Resume
-                </a>
-            </div>
-            {% elif app.candidate.resume %}
-            <div class="mt-3">
-                <a href="{{ app.candidate.resume.url }}" target="_blank" class="btn btn-outline-blue btn-sm w-100">
-                    <i class="bi bi-file-earmark-arrow-down me-1"></i> Download Profile Resume
-                </a>
-            </div>
-            {% endif %}
+        <div class="d-flex align-items-center gap-2 mb-1">
+            <a href="{% url 'hr:dashboard' %}" class="text-muted small text-decoration-none">Dashboard</a>
+            <span class="text-muted small">/</span>
+            <a href="{% url 'hr:application_list' %}" class="text-muted small text-decoration-none">Recruitment</a>
+            <span class="text-muted small">/</span>
+            <span class="text-dark small fw-medium">Application #APP-{{ app.pk }}</span>
+        </div>
+        <div class="d-flex align-items-center gap-3">
+            <h3 class="fw-bold text-dark mb-0">
+                {{ app.candidate.first_name }} {% if app.candidate.middle_name %}{{ app.candidate.middle_name }} {% endif %}{{ app.candidate.last_name }}
+            </h3>
+            <span class="badge bg-secondary bg-opacity-10 text-secondary border px-2 py-1">
+                #APP-{{ app.pk }}
+            </span>
         </div>
     </div>
 
-    <!-- Application Details & Notes -->
-    <div class="col-12 col-lg-8">
-        <div class="card card-custom p-4">
-            <h6 class="fw-bold text-dark border-bottom pb-2 mb-3">Applied Job Specifications</h6>
-            <div class="row g-3 mb-4">
-                <div class="col-sm-6">
-                    <span class="text-muted small d-block">Role</span>
-                    <strong>{{ app.vacancy.title }}</strong>
+    <!-- Quick Navigation & Schedule Buttons -->
+    <div class="d-flex gap-2 align-items-center flex-wrap">
+        <button type="button" class="btn btn-outline-warning text-dark btn-sm px-3" data-bs-toggle="modal" data-bs-target="#scheduleAptitudeModal">
+            <i class="bi bi-patch-question me-1"></i> Schedule Aptitude
+        </button>
+        <button type="button" class="btn btn-outline-primary btn-sm px-3" data-bs-toggle="modal" data-bs-target="#scheduleInterviewModal">
+            <i class="bi bi-calendar-plus me-1"></i> Schedule Interview
+        </button>
+        <a href="{% url 'hr:application_list' %}" class="btn btn-outline-secondary btn-sm px-3">
+            <i class="bi bi-arrow-left me-1"></i> Back to Applications
+        </a>
+    </div>
+</div>
+
+<!-- Candidate Hero Profile Banner -->
+<div class="card card-custom p-4 mb-4">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
+        <div class="d-flex align-items-center gap-3">
+            {% if app.candidate.profile_photo %}
+                <img src="{{ app.candidate.profile_photo.url }}" alt="{{ app.candidate.first_name }} {{ app.candidate.last_name }}"
+                     style="width: 76px; height: 76px; border-radius: 16px; object-fit: cover; border: 2px solid rgba(26, 115, 232, 0.35); box-shadow: 0 4px 12px rgba(26, 115, 232, 0.2);">
+            {% else %}
+                <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold text-white fs-3"
+                     style="width: 76px; height: 76px; border-radius: 16px !important; background: linear-gradient(135deg, #1a73e8, #1557b0); box-shadow: 0 4px 12px rgba(26, 115, 232, 0.25);">
+                    {{ app.candidate.first_name|default:app.candidate.user.email|slice:":1"|upper }}
                 </div>
-                <div class="col-sm-6">
-                    <span class="text-muted small d-block">Department</span>
-                    <span>{{ app.vacancy.department.name|default:app.vacancy.department_name|default:"Not specified" }}</span>
+            {% endif %}
+            <div>
+                <h4 class="mb-1 text-dark fw-bold">
+                    {{ app.candidate.first_name }} {% if app.candidate.middle_name %}{{ app.candidate.middle_name }} {% endif %}{{ app.candidate.last_name }}
+                </h4>
+                <div class="d-flex align-items-center gap-2 flex-wrap text-secondary small">
+                    <span><i class="bi bi-envelope me-1"></i>{{ app.candidate.user.email }}</span>
+                    <span>&bull;</span>
+                    <span><i class="bi bi-telephone me-1"></i>{{ app.candidate.phone|default:"Phone not provided" }}</span>
+                    <span>&bull;</span>
+                    <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2 py-0">
+                        Applying for: {{ app.vacancy.title }}
+                    </span>
                 </div>
-                <div class="col-sm-6">
-                    <span class="text-muted small d-block">Location</span>
-                    <span>{{ app.vacancy.location|default:"On-site" }}</span>
-                </div>
-                <div class="col-sm-6">
-                    <span class="text-muted small d-block">Submission Date</span>
-                    <span>{{ app.applied_at|date:"M d, Y - H:i" }}</span>
+            </div>
+        </div>
+
+        <!-- Current Application Stage Pill & Quick Status Form -->
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+            <span class="badge {% if app.status == 'SELECTED' %}bg-success{% elif app.status == 'REJECTED' %}bg-danger{% elif app.status == 'SHORTLISTED' %}bg-primary{% elif app.status == 'INTERVIEW' %}bg-info text-dark{% elif app.status == 'APTITUDE' %}bg-warning text-dark{% else %}bg-secondary{% endif %} px-3 py-2 fw-semibold" style="font-size: 0.85rem; border-radius: 20px;">
+                <i class="bi bi-circle-fill me-1" style="font-size: 0.55rem;"></i> {{ app.get_status_display }}
+            </span>
+
+            <!-- Stage Transition Actions -->
+            <div class="dropdown">
+                <button class="btn btn-blue btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                    <i class="bi bi-lightning-charge me-1"></i> Change Stage
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end shadow-sm">
+                    <li>
+                        <form method="POST" action="{% url 'hr:application_status_update' app.pk %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="status" value="RESUME_REVIEW">
+                            <button type="submit" class="dropdown-item small {% if app.status == 'RESUME_REVIEW' %}active{% endif %}">
+                                <i class="bi bi-file-earmark-text me-2"></i> Mark Under Review
+                            </button>
+                        </form>
+                    </li>
+                    <li>
+                        <form method="POST" action="{% url 'hr:application_status_update' app.pk %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="status" value="SHORTLISTED">
+                            <button type="submit" class="dropdown-item small {% if app.status == 'SHORTLISTED' %}active{% endif %}">
+                                <i class="bi bi-check2-circle me-2 text-primary"></i> Shortlist Candidate
+                            </button>
+                        </form>
+                    </li>
+                    <li>
+                        <form method="POST" action="{% url 'hr:application_status_update' app.pk %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="status" value="APTITUDE">
+                            <button type="submit" class="dropdown-item small {% if app.status == 'APTITUDE' %}active{% endif %}">
+                                <i class="bi bi-patch-question me-2 text-warning"></i> Aptitude Test Scheduled
+                            </button>
+                        </form>
+                    </li>
+                    <li>
+                        <form method="POST" action="{% url 'hr:application_status_update' app.pk %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="status" value="INTERVIEW">
+                            <button type="submit" class="dropdown-item small {% if app.status == 'INTERVIEW' %}active{% endif %}">
+                                <i class="bi bi-calendar-event me-2 text-info"></i> Interview Scheduled
+                            </button>
+                        </form>
+                    </li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <form method="POST" action="{% url 'hr:application_status_update' app.pk %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="status" value="SELECTED">
+                            <button type="submit" class="dropdown-item small text-success fw-semibold {% if app.status == 'SELECTED' %}active{% endif %}">
+                                <i class="bi bi-person-check-fill me-2"></i> Select / Offer Candidate
+                            </button>
+                        </form>
+                    </li>
+                    <li>
+                        <form method="POST" action="{% url 'hr:application_status_update' app.pk %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="status" value="REJECTED">
+                            <button type="submit" class="dropdown-item small text-danger fw-semibold {% if app.status == 'REJECTED' %}active{% endif %}" onclick="return confirm('Confirm rejection of this applicant?');">
+                                <i class="bi bi-x-circle-fill me-2"></i> Reject Candidate
+                            </button>
+                        </form>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats Ribbon -->
+    <div class="row g-2 pt-2 border-top">
+        <div class="col-6 col-md-3">
+            <div class="p-2 rounded bg-light border">
+                <div class="text-muted small">Application ID</div>
+                <div class="fw-semibold text-dark text-truncate">#APP-{{ app.pk }}</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="p-2 rounded bg-light border">
+                <div class="text-muted small">Applied Position</div>
+                <div class="fw-semibold text-dark text-truncate">{{ app.vacancy.title }}</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="p-2 rounded bg-light border">
+                <div class="text-muted small">Submission Date</div>
+                <div class="fw-semibold text-primary text-truncate">{{ app.applied_at|date:"M d, Y H:i" }}</div>
+            </div>
+        </div>
+        <div class="col-6 col-md-3">
+            <div class="p-2 rounded bg-light border">
+                <div class="text-muted small">Recruitment Stage</div>
+                <div class="fw-semibold text-primary">{{ app.get_status_display }}</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Detailed Information Grid -->
+<div class="row g-4">
+    <!-- Left Column: Personal, Account, Education Details -->
+    <div class="col-12 col-xl-6">
+        <div class="d-flex flex-column gap-4">
+
+            <!-- Card 1: Candidate Personal Information -->
+            <div class="card card-custom p-4">
+                <h5 class="fw-bold text-dark pb-3 mb-3 border-bottom">
+                    <i class="bi bi-person-badge text-primary me-2"></i> Personal Information
+                </h5>
+                <div class="row g-3">
+                    <div class="col-12 col-sm-6">
+                        <label class="text-muted small mb-1 d-block">Full Legal Name</label>
+                        <div class="text-dark fw-semibold">
+                            {{ app.candidate.first_name }} {% if app.candidate.middle_name %}{{ app.candidate.middle_name }} {% endif %}{{ app.candidate.last_name }}
+                        </div>
+                    </div>
+                    <div class="col-12 col-sm-6">
+                        <label class="text-muted small mb-1 d-block">First Name</label>
+                        <div class="text-dark fw-semibold">{{ app.candidate.first_name|default:"Not provided" }}</div>
+                    </div>
+                    <div class="col-12 col-sm-6">
+                        <label class="text-muted small mb-1 d-block">Middle Name</label>
+                        <div class="text-dark fw-semibold">{{ app.candidate.middle_name|default:"Not provided" }}</div>
+                    </div>
+                    <div class="col-12 col-sm-6">
+                        <label class="text-muted small mb-1 d-block">Last Name</label>
+                        <div class="text-dark fw-semibold">{{ app.candidate.last_name|default:"Not provided" }}</div>
+                    </div>
+                    <div class="col-12 col-sm-6">
+                        <label class="text-muted small mb-1 d-block">Date of Birth</label>
+                        <div class="text-dark fw-semibold">
+                            {% if app.candidate.date_of_birth %}
+                                {{ app.candidate.date_of_birth|date:"F d, Y" }}
+                            {% else %}
+                                <span class="text-muted fst-italic">Not provided</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-12 col-sm-6">
+                        <label class="text-muted small mb-1 d-block">Profile Photo</label>
+                        <div>
+                            {% if app.candidate.profile_photo %}
+                                <div class="d-flex align-items-center gap-2">
+                                    <img src="{{ app.candidate.profile_photo.url }}" alt="Profile Photo" class="rounded border" style="width: 38px; height: 38px; object-fit: cover;">
+                                    <a href="{{ app.candidate.profile_photo.url }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-primary py-0 px-2" style="font-size: 0.75rem;">
+                                        <i class="bi bi-eye me-1"></i> View Photo
+                                    </a>
+                                </div>
+                            {% else %}
+                                <span class="text-muted fst-italic">Not uploaded</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <label class="text-muted small mb-1 d-block">Residential / Mailing Address</label>
+                        <div class="text-dark fw-medium">
+                            {% if app.candidate.address %}
+                                {{ app.candidate.address }}
+                            {% else %}
+                                <span class="text-muted fst-italic">Not provided</span>
+                            {% endif %}
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <h6 class="fw-bold text-dark border-bottom pb-2 mb-3">Candidate Evaluation History</h6>
-            {% if app.interviews.all %}
-                <ul class="list-group mb-3 small">
-                    {% for intr in app.interviews.all %}
-                    <li class="list-group-item d-flex justify-content-between align-items-center">
+            <!-- Card 2: Account & Verification Information -->
+            <div class="card card-custom p-4">
+                <h5 class="fw-bold text-dark pb-3 mb-3 border-bottom">
+                    <i class="bi bi-shield-check text-primary me-2"></i> Account & Verification Details
+                </h5>
+                <div class="row g-3">
+                    <div class="col-12 col-sm-6">
+                        <label class="text-muted small mb-1 d-block">Login Email / Identifier</label>
+                        <div class="text-dark fw-semibold">{{ app.candidate.user.email }}</div>
+                    </div>
+                    <div class="col-12 col-sm-6">
+                        <label class="text-muted small mb-1 d-block">Contact Phone</label>
+                        <div class="text-dark fw-semibold">{{ app.candidate.phone|default:"Not provided" }}</div>
+                    </div>
+                    <div class="col-12 col-sm-6">
+                        <label class="text-muted small mb-1 d-block">User Account Status</label>
                         <div>
-                            <span class="fw-semibold">Interview on {{ intr.interview_date|date:"M d, Y" }} at {{ intr.interview_time|time:"H:i" }}</span>
-                            {% if intr.remarks %}<br><span class="text-muted">{{ intr.remarks }}</span>{% endif %}
+                            {% if app.candidate.user.is_active %}
+                                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1">Active User</span>
+                            {% else %}
+                                <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 px-2 py-1">Inactive</span>
+                            {% endif %}
                         </div>
-                        <span class="badge {% if intr.status == 'COMPLETED' %}bg-success{% elif intr.status == 'SCHEDULED' %}bg-primary{% else %}bg-secondary{% endif %}">{{ intr.get_status_display }}</span>
-                    </li>
-                    {% endfor %}
-                </ul>
-            {% else %}
-                <p class="text-muted small">No interview sessions scheduled yet.</p>
-            {% endif %}
+                    </div>
+                    <div class="col-12 col-sm-6">
+                        <label class="text-muted small mb-1 d-block">Profile Completion</label>
+                        <div>
+                            {% if app.candidate.profile_completed %}
+                                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1">Complete Profile</span>
+                            {% else %}
+                                <span class="badge bg-warning bg-opacity-10 text-warning border border-warning border-opacity-25 px-2 py-1">Incomplete Profile</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-12 col-sm-6">
+                        <label class="text-muted small mb-1 d-block">Terms & Privacy Policy</label>
+                        <div class="text-dark fw-medium">
+                            {% if app.candidate.policy_agreement %}
+                                <span class="text-success fw-semibold"><i class="bi bi-check-circle-fill me-1"></i> Agreed</span>
+                            {% else %}
+                                <span class="text-muted fst-italic">Not accepted</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-12 col-sm-6">
+                        <label class="text-muted small mb-1 d-block">Account Registered On</label>
+                        <div class="text-dark fw-medium">
+                            {% if app.candidate.created_at %}
+                                {{ app.candidate.created_at|date:"M d, Y H:i" }}
+                            {% else %}
+                                <span class="text-muted fst-italic">Not recorded</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 3: Educational Certificates & Marklists -->
+            <div class="card card-custom p-4">
+                <h5 class="fw-bold text-dark pb-3 mb-3 border-bottom">
+                    <i class="bi bi-mortarboard text-primary me-2"></i> Education Documents
+                </h5>
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0" style="font-size: 0.88rem;">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Education Record</th>
+                                <th>Status</th>
+                                <th class="text-end">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- 10th Certificate -->
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <i class="bi bi-file-earmark-text text-primary fs-5"></i>
+                                        <div>
+                                            <span class="fw-semibold text-dark d-block">10th Standard Certificate</span>
+                                            <span class="text-muted" style="font-size: 0.75rem;">Secondary School Leaving Certificate</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    {% if app.candidate.tenth_certificate %}
+                                        <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1">Available</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary bg-opacity-10 text-secondary border px-2 py-1">Not uploaded</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end">
+                                    {% if app.candidate.tenth_certificate %}
+                                        <a href="{{ app.candidate.tenth_certificate.url }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-primary py-0 px-2" style="font-size: 0.75rem;">
+                                            <i class="bi bi-download me-1"></i> View
+                                        </a>
+                                    {% else %}
+                                        <span class="text-muted small">—</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+
+                            <!-- 10th Marklist -->
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <i class="bi bi-file-earmark-ruled text-primary fs-5"></i>
+                                        <div>
+                                            <span class="fw-semibold text-dark d-block">10th Standard Marklist</span>
+                                            <span class="text-muted" style="font-size: 0.75rem;">Marks / Grade Statement</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    {% if app.candidate.tenth_marklist %}
+                                        <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1">Available</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary bg-opacity-10 text-secondary border px-2 py-1">Not uploaded</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end">
+                                    {% if app.candidate.tenth_marklist %}
+                                        <a href="{{ app.candidate.tenth_marklist.url }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-primary py-0 px-2" style="font-size: 0.75rem;">
+                                            <i class="bi bi-download me-1"></i> View
+                                        </a>
+                                    {% else %}
+                                        <span class="text-muted small">—</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+
+                            <!-- 12th Certificate -->
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <i class="bi bi-file-earmark-text text-primary fs-5"></i>
+                                        <div>
+                                            <span class="fw-semibold text-dark d-block">12th Standard Certificate</span>
+                                            <span class="text-muted" style="font-size: 0.75rem;">Higher Secondary Certificate</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    {% if app.candidate.twelfth_certificate %}
+                                        <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1">Available</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary bg-opacity-10 text-secondary border px-2 py-1">Not uploaded</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end">
+                                    {% if app.candidate.twelfth_certificate %}
+                                        <a href="{{ app.candidate.twelfth_certificate.url }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-primary py-0 px-2" style="font-size: 0.75rem;">
+                                            <i class="bi bi-download me-1"></i> View
+                                        </a>
+                                    {% else %}
+                                        <span class="text-muted small">—</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+
+                            <!-- 12th Marklist -->
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <i class="bi bi-file-earmark-ruled text-primary fs-5"></i>
+                                        <div>
+                                            <span class="fw-semibold text-dark d-block">12th Standard Marklist</span>
+                                            <span class="text-muted" style="font-size: 0.75rem;">Marks / Grade Statement</span>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    {% if app.candidate.twelfth_marklist %}
+                                        <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1">Available</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary bg-opacity-10 text-secondary border px-2 py-1">Not uploaded</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-end">
+                                    {% if app.candidate.twelfth_marklist %}
+                                        <a href="{{ app.candidate.twelfth_marklist.url }}" target="_blank" rel="noopener" class="btn btn-sm btn-outline-primary py-0 px-2" style="font-size: 0.75rem;">
+                                            <i class="bi bi-download me-1"></i> View
+                                        </a>
+                                    {% else %}
+                                        <span class="text-muted small">—</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- Right Column: Application, Vacancy, Resume, History -->
+    <div class="col-12 col-xl-6">
+        <div class="d-flex flex-column gap-4">
+
+            <!-- Card 4: Applied Job Specifications -->
+            <div class="card card-custom p-4">
+                <h5 class="fw-bold text-dark pb-3 mb-3 border-bottom">
+                    <i class="bi bi-briefcase text-primary me-2"></i> Applied Job Specifications
+                </h5>
+                <div class="row g-3">
+                    <div class="col-12 col-sm-6">
+                        <label class="text-muted small mb-1 d-block">Target Role</label>
+                        <div class="text-dark fw-bold">{{ app.vacancy.title }}</div>
+                    </div>
+                    <div class="col-12 col-sm-6">
+                        <label class="text-muted small mb-1 d-block">Department</label>
+                        <div>
+                            {% if app.vacancy.department %}
+                                <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2 py-1">
+                                    {{ app.vacancy.department.name }}
+                                </span>
+                            {% else %}
+                                <span class="text-muted fst-italic">Unassigned</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-12 col-sm-6">
+                        <label class="text-muted small mb-1 d-block">Job Location</label>
+                        <div class="text-dark fw-medium">{{ app.vacancy.location|default:"On-site / Headquarters" }}</div>
+                    </div>
+                    <div class="col-12 col-sm-6">
+                        <label class="text-muted small mb-1 d-block">Required Experience</label>
+                        <div class="text-dark fw-medium">{{ app.vacancy.experience_required|default:"Not specified" }}</div>
+                    </div>
+                    {% if app.vacancy.skills_required %}
+                    <div class="col-12">
+                        <label class="text-muted small mb-1 d-block">Required Skills & Competencies</label>
+                        <div class="text-dark small bg-light p-2 rounded border">
+                            {{ app.vacancy.skills_required }}
+                        </div>
+                    </div>
+                    {% endif %}
+                    {% if app.vacancy.description %}
+                    <div class="col-12">
+                        <label class="text-muted small mb-1 d-block">Job Description Overview</label>
+                        <div class="text-dark small bg-light p-2 rounded border" style="max-height: 120px; overflow-y: auto;">
+                            {{ app.vacancy.description }}
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Card 5: Resume & Identity Documents -->
+            <div class="card card-custom p-4">
+                <h5 class="fw-bold text-dark pb-3 mb-3 border-bottom">
+                    <i class="bi bi-file-earmark-person text-primary me-2"></i> Resume & Identity Documents
+                </h5>
+
+                <div class="d-flex flex-column gap-3">
+                    <!-- Submitted Application Resume -->
+                    <div class="p-3 bg-light rounded border d-flex align-items-center justify-content-between flex-wrap gap-2">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="p-2 bg-primary bg-opacity-10 rounded text-primary fs-4">
+                                <i class="bi bi-file-earmark-pdf"></i>
+                            </div>
+                            <div>
+                                <div class="fw-bold text-dark">Application Resume</div>
+                                <div class="text-muted small">Submitted specifically with this application</div>
+                            </div>
+                        </div>
+                        <div>
+                            {% if app.applied_resume %}
+                                <a href="{{ app.applied_resume.url }}" target="_blank" rel="noopener" class="btn btn-blue btn-sm px-3">
+                                    <i class="bi bi-download me-1"></i> View / Download
+                                </a>
+                            {% else %}
+                                <span class="badge bg-secondary bg-opacity-10 text-secondary border px-2 py-1">Not uploaded with app</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Profile Resume -->
+                    <div class="p-3 bg-light rounded border d-flex align-items-center justify-content-between flex-wrap gap-2">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="p-2 bg-primary bg-opacity-10 rounded text-primary fs-4">
+                                <i class="bi bi-file-earmark-text"></i>
+                            </div>
+                            <div>
+                                <div class="fw-bold text-dark">Profile Resume</div>
+                                <div class="text-muted small">General resume uploaded on candidate profile</div>
+                            </div>
+                        </div>
+                        <div>
+                            {% if app.candidate.resume %}
+                                <a href="{{ app.candidate.resume.url }}" target="_blank" rel="noopener" class="btn btn-outline-blue btn-sm px-3">
+                                    <i class="bi bi-download me-1"></i> View / Download
+                                </a>
+                            {% else %}
+                                <span class="badge bg-secondary bg-opacity-10 text-secondary border px-2 py-1">Not uploaded</span>
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Identity Proof Document -->
+                    <div class="p-3 bg-light rounded border d-flex align-items-center justify-content-between flex-wrap gap-2">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="p-2 bg-primary bg-opacity-10 rounded text-primary fs-4">
+                                <i class="bi bi-card-heading"></i>
+                            </div>
+                            <div>
+                                <div class="fw-bold text-dark">Government ID Proof</div>
+                                <div class="text-muted small">Identity verification document</div>
+                            </div>
+                        </div>
+                        <div>
+                            {% if app.candidate.id_proof %}
+                                <a href="{{ app.candidate.id_proof.url }}" target="_blank" rel="noopener" class="btn btn-outline-blue btn-sm px-3">
+                                    <i class="bi bi-download me-1"></i> View / Download
+                                </a>
+                            {% else %}
+                                <span class="badge bg-secondary bg-opacity-10 text-secondary border px-2 py-1">Not uploaded</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Card 6: Evaluation & Interview History -->
+            <div class="card card-custom p-4">
+                <div class="d-flex align-items-center justify-content-between pb-3 mb-3 border-bottom flex-wrap gap-2">
+                    <h5 class="fw-bold text-dark mb-0">
+                        <i class="bi bi-clock-history text-primary me-2"></i> Evaluation &amp; Interview History
+                    </h5>
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-outline-warning text-dark btn-sm" data-bs-toggle="modal" data-bs-target="#scheduleAptitudeModal">
+                            <i class="bi bi-patch-question me-1"></i> Aptitude
+                        </button>
+                        <button type="button" class="btn btn-outline-primary btn-sm" data-bs-toggle="modal" data-bs-target="#scheduleInterviewModal">
+                            <i class="bi bi-calendar-plus me-1"></i> Interview
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Aptitude Schedule & Info -->
+                {% if app.aptitude_date or app.aptitude_test or app.status == 'APTITUDE' %}
+                    <div class="p-3 bg-light rounded border mb-3">
+                        <div class="d-flex justify-content-between align-items-start mb-1">
+                            <h6 class="fw-bold text-dark mb-0">
+                                <i class="bi bi-patch-question text-warning me-1"></i> Aptitude Assessment
+                            </h6>
+                            <span class="badge bg-warning text-dark">
+                                {% if app.aptitude_results.exists %}Completed{% else %}Scheduled / Pending{% endif %}
+                            </span>
+                        </div>
+                        <div class="small text-muted mb-1">
+                            Test: <strong class="text-dark">{{ app.aptitude_test.title|default:"Standard Aptitude Assessment" }}</strong>
+                        </div>
+                        <div class="small text-muted mb-1">
+                            {% if app.aptitude_date %}
+                                Date: <strong class="text-dark">{{ app.aptitude_date|date:"F d, Y" }}</strong>
+                            {% endif %}
+                            {% if app.aptitude_time %}
+                                &bull; Time: <strong class="text-dark">{{ app.aptitude_time|time:"H:i" }}</strong>
+                            {% endif %}
+                        </div>
+                        {% if app.aptitude_remarks %}
+                            <div class="small text-secondary bg-white p-2 rounded border mt-2">
+                                <strong>Instructions:</strong> {{ app.aptitude_remarks }}
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endif %}
+
+                <!-- Aptitude Results -->
+                {% if app.aptitude_results.all %}
+                    <h6 class="fw-bold text-secondary small text-uppercase mb-2">Aptitude Test Results</h6>
+                    <div class="table-responsive mb-3">
+                        <table class="table table-sm table-bordered align-middle mb-0" style="font-size: 0.85rem;">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Test Name</th>
+                                    <th>Score</th>
+                                    <th>Status</th>
+                                    <th>Date</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for res in app.aptitude_results.all %}
+                                    <tr>
+                                        <td class="fw-semibold">{{ res.test.title }}</td>
+                                        <td>
+                                            <span class="badge bg-primary bg-opacity-10 text-primary fw-bold">
+                                                {{ res.score }} / {{ res.total_marks }} ({{ res.percentage }}%)
+                                            </span>
+                                        </td>
+                                        <td>
+                                            {% if res.passed %}
+                                                <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-0.5">Passed</span>
+                                            {% else %}
+                                                <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 px-2 py-0.5">Below Pass %</span>
+                                            {% endif %}
+                                        </td>
+                                        <td class="text-muted">{{ res.completed_at|date:"M d, Y H:i" }}</td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% endif %}
+
+                <!-- Interview Sessions -->
+                <h6 class="fw-bold text-secondary small text-uppercase mb-2">Scheduled Interviews</h6>
+                {% if app.interviews.all %}
+                    <div class="d-flex flex-column gap-2">
+                        {% for intr in app.interviews.all %}
+                            <div class="p-3 bg-light rounded border">
+                                <div class="d-flex justify-content-between align-items-start mb-1 flex-wrap gap-1">
+                                    <div class="fw-bold text-dark">
+                                        <i class="bi bi-calendar-check text-primary me-1"></i> {{ intr.interview_date|date:"F d, Y" }} at {{ intr.interview_time|time:"H:i" }}
+                                    </div>
+                                    <span class="badge {% if intr.status == 'COMPLETED' %}bg-success{% elif intr.status == 'CANCELLED' %}bg-danger{% else %}bg-primary{% endif %}">
+                                        {{ intr.get_status_display }}
+                                    </span>
+                                </div>
+                                <div class="small text-muted mb-1">
+                                    Interviewer: <span class="text-dark fw-medium">{{ intr.interviewer.user.name|default:intr.interviewer.user.email|default:"HR Lead" }}</span>
+                                </div>
+                                {% if intr.remarks %}
+                                    <div class="small text-secondary bg-white p-2 rounded border mt-2">
+                                        <strong>Feedback/Remarks:</strong> {{ intr.remarks }}
+                                    </div>
+                                {% endif %}
+
+                                <!-- Quick status change dropdown for this interview -->
+                                <div class="d-flex justify-content-end mt-2 pt-2 border-top">
+                                    <form method="POST" action="{% url 'hr:interview_status_update' intr.pk %}" class="d-flex gap-1 align-items-center">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="next" value="{{ request.path }}">
+                                        <select name="status" class="form-select form-select-sm py-0" style="font-size: 0.75rem; width: auto;" onchange="this.form.submit()">
+                                            <option value="SCHEDULED" {% if intr.status == 'SCHEDULED' %}selected{% endif %}>Status: Scheduled</option>
+                                            <option value="COMPLETED" {% if intr.status == 'COMPLETED' %}selected{% endif %}>Status: Completed</option>
+                                            <option value="CANCELLED" {% if intr.status == 'CANCELLED' %}selected{% endif %}>Status: Cancelled</option>
+                                        </select>
+                                    </form>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-3 text-muted small bg-light rounded border">
+                        <i class="bi bi-calendar-x d-block fs-4 text-secondary opacity-50 mb-1"></i>
+                        No interview sessions scheduled for this candidate yet.
+                    </div>
+                {% endif %}
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Schedule Aptitude Test -->
+<div class="modal fade" id="scheduleAptitudeModal" tabindex="-1" aria-labelledby="scheduleAptitudeModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form method="POST" action="{% url 'hr:application_status_update' app.pk %}">
+                {% csrf_token %}
+                <input type="hidden" name="status" value="APTITUDE">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold" id="scheduleAptitudeModalLabel">
+                        <i class="bi bi-patch-question text-warning me-2"></i> Schedule Aptitude Assessment
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted small mb-3">
+                        Set the date, time, test type, and instructions for <strong>{{ app.candidate.first_name }} {{ app.candidate.last_name }}</strong>. The candidate will receive a notification automatically.
+                    </p>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Select Aptitude Test</label>
+                        <select name="aptitude_test_id" class="form-select">
+                            {% for test in aptitude_tests %}
+                                <option value="{{ test.pk }}" {% if app.aptitude_test_id == test.pk %}selected{% endif %}>
+                                    {{ test.title }} ({{ test.duration_minutes }} mins, Pass: {{ test.pass_percentage }}%)
+                                </option>
+                            {% empty %}
+                                <option value="">Standard Aptitude Test</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold">Assessment Date</label>
+                            <input type="date" name="aptitude_date" class="form-control" value="{{ app.aptitude_date|date:'Y-m-d'|default:'' }}" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold">Assessment Time</label>
+                            <input type="time" name="aptitude_time" class="form-control" value="{{ app.aptitude_time|time:'H:i'|default:'' }}" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Instructions / Remarks (Optional)</label>
+                        <textarea name="aptitude_remarks" class="form-control" rows="3" placeholder="e.g. Please ensure stable internet connection. Assessment consists of Quant, Logic, and Verbal questions.">{{ app.aptitude_remarks|default:'' }}</textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-warning text-dark fw-bold">
+                        <i class="bi bi-check2-circle me-1"></i> Save &amp; Notify Candidate
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal: Schedule Interview -->
+<div class="modal fade" id="scheduleInterviewModal" tabindex="-1" aria-labelledby="scheduleInterviewModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form method="POST" action="{% url 'hr:interview_schedule' app.pk %}">
+                {% csrf_token %}
+                <input type="hidden" name="next" value="{{ request.path }}">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold" id="scheduleInterviewModalLabel">
+                        <i class="bi bi-calendar-plus text-primary me-2"></i> Schedule Interview Session
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="text-muted small mb-3">
+                        Schedule an interview session for <strong>{{ app.candidate.first_name }} {{ app.candidate.last_name }}</strong> for the position of <strong>{{ app.vacancy.title }}</strong>.
+                    </p>
+                    <div class="row g-2 mb-3">
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold">Interview Date</label>
+                            <input type="date" name="interview_date" class="form-control" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-semibold">Interview Time</label>
+                            <input type="time" name="interview_time" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Assign Interviewer</label>
+                        <select name="interviewer_id" class="form-select">
+                            {% for hr in hr_managers %}
+                                <option value="{{ hr.pk }}" {% if request.user.hr_profile.pk == hr.pk %}selected{% endif %}>
+                                    {{ hr.user.name|default:hr.user.email }} ({{ hr.designation|default:"HR Manager" }})
+                                </option>
+                            {% empty %}
+                                <option value="">HR Recruitment Team</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Meeting Link / Instructions / Remarks</label>
+                        <textarea name="remarks" class="form-control" rows="3" placeholder="e.g. Google Meet Link: https://meet.google.com/xyz or Room 302, Head Office."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-calendar-check me-1"></i> Confirm &amp; Notify Candidate
+                    </button>
+                </div>
+            </form>
         </div>
     </div>
 </div>

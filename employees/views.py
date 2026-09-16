@@ -5,6 +5,7 @@ from django.contrib.auth import logout
 from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import PasswordChangeForm
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404
 from django.shortcuts import redirect
 from django.shortcuts import render
@@ -53,7 +54,7 @@ def employee_login(request):
                 user = emp_rec.user
 
         if user is None:
-            messages.error(request, "Invalid email or password.")
+            messages.error(request, "Invalid email/ID or password.")
             return render(request, "employees/login.html")
 
         if not user.is_active:
@@ -139,6 +140,29 @@ def employee_dashboard(request):
 
     # Unread Notifications & Announcements
     notifications = employee.notifications.all().order_by("-created_at")
+    if not notifications.exists():
+        Notification.objects.bulk_create([
+            Notification(
+                employee=employee,
+                title="Welcome to HRMS",
+                message="Welcome to your employee portal. You can manage your profile, submit weekly reports, and track feedback here.",
+                is_read=False,
+            ),
+            Notification(
+                employee=employee,
+                title="Weekly Report Reminder",
+                message="Please remember to submit your weekly work report before Friday 5:00 PM.",
+                is_read=False,
+            ),
+            Notification(
+                employee=employee,
+                title="Company Guidelines",
+                message="Please review the company employee guidelines and leave policy.",
+                is_read=False,
+            ),
+        ])
+        notifications = employee.notifications.all().order_by("-created_at")
+
     unread_notifications_count = notifications.filter(is_read=False).count()
     recent_notifications = notifications[:5]
 
@@ -153,26 +177,51 @@ def employee_dashboard(request):
         + reports.filter(status="NEEDS_CORRECTION").count()
     )
     if pending_tasks == 0:
-        pending_tasks = 2
+        pending_tasks = 0
+
+    # Check for newly reviewed report by HR to trigger popup message
+    latest_reviewed_report = (
+        reports.filter(status__in=["REVIEWED", "NEEDS_CORRECTION"])
+        .order_by("-reviewed_at")
+        .first()
+    )
+    show_report_popup = False
+    if latest_reviewed_report and latest_reviewed_report.reviewed_at:
+        session_key = f"seen_report_review_{latest_reviewed_report.pk}_{latest_reviewed_report.status}"
+        if not request.session.get(session_key):
+            show_report_popup = True
 
     context = {
         "employee": employee,
         "reports": recent_reports,
         "total_reports_count": reports.count(),
         "latest_report": latest_report,
+        "latest_reviewed_report": latest_reviewed_report,
+        "show_report_popup": show_report_popup,
         "monthly_report_status": monthly_report_status,
         "perf_score": perf_score,
         "perf_rating": perf_rating,
         "perf_comments": perf_comments,
         "pending_tasks": pending_tasks,
-        "unread_notifications_count": unread_notifications_count
-        if unread_notifications_count > 0
-        else 5,
+        "unread_notifications_count": unread_notifications_count,
         "announcements": announcements,
         "notifications": recent_notifications,
     }
 
     return render(request, "employees/dashboard.html", context)
+
+
+@login_required
+def dismiss_report_popup(request, report_id):
+    try:
+        report = get_object_or_404(
+            EmployeeReport, pk=report_id, employee=request.user.employee_profile
+        )
+        session_key = f"seen_report_review_{report.pk}_{report.status}"
+        request.session[session_key] = True
+        return JsonResponse({"status": "success"})
+    except Exception:
+        return JsonResponse({"status": "error"}, status=400)
 
 
 @login_required
@@ -373,12 +422,49 @@ def notifications_view(request):
         return redirect("employees:login")
 
     notifications = employee.notifications.all().order_by("-created_at")
+    if not notifications.exists():
+        Notification.objects.bulk_create([
+            Notification(
+                employee=employee,
+                title="Welcome to HRMS",
+                message="Welcome to your employee portal. You can manage your profile, submit weekly reports, and track feedback here.",
+                is_read=False,
+            ),
+            Notification(
+                employee=employee,
+                title="Weekly Report Reminder",
+                message="Please remember to submit your weekly work report before Friday 5:00 PM.",
+                is_read=False,
+            ),
+            Notification(
+                employee=employee,
+                title="Company Guidelines",
+                message="Please review the company employee guidelines and leave policy.",
+                is_read=False,
+            ),
+        ])
+        notifications = employee.notifications.all().order_by("-created_at")
+
+    unread_notifications_count = notifications.filter(is_read=False).count()
 
     context = {
         "employee": employee,
         "notifications": notifications,
+        "unread_notifications_count": unread_notifications_count,
     }
     return render(request, "employees/notifications.html", context)
+
+
+@login_required
+def mark_all_notifications_read(request):
+    try:
+        employee = request.user.employee_profile
+    except AttributeError:
+        return redirect("employees:login")
+
+    employee.notifications.filter(is_read=False).update(is_read=True)
+    messages.success(request, "All notifications marked as read.")
+    return redirect("employees:notifications")
 
 
 @login_required

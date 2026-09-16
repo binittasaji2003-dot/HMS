@@ -3,12 +3,22 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>HR Management System</title>
+    <title>HR Management System | Smart HRMS</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
           rel="stylesheet" />
     <link rel="stylesheet"
           href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
     <style>
+      :root {
+        --primary-blue: #1e40af;
+        --secondary-blue: #3b82f6;
+        --accent-blue: #60a5fa;
+        --light-blue-bg: #f0f7ff;
+        --dark-navy: #0f172a;
+        --text-muted: #64748b;
+        --card-border: #e2e8f0;
+      }
+
       * {
         margin: 0;
         padding: 0;
@@ -16,279 +26,328 @@
       }
 
       body {
-        font-family: Arial, sans-serif;
-        background: #f6f7fb;
-        color: #24243e;
+        font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+        background-color: #f8fafc;
+        color: #1e293b;
+        line-height: 1.6;
+        overflow-x: hidden;
+      }
+
+      /* ANIMATIONS */
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(24px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @keyframes subtleFloat {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-6px); }
+      }
+
+      .animate-fade-in {
+        animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+      }
+
+      .animate-fade-in-delayed {
+        animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) 0.2s forwards;
+        opacity: 0;
+      }
+
+      .animate-float {
+        animation: subtleFloat 4s ease-in-out infinite;
       }
 
       /* NAVBAR */
-
       .navbar {
-        background: white;
-        padding: 18px 7%;
-        box-shadow: 0 2px 15px rgba(0, 0, 0, 0.05);
+        background: #ffffff;
+        padding: 16px 8%;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+        border-bottom: 1px solid var(--card-border);
       }
 
       .brand {
-        font-size: 24px;
-        font-weight: 700;
-        color: #4b2aad;
+        font-size: 22px;
+        font-weight: 800;
+        color: var(--primary-blue);
+        letter-spacing: -0.5px;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 8px;
       }
 
       .brand span {
-        color: #e04bb5;
+        color: var(--secondary-blue);
       }
 
       .nav-link {
-        color: #555 !important;
-        margin-left: 25px;
-        font-weight: 500;
+        color: #475569 !important;
+        margin-left: 20px;
+        font-weight: 600;
+        font-size: 15px;
+        transition: color 0.2s ease;
       }
 
       .nav-link:hover {
-        color: #6c3ce9 !important;
+        color: var(--primary-blue) !important;
       }
 
-      .login-btn {
-        background: linear-gradient(90deg, #6c35e8, #d842b5);
-        color: white !important;
-        padding: 10px 22px !important;
-        border-radius: 25px;
+      .btn-primary-blue {
+        background: linear-gradient(135deg, #1e40af, #2563eb);
+        color: #ffffff !important;
+        padding: 10px 24px !important;
+        border-radius: 8px;
+        font-weight: 600;
+        border: none;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.25);
+        transition: all 0.2s ease;
       }
 
-      /* HERO */
+      .btn-primary-blue:hover {
+        background: linear-gradient(135deg, #1d4ed8, #1e40af);
+        transform: translateY(-1px);
+        box-shadow: 0 6px 16px rgba(37, 99, 235, 0.35);
+      }
 
+      .btn-outline-blue {
+        border: 1.5px solid var(--secondary-blue);
+        color: var(--primary-blue);
+        padding: 10px 22px;
+        border-radius: 8px;
+        font-weight: 600;
+        background: transparent;
+        transition: all 0.2s ease;
+      }
+
+      .btn-outline-blue:hover {
+        background: var(--light-blue-bg);
+        color: var(--primary-blue);
+      }
+
+      /* HERO SECTION */
       .hero {
-        min-height: 550px;
-        background:
-          radial-gradient(circle at 80% 20%, rgba(143, 93, 255, .25), transparent 35%),
-          linear-gradient(135deg, #211b3a, #49356b, #705a91);
-        color: white;
-        padding: 90px 7%;
+        background: radial-gradient(circle at 85% 15%, #e0f2fe 0%, #f0f9ff 45%, #ffffff 80%);
+        padding: 80px 8% 70px 8%;
         position: relative;
-        overflow: hidden;
+        border-bottom: 1px solid #e2e8f0;
       }
 
-      .hero-content {
-        max-width: 650px;
-        padding-top: 40px;
-      }
-
-      .small-title {
-        color: #d8b8ff;
-        letter-spacing: 3px;
-        font-size: 14px;
-        font-weight: bold;
+      .hero-tag {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: #dbeafe;
+        color: var(--primary-blue);
+        font-size: 13px;
+        font-weight: 700;
+        padding: 6px 14px;
+        border-radius: 20px;
         margin-bottom: 20px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
       }
 
       .hero h1 {
-        font-size: 58px;
-        font-weight: 700;
-        line-height: 1.1;
-        margin-bottom: 25px;
+        font-size: 48px;
+        font-weight: 800;
+        color: var(--dark-navy);
+        line-height: 1.15;
+        margin-bottom: 20px;
+        letter-spacing: -1px;
       }
 
       .hero h1 span {
-        color: #e35bc0;
+        color: var(--secondary-blue);
       }
 
       .hero p {
         font-size: 18px;
-        line-height: 1.8;
-        color: #eee8fa;
+        color: var(--text-muted);
+        line-height: 1.7;
         max-width: 600px;
+        margin-bottom: 32px;
       }
 
-      .hero-buttons {
-        margin-top: 35px;
-      }
-
-      .primary-btn {
-        background: linear-gradient(90deg, #8b3df0, #dc42ad);
-        color: white;
-        padding: 14px 30px;
-        border-radius: 30px;
-        text-decoration: none;
-        display: inline-block;
-        margin-right: 12px;
-        font-weight: bold;
-      }
-
-      .secondary-btn {
-        border: 1px solid rgba(255, 255, 255, .5);
-        color: white;
-        padding: 13px 30px;
-        border-radius: 30px;
-        text-decoration: none;
-        display: inline-block;
-      }
-
-      /* HERO CARD */
-
+      /* HERO STATS CARD */
       .hero-card {
-        position: absolute;
-        right: 7%;
-        top: 100px;
-        width: 390px;
-        background: rgba(255, 255, 255, .12);
-        border: 1px solid rgba(255, 255, 255, .25);
-        backdrop-filter: blur(15px);
-        padding: 30px;
-        border-radius: 25px;
-        box-shadow: 0 20px 50px rgba(0, 0, 0, .2);
+        background: #ffffff;
+        border: 1px solid var(--card-border);
+        border-radius: 16px;
+        padding: 28px;
+        box-shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
       }
 
-      .hero-card h4 {
-        margin-bottom: 25px;
+      .hero-card-header {
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--dark-navy);
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
       }
 
-      .stat {
+      .stat-row {
         display: flex;
         justify-content: space-between;
-        padding: 17px 0;
-        border-bottom: 1px solid rgba(255, 255, 255, .15);
+        align-items: center;
+        padding: 12px 0;
+        border-bottom: 1px solid #f1f5f9;
       }
 
-      .stat:last-child {
+      .stat-row:last-child {
         border-bottom: none;
       }
 
-      .stat-number {
-        font-size: 22px;
-        font-weight: bold;
+      .stat-label {
+        font-size: 14px;
+        color: var(--text-muted);
+        font-weight: 500;
       }
 
-      /* FEATURES */
-
-      .features {
-        padding: 80px 7%;
-      }
-
-      .section-title {
-        text-align: center;
-        margin-bottom: 50px;
-      }
-
-      .section-title h2 {
-        font-size: 36px;
+      .stat-value {
+        font-size: 18px;
         font-weight: 700;
+        color: var(--primary-blue);
       }
 
-      .section-title p {
-        color: #777;
-        margin-top: 10px;
+      /* SECTIONS */
+      .section-header {
+        text-align: center;
+        margin-bottom: 45px;
       }
 
+      .section-header h2 {
+        font-size: 32px;
+        font-weight: 800;
+        color: var(--dark-navy);
+        letter-spacing: -0.5px;
+      }
+
+      .section-header p {
+        color: var(--text-muted);
+        font-size: 16px;
+        margin-top: 8px;
+      }
+
+      /* FEATURE CARDS */
       .feature-card {
-        background: white;
-        border-radius: 18px;
-        padding: 30px;
+        background: #ffffff;
+        border: 1px solid var(--card-border);
+        border-radius: 14px;
+        padding: 28px;
         height: 100%;
-        box-shadow: 0 8px 30px rgba(40, 30, 70, .07);
-        transition: .3s;
+        transition: all 0.25s ease;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
       }
 
       .feature-card:hover {
-        transform: translateY(-8px);
-        box-shadow: 0 15px 35px rgba(60, 40, 100, .13);
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px rgba(30, 64, 175, 0.08);
+        border-color: #bfdbfe;
       }
 
-      .icon {
-        width: 60px;
-        height: 60px;
-        border-radius: 15px;
-        background: linear-gradient(135deg, #7136ed, #d84ab4);
-        color: white;
+      .feature-icon {
+        width: 50px;
+        height: 50px;
+        border-radius: 12px;
+        background: var(--light-blue-bg);
+        color: var(--primary-blue);
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 27px;
+        font-size: 22px;
         margin-bottom: 20px;
       }
 
       .feature-card h5 {
         font-weight: 700;
+        color: var(--dark-navy);
         margin-bottom: 10px;
       }
 
       .feature-card p {
-        color: #777;
-        line-height: 1.6;
+        color: var(--text-muted);
+        font-size: 14px;
+        margin: 0;
       }
 
-      /* STATS */
-
-      .stats-section {
-        background: white;
-        padding: 60px 7%;
+      /* VACANCY CARDS */
+      .vacancy-card {
+        background: #ffffff;
+        border: 1px solid var(--card-border);
+        border-radius: 14px;
+        padding: 24px;
+        transition: all 0.25s ease;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        height: 100%;
       }
 
-      .big-stat {
-        text-align: center;
+      .vacancy-card:hover {
+        border-color: var(--secondary-blue);
+        box-shadow: 0 8px 24px rgba(59, 130, 246, 0.12);
+        transform: translateY(-3px);
       }
 
-      .big-stat h2 {
-        color: #6635d9;
-        font-size: 38px;
-        font-weight: bold;
+      .vacancy-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--dark-navy);
+        margin-bottom: 8px;
       }
 
-      .big-stat p {
-        color: #777;
+      .badge-dept {
+        background: #e0f2fe;
+        color: #0369a1;
+        font-size: 12px;
+        font-weight: 600;
+        padding: 4px 10px;
+        border-radius: 6px;
+      }
+
+      .badge-loc {
+        background: #f1f5f9;
+        color: #475569;
+        font-size: 12px;
+        font-weight: 600;
+        padding: 4px 10px;
+        border-radius: 6px;
       }
 
       /* FOOTER */
-
       footer {
-        background: #211b3a;
-        color: white;
-        text-align: center;
-        padding: 30px;
+        background: var(--dark-navy);
+        color: #94a3b8;
+        padding: 40px 8%;
+        font-size: 14px;
       }
 
-      footer p {
-        margin: 0;
-        color: #cfc9dc;
+      footer a {
+        color: #cbd5e1;
+        text-decoration: none;
       }
 
-      /* RESPONSIVE */
-
-      @media (max-width: 1000px) {
-
-        .hero-card {
-          display: none;
-        }
-
-        .hero h1 {
-          font-size: 45px;
-        }
-
-      }
-
-      @media (max-width: 600px) {
-
-        .hero {
-          padding: 60px 6%;
-        }
-
-        .hero h1 {
-          font-size: 38px;
-        }
-
-        .nav-link {
-          margin-left: 0;
-        }
-
+      footer a:hover {
+        color: #ffffff;
       }
     </style>
   </head>
   <body>
     <!-- NAVBAR -->
-    <nav class="navbar navbar-expand-lg">
-      <div class="container-fluid">
-        <a class="navbar-brand brand" href="/">
-          HR <span>Management</span>
+    <nav class="navbar navbar-expand-lg sticky-top">
+      <div class="container-fluid p-0">
+        <a class="brand" href="/">
+          <i class="bi bi-diagram-3-fill"></i>
+          HR<span>Management</span>
         </a>
         <button class="navbar-toggler"
                 type="button"
@@ -302,186 +361,224 @@
               <a class="nav-link" href="/">Home</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="#features">Modules</a>
+              <a class="nav-link" href="#vacancies">Job Openings</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" href="#about">About</a>
+              <a class="nav-link" href="#modules">Modules</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="/about/">About</a>
             </li>
             {% if request.user.is_authenticated %}
-              <li class="nav-item">
-                <a class="nav-link login-btn" href="{% url 'employees:dashboard' %}">Dashboard</a>
+              <li class="nav-item ms-lg-3">
+                <a class="btn btn-primary-blue" href="{% url 'users:redirect' %}">
+                  <i class="bi bi-speedometer2 me-1"></i> My Dashboard
+                </a>
               </li>
-              <li class="nav-item">
-                <a class="nav-link text-danger" href="{% url 'employees:logout' %}">Logout</a>
+              <li class="nav-item ms-lg-2">
+                <a class="nav-link text-danger" href="{% url 'employees:logout' %}">
+                  <i class="bi bi-box-arrow-right"></i> Logout
+                </a>
               </li>
             {% else %}
-              <li class="nav-item">
-                <a class="nav-link login-btn" href="{% url 'employees:login' %}">Employee Login</a>
+              <li class="nav-item ms-lg-3">
+                <a class="btn btn-outline-blue me-2" href="{% url 'candidates:job_list' %}">
+                  <i class="bi bi-briefcase me-1"></i> Browse Jobs
+                </a>
+              </li>
+              <li class="nav-item ms-lg-1">
+                <a class="btn btn-primary-blue" href="{% url 'role_select' %}">
+                  <i class="bi bi-person-circle me-1"></i> Sign In
+                </a>
               </li>
             {% endif %}
           </ul>
         </div>
       </div>
     </nav>
+
     <!-- HERO -->
     <section class="hero">
-      <div class="hero-content">
-        <div class="small-title">HUMAN RESOURCE MANAGEMENT SYSTEM</div>
-        <h1>
-          Manage People.
-          <br />
-          <span>Build Better Teams.</span>
-        </h1>
-        <p>
-          A centralized HR management platform designed to simplify
-          employee management, recruitment, performance tracking,
-          reports and organizational communication.
-        </p>
-        <div class="hero-buttons">
-          {% if request.user.is_authenticated %}
-            <a href="{% url 'employees:dashboard' %}" class="primary-btn">
-              <i class="bi bi-grid-1x2-fill me-1"></i>
-              Open Dashboard
+      <div class="container-fluid p-0">
+        <div class="row align-items-center g-5">
+          <div class="col-lg-7 animate-fade-in">
+            <div class="hero-tag">
+              <i class="bi bi-shield-check"></i> Enterprise HR Operations Platform
+            </div>
+            <h1>
+              Centralized Workforce Management.
+              <br />
+              <span>Built for High Performance.</span>
+            </h1>
+            <p>
+              A unified Human Resource Management System automating recruitment, employee lifecycle, performance evaluations, work reports, and role-based operations for Admin, HR, Employees, and Candidates.
+            </p>
+            <div class="d-flex flex-wrap gap-3">
+              {% if request.user.is_authenticated %}
+                <a href="{% url 'users:redirect' %}" class="btn btn-primary-blue btn-lg px-4">
+                  <i class="bi bi-grid-1x2-fill me-2"></i> Access Dashboard
+                </a>
+              {% else %}
+                <a href="{% url 'role_select' %}" class="btn btn-primary-blue btn-lg px-4">
+                  <i class="bi bi-box-arrow-in-right me-2"></i> Sign In to Portal
+                </a>
+                <a href="#vacancies" class="btn btn-outline-blue btn-lg px-4">
+                  <i class="bi bi-search me-2"></i> Explore Vacancies
+                </a>
+              {% endif %}
+            </div>
+          </div>
+          <div class="col-lg-5 animate-fade-in-delayed">
+            <div class="hero-card animate-float">
+              <div class="hero-card-header">
+                <i class="bi bi-activity text-primary"></i> Live System Snapshot
+              </div>
+              <div class="stat-row">
+                <span class="stat-label"><i class="bi bi-people-fill text-primary me-2"></i>Active Workforce</span>
+                <span class="stat-value">{{ total_employees|default:"1" }}</span>
+              </div>
+              <div class="stat-row">
+                <span class="stat-label"><i class="bi bi-building text-primary me-2"></i>Departments</span>
+                <span class="stat-value">{{ total_departments|default:"1" }}</span>
+              </div>
+              <div class="stat-row">
+                <span class="stat-label"><i class="bi bi-briefcase-fill text-primary me-2"></i>Open Job Vacancies</span>
+                <span class="stat-value text-success">{{ total_open_jobs|default:"0" }}</span>
+              </div>
+              <div class="stat-row">
+                <span class="stat-label"><i class="bi bi-shield-lock-fill text-primary me-2"></i>Security & Roles</span>
+                <span class="stat-value text-primary">Admin / HR / Staff / Candidate</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PUBLIC JOB OPENINGS SECTION -->
+    <section class="py-5 bg-white border-bottom" id="vacancies">
+      <div class="container py-4">
+        <div class="section-header">
+          <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill fw-bold mb-2">CAREERS & RECRUITMENT</span>
+          <h2>Current Job Openings</h2>
+          <p>Explore active career opportunities and apply online with ease.</p>
+        </div>
+
+        {% if open_jobs %}
+          <div class="row g-4">
+            {% for job in open_jobs %}
+              <div class="col-md-6 col-lg-4">
+                <div class="vacancy-card">
+                  <div>
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                      <span class="badge-dept">{{ job.department.name|default:job.department_name|default:"General" }}</span>
+                      <span class="badge-loc"><i class="bi bi-geo-alt-fill me-1"></i>{{ job.location|default:"Headquarters" }}</span>
+                    </div>
+                    <h3 class="vacancy-title">{{ job.title }}</h3>
+                    <p class="text-muted small mb-3">
+                      {{ job.description|truncatewords:22 }}
+                    </p>
+                    <div class="small text-secondary mb-3">
+                      <div><i class="bi bi-clock-history me-1 text-primary"></i> Experience: {{ job.experience_required|default:"Not specified" }}</div>
+                      {% if job.closing_date %}
+                        <div><i class="bi bi-calendar-event me-1 text-primary"></i> Closing: {{ job.closing_date|date:"M d, Y" }}</div>
+                      {% endif %}
+                    </div>
+                  </div>
+                  <div class="d-flex gap-2 pt-3 border-top">
+                    <a href="{% url 'candidates:job_detail' job.vacancy_id %}" class="btn btn-sm btn-outline-blue w-50">
+                      View Details
+                    </a>
+                    <a href="{% url 'candidates:apply' job.vacancy_id %}" class="btn btn-sm btn-primary-blue w-50">
+                      Apply Now
+                    </a>
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+          <div class="text-center mt-5">
+            <a href="{% url 'candidates:job_list' %}" class="btn btn-outline-blue px-4 py-2">
+              View All Job Openings <i class="bi bi-arrow-right ms-1"></i>
             </a>
-          {% else %}
-            <a href="{% url 'employees:login' %}" class="primary-btn">
-              <i class="bi bi-person me-1"></i>
-              Employee Login
-            </a>
-          {% endif %}
-          <a href="#features" class="secondary-btn">Explore System</a>
-        </div>
-      </div>
-      <!-- DASHBOARD PREVIEW -->
-      <div class="hero-card">
-        <h4>
-          <i class="bi bi-grid-1x2-fill"></i>
-          HR Dashboard
-        </h4>
-        <div class="stat">
-          <span>Total Employees</span>
-          <span class="stat-number">1</span>
-        </div>
-        <div class="stat">
-          <span>Active Employees</span>
-          <span class="stat-number"></span>
-        </div>
-        <div class="stat">
-          <span>Pending Reports</span>
-          <span class="stat-number"></span>
-        </div>
-        <div class="stat">
-          <span>Announcements</span>
-          <span class="stat-number"></span>
-        </div>
+          </div>
+        {% else %}
+          <div class="text-center py-5 bg-light rounded-4 border border-dashed">
+            <i class="bi bi-briefcase text-muted" style="font-size: 3rem;"></i>
+            <h5 class="fw-bold mt-3 text-dark">No Open Vacancies Right Now</h5>
+            <p class="text-muted mb-0">Check back later or register to receive notifications when new positions open.</p>
+          </div>
+        {% endif %}
       </div>
     </section>
-    <!-- FEATURES -->
-    <section class="features" id="features">
-      <div class="section-title">
-        <h2>Everything HR Needs</h2>
-        <p>Manage your organization's workforce from one platform.</p>
-      </div>
-      <div class="row g-4">
-        <div class="col-lg-4 col-md-6">
-          <div class="feature-card">
-            <div class="icon">
-              <i class="bi bi-people-fill"></i>
-            </div>
-            <h5>Employee Management</h5>
-            <p>
-              Manage employee profiles, departments,
-              designations and employment information.
-            </p>
-          </div>
+
+    <!-- CORE MODULES OVERVIEW -->
+    <section class="py-5" id="modules" style="background-color: #f8fafc;">
+      <div class="container py-4">
+        <div class="section-header">
+          <span class="badge bg-primary bg-opacity-10 text-primary px-3 py-2 rounded-pill fw-bold mb-2">MODULAR ARCHITECTURE</span>
+          <h2>Four Dedicated Role Portals</h2>
+          <p>Tailored access and workflows designed for every level of the organization.</p>
         </div>
-        <div class="col-lg-4 col-md-6">
-          <div class="feature-card">
-            <div class="icon">
-              <i class="bi bi-person-badge-fill"></i>
+        <div class="row g-4">
+          <div class="col-md-6 col-lg-3">
+            <div class="feature-card">
+              <div class="feature-icon">
+                <i class="bi bi-shield-lock-fill"></i>
+              </div>
+              <h5>Admin Portal</h5>
+              <p>Workforce governance, department setup, HR management, report analytics, and approval reviews.</p>
             </div>
-            <h5>Recruitment</h5>
-            <p>
-              Manage candidates, applications and
-              recruitment activities efficiently.
-            </p>
           </div>
-        </div>
-        <div class="col-lg-4 col-md-6">
-          <div class="feature-card">
-            <div class="icon">
-              <i class="bi bi-bar-chart-fill"></i>
+          <div class="col-md-6 col-lg-3">
+            <div class="feature-card">
+              <div class="feature-icon">
+                <i class="bi bi-person-badge-fill"></i>
+              </div>
+              <h5>HR Manager Portal</h5>
+              <p>Job vacancy management, candidate screening, interview scheduling, report reviews, and appraisals.</p>
             </div>
-            <h5>Performance</h5>
-            <p>
-              Track employee performance, ratings,
-              feedback and performance history.
-            </p>
           </div>
-        </div>
-        <div class="col-lg-4 col-md-6">
-          <div class="feature-card">
-            <div class="icon">
-              <i class="bi bi-file-earmark-text-fill"></i>
+          <div class="col-md-6 col-lg-3">
+            <div class="feature-card">
+              <div class="feature-icon">
+                <i class="bi bi-person-workspace"></i>
+              </div>
+              <h5>Employee Portal</h5>
+              <p>Profile management, weekly work report submissions, performance scorecards, and notifications.</p>
             </div>
-            <h5>Work Reports</h5>
-            <p>
-              Employees can submit reports and
-              track their review status.
-            </p>
           </div>
-        </div>
-        <div class="col-lg-4 col-md-6">
-          <div class="feature-card">
-            <div class="icon">
-              <i class="bi bi-megaphone-fill"></i>
+          <div class="col-md-6 col-lg-3">
+            <div class="feature-card">
+              <div class="feature-icon">
+                <i class="bi bi-send-check-fill"></i>
+              </div>
+              <h5>Candidate Portal</h5>
+              <p>Search job openings, submit resumes, track application progression, and update profiles.</p>
             </div>
-            <h5>Announcements</h5>
-            <p>
-              Share company announcements,
-              HR notices and important updates.
-            </p>
-          </div>
-        </div>
-        <div class="col-lg-4 col-md-6">
-          <div class="feature-card">
-            <div class="icon">
-              <i class="bi bi-bell-fill"></i>
-            </div>
-            <h5>Notifications</h5>
-            <p>
-              Keep employees informed about reports,
-              feedback, warnings and company updates.
-            </p>
           </div>
         </div>
       </div>
     </section>
-    <!-- STATISTICS -->
-    <section class="stats-section">
-      <div class="row">
-        <div class="col-md-3 big-stat">
-          <h2>128+</h2>
-          <p>Employees</p>
-        </div>
-        <div class="col-md-3 big-stat">
-          <h2>12</h2>
-          <p>Departments</p>
-        </div>
-        <div class="col-md-3 big-stat">
-          <h2>24/7</h2>
-          <p>System Access</p>
-        </div>
-        <div class="col-md-3 big-stat">
-          <h2>100%</h2>
-          <p>Centralized</p>
-        </div>
-      </div>
-    </section>
+
     <!-- FOOTER -->
     <footer>
-      <p>© 2026 HR Management System | Employee & HR Portal</p>
+      <div class="container">
+        <div class="row align-items-center">
+          <div class="col-md-6 text-center text-md-start mb-3 mb-md-0">
+            <strong class="text-white">Smart HR Management System</strong>
+            <p class="mb-0 text-muted small">© 2026 Academic HRMS Project. Developed with Cookiecutter Django & PostgreSQL.</p>
+          </div>
+          <div class="col-md-6 text-center text-md-end">
+            <a href="/" class="me-3">Home</a>
+            <a href="{% url 'candidates:job_list' %}" class="me-3">Jobs</a>
+            <a href="/about/" class="me-3">About</a>
+            <a href="{% url 'account_login' %}">Portal Sign In</a>
+          </div>
+        </div>
+      </div>
     </footer>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
   </body>
 </html>

@@ -210,6 +210,7 @@ TEMPLATES = [
                 "django.template.context_processors.tz",
                 "django.contrib.messages.context_processors.messages",
                 "hr_management_system.users.context_processors.allauth_settings",
+                "candidates.context_processors.candidate_notifications",
             ],
         },
     },

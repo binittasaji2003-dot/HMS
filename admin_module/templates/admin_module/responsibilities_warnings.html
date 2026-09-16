@@ -208,8 +208,13 @@
               <td class="text-end pe-3">
                 <div class="d-inline-flex gap-1">
                   <a href="{% url 'admin_module:admin_responsibilities_warning_detail' w.warning_id %}" class="btn btn-sm btn-light border py-1 px-2" title="View Warning Details">
-                    <i class="bi bi-eye text-primary"></i>
+                    <i class="bi bi-eye text-primary"></i> View
                   </a>
+                  {% if w.status != "RESOLVED" %}
+                    <a href="{% url 'admin_module:admin_responsibilities_issue_warning' w.warning_id %}" class="btn btn-sm btn-warning py-1 px-2 text-dark fw-semibold" style="font-size: 0.75rem;" title="Issue Warning">
+                      <i class="bi bi-shield-exclamation me-1"></i> Issue Warning
+                    </a>
+                  {% endif %}
                   {% if w.hr_recommendation and w.status != "RESOLVED" %}
                     <a href="{% url 'admin_module:admin_responsibilities_review' w.warning_id %}" class="btn btn-sm btn-primary-admin py-1 px-2" style="font-size: 0.75rem;" title="Review & Decide">
                       <i class="bi bi-hammer"></i>

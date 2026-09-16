@@ -119,7 +119,7 @@
                 </li>
               {% endif %}
               <li class="nav-item">
-                <a id="log-in-link" class="btn btn-sm btn-primary" href="{% url 'account_login' %}">
+                <a id="log-in-link" class="btn btn-sm btn-primary" href="{% url 'role_select' %}">
                   <i class="bi bi-box-arrow-in-right me-1"></i> {% translate "Sign In" %}
                 </a>
               </li>
@@ -206,6 +206,7 @@
     {% endblock body %}
 
     {% block modal %}{% endblock modal %}
+    {% include "components/birthday_popup.html" %}
     {% block inline_javascript %}{% endblock inline_javascript %}
   </body>
 </html>
