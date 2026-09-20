@@ -1,29 +1,63 @@
 {% extends "candidates/base_candidate.html" %}
 
-{% block title %}Candidate Profile | Smart HRMS{% endblock title %}
+{% block title %}My Candidate Profile | Smart HRMS{% endblock title %}
 
 {% block content %}
-<div class="row justify-content-center">
-  <div class="col-12 col-lg-9">
-    <!-- Header -->
-    <div class="portal-card bg-white p-4 mb-4">
-      <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+<div class="row justify-content-center g-4">
+  <div class="col-12 col-xl-10">
+    
+    <!-- Profile Completion Readiness Header Card -->
+    <div class="portal-card bg-white p-4 mb-4 shadow-sm border-0">
+      <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-3">
         <div>
           <span class="badge bg-primary-subtle text-primary fw-bold text-uppercase px-3 py-1.5 rounded-pill mb-2">
             My Applicant Profile
           </span>
-          <h3 class="fw-extrabold text-dark mb-1">Personal &amp; Career Information</h3>
-          <p class="text-muted small mb-0">Keep your details and resume updated to help recruiters evaluate your application faster.</p>
+          <h3 class="fw-extrabold text-dark mb-1">Personal &amp; Professional Profile</h3>
+          <p class="text-muted small mb-0">Keep your details up-to-date to ensure seamless job applications and quick recruiter evaluations.</p>
         </div>
-        <div>
-          <span class="badge {% if candidate.profile_completed %}bg-success{% else %}bg-warning text-dark{% endif %} px-3 py-2 rounded-pill">
-            <i class="bi bi-shield-check me-1"></i> {% if candidate.profile_completed %}Profile 100% Complete{% else %}Profile Incomplete{% endif %}
+        <div class="text-md-end">
+          {% if is_profile_complete %}
+            <span class="badge bg-success-subtle text-success fs-6 fw-bold px-3 py-2 rounded-pill">
+              <i class="bi bi-patch-check-fill me-1"></i> Profile 100% Complete ✓
+            </span>
+          {% else %}
+            <span class="badge bg-warning-subtle text-warning fs-6 fw-bold px-3 py-2 rounded-pill">
+              <i class="bi bi-clock-history me-1"></i> {{ profile_percentage }}% Complete
+            </span>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Progress Bar -->
+      <div class="mb-3">
+        <div class="d-flex justify-content-between small text-muted mb-1 fw-semibold">
+          <span>Overall Profile Completion</span>
+          <span class="{% if is_profile_complete %}text-success{% else %}text-primary{% endif %} fw-bold">{{ profile_percentage }}%</span>
+        </div>
+        <div class="progress rounded-pill shadow-inner" style="height: 12px; background-color: #e2e8f0;">
+          <div class="progress-bar progress-bar-striped progress-bar-animated {% if is_profile_complete %}bg-success{% elif profile_percentage >= 60 %}bg-primary{% else %}bg-warning{% endif %}" 
+               role="progressbar" 
+               style="width: {{ profile_percentage }}%;" 
+               aria-valuenow="{{ profile_percentage }}" 
+               aria-valuemin="0" 
+               aria-valuemax="100">
+          </div>
+        </div>
+      </div>
+
+      <!-- Section Completion Pill Breakdown -->
+      <div class="d-flex flex-wrap gap-2 pt-2 border-top">
+        {% for key, sec in completion_data.sections.items %}
+          <span class="badge {% if sec.complete %}bg-success-subtle text-success border border-success-subtle{% else %}bg-light text-muted border{% endif %} px-2.5 py-1.5 rounded-pill small">
+            <i class="bi {% if sec.complete %}bi-check-circle-fill text-success{% else %}bi-dash-circle text-secondary{% endif %} me-1"></i>
+            {{ sec.label }} ({{ sec.weight }}%)
           </span>
-        </div>
+        {% endfor %}
       </div>
     </div>
 
-    <!-- Profile Form Card -->
+    <!-- Main Profile Edit Form Container -->
     <div class="portal-card bg-white p-4 p-md-5 shadow-sm border-0">
       <form method="post" enctype="multipart/form-data">
         {% csrf_token %}
@@ -39,121 +73,544 @@
           </div>
         {% endif %}
 
-        <!-- Section 1: Personal Details -->
-        <div class="mb-4">
-          <h6 class="fw-bold text-primary mb-3 d-flex align-items-center gap-2">
-            <i class="bi bi-person-badge-fill"></i> Personal Details
-          </h6>
+        <!-- ================================================================= -->
+        <!-- SECTION 1: PERSONAL DETAILS -->
+        <!-- ================================================================= -->
+        <div class="mb-5">
+          <div class="d-flex align-items-center gap-2 mb-3 pb-2 border-bottom">
+            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; font-size: 14px;">
+              <i class="bi bi-person-fill"></i>
+            </div>
+            <div>
+              <h5 class="fw-bold text-dark mb-0">1. Personal Information</h5>
+              <small class="text-muted">Your legal name, contact information, and residential address</small>
+            </div>
+          </div>
 
           <div class="row g-3">
             <div class="col-12 col-md-4">
-              <label class="form-label">First Name <span class="text-danger">*</span></label>
+              <label class="form-label fw-semibold">First Name <span class="text-danger">*</span></label>
               {{ form.first_name }}
               {% if form.first_name.errors %}<div class="text-danger small mt-1">{{ form.first_name.errors.0 }}</div>{% endif %}
             </div>
+
             <div class="col-12 col-md-4">
-              <label class="form-label">Middle Name</label>
+              <label class="form-label fw-semibold">Middle Name <span class="text-muted small fw-normal">(Optional)</span></label>
               {{ form.middle_name }}
               {% if form.middle_name.errors %}<div class="text-danger small mt-1">{{ form.middle_name.errors.0 }}</div>{% endif %}
             </div>
+
             <div class="col-12 col-md-4">
-              <label class="form-label">Last Name <span class="text-danger">*</span></label>
+              <label class="form-label fw-semibold">Last Name <span class="text-danger">*</span></label>
               {{ form.last_name }}
               {% if form.last_name.errors %}<div class="text-danger small mt-1">{{ form.last_name.errors.0 }}</div>{% endif %}
             </div>
+
             <div class="col-12 col-md-6">
-              <label class="form-label">Email Address</label>
-              <input type="text" class="form-control bg-light" value="{{ candidate.user.email }}" readonly disabled />
-              <div class="form-text text-muted small">Managed via account login email.</div>
+              <label class="form-label fw-semibold">Email Address</label>
+              <input type="email" class="form-control bg-light" value="{{ candidate.user.email }}" readonly disabled />
+              <div class="form-text text-muted small">Managed via account login email (Source of Truth).</div>
             </div>
+
             <div class="col-12 col-md-6">
-              <label class="form-label">Phone Number</label>
+              <label class="form-label fw-semibold">Phone Number <span class="text-danger">*</span></label>
               {{ form.phone }}
               {% if form.phone.errors %}<div class="text-danger small mt-1">{{ form.phone.errors.0 }}</div>{% endif %}
             </div>
+
             <div class="col-12 col-md-6">
-              <label class="form-label">Date of Birth</label>
+              <label class="form-label fw-semibold">Date of Birth <span class="text-danger">*</span></label>
               {{ form.date_of_birth }}
               {% if form.date_of_birth.errors %}<div class="text-danger small mt-1">{{ form.date_of_birth.errors.0 }}</div>{% endif %}
             </div>
+
             <div class="col-12 col-md-6">
-              <label class="form-label">Profile Photo</label>
+              <label class="form-label fw-semibold">Profile Photo <span class="text-danger">*</span></label>
               {{ form.profile_photo }}
+              <div class="form-text text-muted small">Accepts JPG, JPEG, PNG (Max 5MB).</div>
               {% if candidate.profile_photo %}
-                <div class="small text-muted mt-1"><i class="bi bi-image"></i> Current: <a href="{{ candidate.profile_photo.url }}" target="_blank">View Photo</a></div>
+                <div class="d-flex align-items-center gap-2 mt-2 p-2 bg-light rounded-3 border">
+                  <img src="{{ candidate.profile_photo.url }}" alt="Avatar" class="rounded-circle border" style="width: 40px; height: 40px; object-fit: cover;" />
+                  <a href="{{ candidate.profile_photo.url }}" target="_blank" class="small text-primary fw-semibold text-decoration-none">
+                    <i class="bi bi-eye"></i> View Current Photo
+                  </a>
+                </div>
               {% endif %}
+              {% if form.profile_photo.errors %}<div class="text-danger small mt-1">{{ form.profile_photo.errors.0 }}</div>{% endif %}
             </div>
+
+            <div class="col-12 col-md-4">
+              <label class="form-label fw-semibold">State / Province</label>
+              {{ form.state }}
+              {% if form.state.errors %}<div class="text-danger small mt-1">{{ form.state.errors.0 }}</div>{% endif %}
+            </div>
+
+            <div class="col-12 col-md-4">
+              <label class="form-label fw-semibold">Country</label>
+              {{ form.country }}
+              {% if form.country.errors %}<div class="text-danger small mt-1">{{ form.country.errors.0 }}</div>{% endif %}
+            </div>
+
+            <div class="col-12 col-md-4">
+              <label class="form-label fw-semibold">Key Skills</label>
+              {{ form.skills }}
+              {% if form.skills.errors %}<div class="text-danger small mt-1">{{ form.skills.errors.0 }}</div>{% endif %}
+            </div>
+
             <div class="col-12">
-              <label class="form-label">Residential Address</label>
+              <label class="form-label fw-semibold">Residential Address <span class="text-danger">*</span></label>
               {{ form.address }}
               {% if form.address.errors %}<div class="text-danger small mt-1">{{ form.address.errors.0 }}</div>{% endif %}
             </div>
           </div>
         </div>
 
-        <!-- Section 2: Resume & Documents -->
-        <div class="mb-4 pt-3 border-top">
-          <h6 class="fw-bold text-primary mb-3 d-flex align-items-center gap-2">
-            <i class="bi bi-folder-fill"></i> Resume &amp; Certificates
-          </h6>
+        <!-- ================================================================= -->
+        <!-- SECTION 2: 10TH STANDARD DETAILS -->
+        <!-- ================================================================= -->
+        <div class="mb-5 pt-3 border-top">
+          <div class="d-flex align-items-center gap-2 mb-3 pb-2 border-bottom">
+            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; font-size: 14px;">
+              <i class="bi bi-mortarboard"></i>
+            </div>
+            <div>
+              <h5 class="fw-bold text-dark mb-0">2. 10th Standard / Matriculation Details</h5>
+              <small class="text-muted">Secondary education board, school, and percentage</small>
+            </div>
+          </div>
 
           <div class="row g-3">
             <div class="col-12 col-md-6">
-              <div class="p-3 bg-light rounded-3 border">
-                <label class="form-label fw-bold">Resume / CV (PDF, DOCX)</label>
-                {{ form.resume }}
-                {% if candidate.resume %}
-                  <div class="small text-success mt-2"><i class="bi bi-file-earmark-check-fill"></i> Current: <a href="{{ candidate.resume.url }}" target="_blank" class="text-success fw-semibold">View Resume</a></div>
-                {% endif %}
-              </div>
+              <label class="form-label fw-semibold">10th Board Name <span class="text-danger">*</span></label>
+              {{ form.tenth_board }}
+              {% if form.tenth_board.errors %}<div class="text-danger small mt-1">{{ form.tenth_board.errors.0 }}</div>{% endif %}
             </div>
 
             <div class="col-12 col-md-6">
-              <div class="p-3 bg-light rounded-3 border">
-                <label class="form-label fw-bold">ID Proof (Aadhaar / Passport)</label>
-                {{ form.id_proof }}
-                {% if candidate.id_proof %}
-                  <div class="small text-success mt-2"><i class="bi bi-file-earmark-check-fill"></i> Current: <a href="{{ candidate.id_proof.url }}" target="_blank" class="text-success fw-semibold">View ID Proof</a></div>
-                {% endif %}
-              </div>
+              <label class="form-label fw-semibold">10th School Name</label>
+              {{ form.tenth_school }}
+              {% if form.tenth_school.errors %}<div class="text-danger small mt-1">{{ form.tenth_school.errors.0 }}</div>{% endif %}
             </div>
 
-            <div class="col-12 col-md-6">
-              <label class="form-label">10th Certificate</label>
+            <div class="col-12 col-md-4">
+              <label class="form-label fw-semibold">10th Percentage / CGPA <span class="text-danger">*</span></label>
+              {{ form.tenth_percentage }}
+              {% if form.tenth_percentage.errors %}<div class="text-danger small mt-1">{{ form.tenth_percentage.errors.0 }}</div>{% endif %}
+            </div>
+
+            <div class="col-12 col-md-4">
+              <label class="form-label fw-semibold">10th Passing Year <span class="text-danger">*</span></label>
+              {{ form.tenth_passing_year }}
+              {% if form.tenth_passing_year.errors %}<div class="text-danger small mt-1">{{ form.tenth_passing_year.errors.0 }}</div>{% endif %}
+            </div>
+
+            <div class="col-12 col-md-4">
+              <label class="form-label fw-semibold">10th Marksheet / Certificate</label>
               {{ form.tenth_certificate }}
               {% if candidate.tenth_certificate %}
-                <div class="small text-muted mt-1"><a href="{{ candidate.tenth_certificate.url }}" target="_blank">View Certificate</a></div>
+                <div class="small text-success mt-1">
+                  <i class="bi bi-file-earmark-check-fill"></i> <a href="{{ candidate.tenth_certificate.url }}" target="_blank" class="text-success fw-semibold">View Certificate</a>
+                </div>
               {% endif %}
-            </div>
-
-            <div class="col-12 col-md-6">
-              <label class="form-label">12th Certificate</label>
-              {{ form.twelfth_certificate }}
-              {% if candidate.twelfth_certificate %}
-                <div class="small text-muted mt-1"><a href="{{ candidate.twelfth_certificate.url }}" target="_blank">View Certificate</a></div>
-              {% endif %}
+              {% if form.tenth_certificate.errors %}<div class="text-danger small mt-1">{{ form.tenth_certificate.errors.0 }}</div>{% endif %}
             </div>
           </div>
         </div>
 
-        <!-- Section 3: Consent & Agreement -->
+        <!-- ================================================================= -->
+        <!-- SECTION 3: 12TH STANDARD DETAILS -->
+        <!-- ================================================================= -->
+        <div class="mb-5 pt-3 border-top">
+          <div class="d-flex align-items-center gap-2 mb-3 pb-2 border-bottom">
+            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; font-size: 14px;">
+              <i class="bi bi-mortarboard-fill"></i>
+            </div>
+            <div>
+              <h5 class="fw-bold text-dark mb-0">3. 12th Standard / Higher Secondary Details</h5>
+              <small class="text-muted">Higher secondary board, stream, and passing percentage</small>
+            </div>
+          </div>
+
+          <div class="row g-3">
+            <div class="col-12 col-md-4">
+              <label class="form-label fw-semibold">12th Board Name <span class="text-danger">*</span></label>
+              {{ form.twelfth_board }}
+              {% if form.twelfth_board.errors %}<div class="text-danger small mt-1">{{ form.twelfth_board.errors.0 }}</div>{% endif %}
+            </div>
+
+            <div class="col-12 col-md-4">
+              <label class="form-label fw-semibold">12th School / College</label>
+              {{ form.twelfth_school }}
+              {% if form.twelfth_school.errors %}<div class="text-danger small mt-1">{{ form.twelfth_school.errors.0 }}</div>{% endif %}
+            </div>
+
+            <div class="col-12 col-md-4">
+              <label class="form-label fw-semibold">12th Stream</label>
+              {{ form.twelfth_stream }}
+              {% if form.twelfth_stream.errors %}<div class="text-danger small mt-1">{{ form.twelfth_stream.errors.0 }}</div>{% endif %}
+            </div>
+
+            <div class="col-12 col-md-4">
+              <label class="form-label fw-semibold">12th Percentage / CGPA <span class="text-danger">*</span></label>
+              {{ form.twelfth_percentage }}
+              {% if form.twelfth_percentage.errors %}<div class="text-danger small mt-1">{{ form.twelfth_percentage.errors.0 }}</div>{% endif %}
+            </div>
+
+            <div class="col-12 col-md-4">
+              <label class="form-label fw-semibold">12th Passing Year <span class="text-danger">*</span></label>
+              {{ form.twelfth_passing_year }}
+              {% if form.twelfth_passing_year.errors %}<div class="text-danger small mt-1">{{ form.twelfth_passing_year.errors.0 }}</div>{% endif %}
+            </div>
+
+            <div class="col-12 col-md-4">
+              <label class="form-label fw-semibold">12th Marksheet / Certificate</label>
+              {{ form.twelfth_certificate }}
+              {% if candidate.twelfth_certificate %}
+                <div class="small text-success mt-1">
+                  <i class="bi bi-file-earmark-check-fill"></i> <a href="{{ candidate.twelfth_certificate.url }}" target="_blank" class="text-success fw-semibold">View Certificate</a>
+                </div>
+              {% endif %}
+              {% if form.twelfth_certificate.errors %}<div class="text-danger small mt-1">{{ form.twelfth_certificate.errors.0 }}</div>{% endif %}
+            </div>
+          </div>
+        </div>
+
+        <!-- ================================================================= -->
+        <!-- SECTION 4: HIGHER EDUCATION & DEGREE PROGRAMS (PLACED DIRECTLY BELOW 12TH) -->
+        <!-- ================================================================= -->
+        <div class="mb-5 pt-3 border-top">
+          <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3 mb-3 pb-2 border-bottom">
+            <div class="d-flex align-items-center gap-2">
+              <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; font-size: 14px;">
+                <i class="bi bi-award-fill"></i>
+              </div>
+              <div>
+                <h5 class="fw-bold text-dark mb-0">4. Higher Education &amp; Degree Programs <span class="text-danger">*</span></h5>
+                <small class="text-muted">Diploma, Bachelor's, Master's, PhD, or professional courses</small>
+              </div>
+            </div>
+            <div>
+              <button type="button" class="btn btn-sm btn-blue-primary px-3" data-bs-toggle="modal" data-bs-target="#addEducationModal">
+                <i class="bi bi-plus-circle me-1"></i> + Add Education
+              </button>
+            </div>
+          </div>
+
+          {% if education_records %}
+            <div class="row g-3">
+              {% for edu in education_records %}
+                <div class="col-12">
+                  <div class="p-3 bg-light rounded-3 border d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+                    <div class="d-flex align-items-start gap-3">
+                      <div class="bg-white p-2.5 rounded-3 border text-primary fs-4">
+                        <i class="bi bi-mortarboard-fill"></i>
+                      </div>
+                      <div>
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                          <h6 class="fw-bold text-dark mb-0">{{ edu.degree_program }}</h6>
+                          <span class="badge bg-primary-subtle text-primary">{{ edu.education_level }}</span>
+                          <span class="badge {% if edu.education_status == 'Graduated' or edu.education_status == 'Completed' %}bg-success-subtle text-success{% else %}bg-info-subtle text-info{% endif %}">
+                            {{ edu.education_status }}
+                          </span>
+                        </div>
+                        <div class="small text-muted mt-1">
+                          <span class="fw-semibold text-secondary">{{ edu.institution }}</span>
+                          {% if edu.university_board %}&bull; {{ edu.university_board }}{% endif %}
+                          {% if edu.completion_year %}&bull; Passing Year: <span class="fw-semibold">{{ edu.completion_year }}</span>{% endif %}
+                          {% if edu.percentage_or_cgpa %}&bull; Score: <span class="fw-bold text-dark">{{ edu.percentage_or_cgpa }}</span>{% endif %}
+                        </div>
+                        {% if edu.certificate %}
+                          <div class="mt-1">
+                            <a href="{{ edu.certificate.url }}" target="_blank" class="small text-success fw-semibold text-decoration-none">
+                              <i class="bi bi-file-earmark-check"></i> View Certificate
+                            </a>
+                          </div>
+                        {% endif %}
+                      </div>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                      <a href="{% url 'candidates:edit_education' edu.education_id %}" class="btn btn-sm btn-outline-primary px-3">
+                        <i class="bi bi-pencil"></i> Edit
+                      </a>
+                      <button type="button" class="btn btn-sm btn-outline-danger px-3 btn-delete-edu" data-url="{% url 'candidates:delete_education' edu.education_id %}" data-degree="{{ edu.degree_program }}">
+                        <i class="bi bi-trash"></i> Delete
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <div class="text-center py-4 bg-light rounded-3 border border-dashed">
+              <i class="bi bi-mortarboard fs-1 text-muted"></i>
+              <p class="mt-2 mb-2 fw-semibold text-dark">No Higher Education Records Added Yet</p>
+              <p class="small text-muted mb-3">Add your degree, diploma, or graduation details to complete this section.</p>
+              <button type="button" class="btn btn-sm btn-blue-primary px-3" data-bs-toggle="modal" data-bs-target="#addEducationModal">
+                <i class="bi bi-plus-circle me-1"></i> Add Degree / Diploma
+              </button>
+            </div>
+          {% endif %}
+        </div>
+
+        <!-- ================================================================= -->
+        <!-- SECTION 5: WORK EXPERIENCE -->
+        <!-- ================================================================= -->
+        <div class="mb-5 pt-3 border-top">
+          <div class="d-flex align-items-center gap-2 mb-3 pb-2 border-bottom">
+            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; font-size: 14px;">
+              <i class="bi bi-briefcase-fill"></i>
+            </div>
+            <div>
+              <h5 class="fw-bold text-dark mb-0">5. Work Experience &amp; Employment Status</h5>
+              <small class="text-muted">Fresher status or prior employment history</small>
+            </div>
+          </div>
+
+          <div class="p-3 bg-light rounded-3 border mb-3">
+            <div class="form-check form-switch fs-6 d-flex align-items-center gap-2">
+              {{ form.is_fresher }}
+              <label class="form-check-label fw-bold text-dark mb-0 ms-2" for="id_is_fresher">
+                I am a Fresher (No previous work experience)
+              </label>
+            </div>
+          </div>
+
+          <!-- Dynamic Experience Fields Container (hidden if Fresher is checked) -->
+          <div id="experienceFieldsContainer" class="row g-3">
+            <div class="col-12 col-md-4">
+              <label class="form-label fw-semibold">Total Experience (Years)</label>
+              {{ form.total_experience_years }}
+            </div>
+
+            <div class="col-12 col-md-4">
+              <label class="form-label fw-semibold">Total Experience (Months)</label>
+              {{ form.total_experience_months }}
+            </div>
+
+            <div class="col-12 col-md-4">
+              <label class="form-label fw-semibold">Current Employment Status</label>
+              {{ form.current_employment_status }}
+            </div>
+
+            <div class="col-12 col-md-6">
+              <label class="form-label fw-semibold">Current Organization / Employer</label>
+              {{ form.current_organization }}
+            </div>
+
+            <div class="col-12 col-md-6">
+              <label class="form-label fw-semibold">Current Job Title / Designation</label>
+              {{ form.current_designation }}
+            </div>
+
+            <div class="col-12 col-md-6">
+              <label class="form-label fw-semibold">Joining Date with Current Employer</label>
+              {{ form.joining_date }}
+            </div>
+          </div>
+        </div>
+
+        <!-- ================================================================= -->
+        <!-- SECTION 6: RESUME & ID PROOF -->
+        <!-- ================================================================= -->
+        <div class="mb-5 pt-3 border-top">
+          <div class="d-flex align-items-center gap-2 mb-3 pb-2 border-bottom">
+            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; font-size: 14px;">
+              <i class="bi bi-file-earmark-arrow-up-fill"></i>
+            </div>
+            <div>
+              <h5 class="fw-bold text-dark mb-0">6. Resume &amp; Identity Verification</h5>
+              <small class="text-muted">Primary resume used for all job applications and ID proof</small>
+            </div>
+          </div>
+
+          <div class="row g-3">
+            <div class="col-12 col-md-6">
+              <div class="p-3 bg-light rounded-3 border h-100">
+                <label class="form-label fw-bold">Resume / Curriculum Vitae <span class="text-danger">*</span></label>
+                {{ form.resume }}
+                <div class="form-text text-muted small">Supported: PDF, DOC, DOCX (Max 10MB). Reusable across all applications.</div>
+                {% if candidate.resume %}
+                  <div class="d-flex align-items-center gap-2 mt-2 p-2 bg-white rounded border">
+                    <i class="bi bi-file-earmark-pdf-fill text-danger fs-4"></i>
+                    <div>
+                      <a href="{{ candidate.resume.url }}" target="_blank" class="text-primary fw-semibold small text-decoration-none">
+                        View Uploaded Resume
+                      </a>
+                      <div class="text-muted" style="font-size: 11px;">Current document on file</div>
+                    </div>
+                  </div>
+                {% endif %}
+                {% if form.resume.errors %}<div class="text-danger small mt-1">{{ form.resume.errors.0 }}</div>{% endif %}
+              </div>
+            </div>
+
+            <div class="col-12 col-md-6">
+              <div class="p-3 bg-light rounded-3 border h-100">
+                <label class="form-label fw-bold">Government ID Proof (Aadhaar / Passport / Voter ID)</label>
+                {{ form.id_proof }}
+                <div class="form-text text-muted small">Supported: PDF, JPG, PNG (Max 10MB).</div>
+                {% if candidate.id_proof %}
+                  <div class="d-flex align-items-center gap-2 mt-2 p-2 bg-white rounded border">
+                    <i class="bi bi-shield-check text-success fs-4"></i>
+                    <div>
+                      <a href="{{ candidate.id_proof.url }}" target="_blank" class="text-primary fw-semibold small text-decoration-none">
+                        View Uploaded ID Proof
+                      </a>
+                      <div class="text-muted" style="font-size: 11px;">Verification document on file</div>
+                    </div>
+                  </div>
+                {% endif %}
+                {% if form.id_proof.errors %}<div class="text-danger small mt-1">{{ form.id_proof.errors.0 }}</div>{% endif %}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ================================================================= -->
+        <!-- SECTION 7: TERMS & SAVE CHANGES -->
+        <!-- ================================================================= -->
         <div class="mb-4 pt-3 border-top">
-          <div class="form-check p-3 rounded-3 bg-light bg-opacity-50 border">
+          <div class="form-check p-3 rounded-3 bg-light border">
             {{ form.policy_agreement }}
             <label class="form-check-label small fw-semibold text-dark ms-2" for="{{ form.policy_agreement.id_for_label }}">
-              I confirm that all provided details and documents are authentic.
+              I certify that all details, educational records, and uploaded documents provided in this profile are genuine and accurate.
             </label>
           </div>
         </div>
 
-        <div class="d-flex justify-content-end gap-2 pt-3 border-top">
-          <a href="{% url 'candidates:dashboard' %}" class="btn btn-light border px-4">Cancel</a>
-          <button type="submit" class="btn-blue-primary px-4">
+        <div class="d-flex justify-content-between align-items-center pt-3 border-top">
+          <a href="{% url 'candidates:dashboard' %}" class="btn btn-light border px-4">
+            <i class="bi bi-arrow-left me-1"></i> Dashboard
+          </a>
+          <button type="submit" class="btn btn-blue-primary px-5 py-2.5 fw-bold">
             <i class="bi bi-save me-1"></i> Save Changes
+          </button>
+        </div>
+      </form>
+    </div>
+
+  </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- ADD EDUCATION MODAL -->
+<!-- ========================================================================= -->
+<div class="modal fade" id="addEducationModal" tabindex="-1" aria-labelledby="addEducationModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content rounded-4 border-0 shadow-lg">
+      <div class="modal-header border-bottom">
+        <div class="d-flex align-items-center gap-2">
+          <div class="bg-primary text-white rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+            <i class="bi bi-mortarboard-fill"></i>
+          </div>
+          <h5 class="modal-title fw-bold text-dark" id="addEducationModalLabel">Add Higher Education Record</h5>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <form method="post" action="{% url 'candidates:add_education' %}" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="modal-body p-4">
+          <div class="row g-3">
+            <div class="col-12 col-md-6">
+              <label class="form-label fw-semibold">Education Level <span class="text-danger">*</span></label>
+              {{ education_form.education_level }}
+            </div>
+
+            <div class="col-12 col-md-6">
+              <label class="form-label fw-semibold">Degree / Program Name <span class="text-danger">*</span></label>
+              {{ education_form.degree_program }}
+            </div>
+
+            <div class="col-12 col-md-6">
+              <label class="form-label fw-semibold">Field of Study</label>
+              {{ education_form.field_of_study }}
+            </div>
+
+            <div class="col-12 col-md-6">
+              <label class="form-label fw-semibold">Education Status <span class="text-danger">*</span></label>
+              {{ education_form.education_status }}
+            </div>
+
+            <div class="col-12 col-md-6">
+              <label class="form-label fw-semibold">Institution / College Name <span class="text-danger">*</span></label>
+              {{ education_form.institution }}
+            </div>
+
+            <div class="col-12 col-md-6">
+              <label class="form-label fw-semibold">University / Board</label>
+              {{ education_form.university_board }}
+            </div>
+
+            <div class="col-12 col-md-6">
+              <label class="form-label fw-semibold">Graduation / Completion Year</label>
+              {{ education_form.completion_year }}
+            </div>
+
+            <div class="col-12 col-md-6">
+              <label class="form-label fw-semibold">CGPA or Percentage</label>
+              {{ education_form.percentage_or_cgpa }}
+            </div>
+
+            <div class="col-12">
+              <label class="form-label fw-semibold">Certificate Document (PDF, JPG, PNG)</label>
+              {{ education_form.certificate }}
+            </div>
+          </div>
+        </div>
+
+        <div class="modal-footer border-top">
+          <button type="button" class="btn btn-light border px-4" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-blue-primary px-4">
+            <i class="bi bi-plus-circle me-1"></i> Save Education Record
           </button>
         </div>
       </form>
     </div>
   </div>
 </div>
+
+<!-- Hidden standalone form for deleting education records safely -->
+<form id="deleteEducationForm" method="post" action="" style="display: none;">
+  {% csrf_token %}
+</form>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    const fresherCheckbox = document.getElementById('id_is_fresher');
+    const expContainer = document.getElementById('experienceFieldsContainer');
+
+    function toggleExperienceFields() {
+      if (fresherCheckbox && expContainer) {
+        if (fresherCheckbox.checked) {
+          expContainer.style.opacity = '0.5';
+          expContainer.style.pointerEvents = 'none';
+        } else {
+          expContainer.style.opacity = '1';
+          expContainer.style.pointerEvents = 'auto';
+        }
+      }
+    }
+
+    if (fresherCheckbox) {
+      fresherCheckbox.addEventListener('change', toggleExperienceFields);
+      toggleExperienceFields();
+    }
+
+    // Handle delete education records via standalone form
+    document.querySelectorAll('.btn-delete-edu').forEach(btn => {
+      btn.addEventListener('click', function(e) {
+        e.preventDefault();
+        const degree = this.getAttribute('data-degree') || 'this';
+        if (confirm(`Are you sure you want to delete ${degree} education record?`)) {
+          const form = document.getElementById('deleteEducationForm');
+          form.action = this.getAttribute('data-url');
+          form.submit();
+        }
+      });
+    });
+  });
+</script>
+
 {% endblock content %}

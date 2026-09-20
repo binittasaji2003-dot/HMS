@@ -51,9 +51,11 @@ class UserRedirectView(LoginRequiredMixin, RedirectView):
             return reverse("admin:index")
         if getattr(user, "role", "") == User.RoleChoices.HR or hasattr(user, "hr_profile"):
             return reverse("hr:dashboard")
+        if getattr(user, "role", "") == User.RoleChoices.EMPLOYEE or (hasattr(user, "employee_profile") and getattr(user, "role", "") != User.RoleChoices.CANDIDATE):
+            return reverse("employees:dashboard")
         if getattr(user, "role", "") == User.RoleChoices.CANDIDATE or hasattr(user, "candidate_profile"):
             return reverse("candidates:dashboard")
-        if hasattr(user, "employee_profile") or getattr(user, "role", "") == User.RoleChoices.EMPLOYEE:
+        if hasattr(user, "employee_profile"):
             return reverse("employees:dashboard")
         return reverse("users:detail", kwargs={"pk": user.pk})
 

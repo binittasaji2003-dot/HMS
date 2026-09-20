@@ -1,0 +1,379 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Team Leave Approvals - HRMS</title>
+    <link rel="icon" href="{% static 'images/favicons/favicon.ico' %}" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+          rel="stylesheet" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+    <script>
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            },
+            colors: {
+              hrms: {
+                blue: '#1677ff',
+                hover: '#0958d9',
+                bg: '#f8fafc',
+                card: '#ffffff'
+              }
+            }
+          }
+        }
+      }
+    </script>
+  </head>
+  <body class="bg-slate-50 font-sans antialiased text-slate-800 min-h-screen flex">
+    <!-- Left Sidebar -->
+    <aside class="w-64 bg-white border-r border-slate-200/80 flex flex-col justify-between hidden md:flex shrink-0 min-h-screen">
+      <div>
+        <!-- Sidebar Header -->
+        <div class="h-20 flex items-center px-6 border-b border-slate-100">
+          <a href="{% url 'employees:dashboard' %}"
+             class="flex items-center gap-3 text-hrms-blue">
+            <div class="w-9 h-9 bg-hrms-blue text-white rounded-xl flex items-center justify-center text-lg shadow-sm">
+              <i class="bi bi-people-fill"></i>
+            </div>
+            <span class="text-xl font-extrabold tracking-tight text-slate-900">HRMS</span>
+          </a>
+        </div>
+        <!-- Navigation Links -->
+        <nav class="p-4 space-y-1.5">
+          <a href="{% url 'employees:dashboard' %}"
+             class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-600 hover:text-hrms-blue hover:bg-blue-50/60 rounded-xl transition-all">
+            <i class="bi bi-grid text-base"></i>
+            <span>Dashboard</span>
+          </a>
+          <a href="{% url 'employees:profile' %}"
+             class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-600 hover:text-hrms-blue hover:bg-blue-50/60 rounded-xl transition-all">
+            <i class="bi bi-person text-base"></i>
+            <span>My Profile</span>
+          </a>
+          <a href="{% url 'employees:reports_list' %}"
+             class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-600 hover:text-hrms-blue hover:bg-blue-50/60 rounded-xl transition-all">
+            <i class="bi bi-file-earmark-text text-base"></i>
+            <span>Reports</span>
+          </a>
+          <a href="{% url 'employees:leave_management' %}"
+             class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-600 hover:text-hrms-blue hover:bg-blue-50/60 rounded-xl transition-all">
+            <i class="bi bi-calendar2-check text-base"></i>
+            <span>Leave</span>
+          </a>
+          <a href="{% url 'employees:team_lead_leave_requests' %}"
+             class="flex items-center justify-between px-4 py-3 text-sm font-bold text-white bg-amber-500 rounded-xl shadow-md shadow-amber-500/20 transition-all">
+            <div class="flex items-center gap-3">
+              <i class="bi bi-shield-check-fill text-base"></i>
+              <span>Team Approvals</span>
+            </div>
+            {% if pending_count > 0 %}
+            <span class="w-5 h-5 bg-white text-amber-600 text-[11px] font-bold rounded-full flex items-center justify-center">
+              {{ pending_count }}
+            </span>
+            {% endif %}
+          </a>
+          <a href="{% url 'employees:performance' %}"
+             class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-600 hover:text-hrms-blue hover:bg-blue-50/60 rounded-xl transition-all">
+            <i class="bi bi-bar-chart-line text-base"></i>
+            <span>Performance</span>
+          </a>
+          <a href="{% url 'employees:announcements' %}"
+             class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-600 hover:text-hrms-blue hover:bg-blue-50/60 rounded-xl transition-all">
+            <i class="bi bi-megaphone text-base"></i>
+            <span>Announcements</span>
+          </a>
+          <a href="{% url 'employees:notifications' %}"
+             class="flex items-center justify-between px-4 py-3 text-sm font-semibold text-slate-600 hover:text-hrms-blue hover:bg-blue-50/60 rounded-xl transition-all">
+            <div class="flex items-center gap-3">
+              <i class="bi bi-bell text-base"></i>
+              <span>Notifications</span>
+            </div>
+          </a>
+        </nav>
+      </div>
+      <div class="p-4 border-t border-slate-100">
+        <a href="{% url 'employees:logout' %}"
+           class="flex items-center gap-3 px-4 py-3 text-sm font-bold text-slate-700 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all">
+          <i class="bi bi-box-arrow-right text-base"></i>
+          <span>Logout</span>
+        </a>
+      </div>
+    </aside>
+
+    <!-- Main Container -->
+    <div class="flex-1 flex flex-col min-w-0">
+      <!-- Header -->
+      <header class="h-20 bg-white border-b border-slate-200/80 px-6 lg:px-10 flex items-center justify-between sticky top-0 z-20">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold text-lg">
+            <i class="bi bi-shield-check"></i>
+          </div>
+          <div>
+            <h1 class="text-xl font-extrabold text-slate-900 tracking-tight">Team Leave Approvals</h1>
+            <p class="text-xs text-slate-500 font-medium">Review and process subordinate leave applications</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-3">
+          <a href="{% url 'employees:leave_management' %}"
+             class="px-4 py-2 border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-xl transition-all flex items-center gap-2">
+            <i class="bi bi-calendar2-check"></i>
+            <span>My Leave Dashboard</span>
+          </a>
+        </div>
+      </header>
+
+      <!-- Main Body -->
+      <main class="p-6 lg:p-10 space-y-8 max-w-7xl mx-auto w-full">
+        <!-- Messages -->
+        {% if messages %}
+          <div class="space-y-2">
+            {% for message in messages %}
+              <div class="p-4 rounded-xl text-xs font-semibold flex items-center justify-between {% if message.tags == 'error' %}bg-red-50 text-red-700 border border-red-200{% elif message.tags == 'warning' %}bg-amber-50 text-amber-700 border border-amber-200{% else %}bg-emerald-50 text-emerald-700 border border-emerald-200{% endif %}">
+                <div class="flex items-center gap-2">
+                  <i class="bi {% if message.tags == 'error' %}bi-exclamation-triangle-fill{% elif message.tags == 'warning' %}bi-exclamation-circle-fill{% else %}bi-check-circle-fill{% endif %} text-base"></i>
+                  <span>{{ message }}</span>
+                </div>
+                <button onclick="this.parentElement.remove()" class="text-slate-400 hover:text-slate-600"><i class="bi bi-x-lg"></i></button>
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+
+        <!-- Counters -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex items-center justify-between">
+            <div>
+              <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Subordinate Requests</p>
+              <h3 class="text-2xl font-extrabold text-slate-900 mt-1">{{ total_count }}</h3>
+            </div>
+            <div class="w-10 h-10 rounded-xl bg-blue-50 text-hrms-blue flex items-center justify-center text-lg font-bold">
+              <i class="bi bi-collection"></i>
+            </div>
+          </div>
+          <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex items-center justify-between">
+            <div>
+              <p class="text-xs font-bold text-amber-600 uppercase tracking-wider">Pending Action</p>
+              <h3 class="text-2xl font-extrabold text-amber-600 mt-1">{{ pending_count }}</h3>
+            </div>
+            <div class="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center text-lg font-bold">
+              <i class="bi bi-clock-history"></i>
+            </div>
+          </div>
+          <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex items-center justify-between">
+            <div>
+              <p class="text-xs font-bold text-emerald-600 uppercase tracking-wider">Approved Requests</p>
+              <h3 class="text-2xl font-extrabold text-emerald-600 mt-1">{{ approved_count }}</h3>
+            </div>
+            <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg font-bold">
+              <i class="bi bi-check2-circle"></i>
+            </div>
+          </div>
+          <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex items-center justify-between">
+            <div>
+              <p class="text-xs font-bold text-red-600 uppercase tracking-wider">Rejected Requests</p>
+              <h3 class="text-2xl font-extrabold text-red-600 mt-1">{{ rejected_count }}</h3>
+            </div>
+            <div class="w-10 h-10 rounded-xl bg-red-50 text-red-600 flex items-center justify-center text-lg font-bold">
+              <i class="bi bi-x-circle"></i>
+            </div>
+          </div>
+        </div>
+
+        <!-- Requests Desk -->
+        <div class="bg-white rounded-2xl p-6 lg:p-8 border border-slate-200/80 shadow-sm space-y-6">
+          <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-5">
+            <!-- Search Box -->
+            <form method="GET" class="flex items-center gap-2 max-w-md w-full">
+              <input type="hidden" name="status" value="{{ status_filter }}" />
+              <div class="relative flex-1">
+                <i class="bi bi-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-xs"></i>
+                <input type="text" name="q" value="{{ search_q }}" placeholder="Search by name, code, reason, or type..."
+                       class="w-full pl-9 pr-3.5 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-amber-500 focus:bg-white transition-all" />
+              </div>
+              <button type="submit" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold rounded-xl shadow-sm transition-all">
+                Search
+              </button>
+              {% if search_q %}
+              <a href="?status={{ status_filter }}" class="p-2 text-slate-400 hover:text-slate-600 text-xs font-bold" title="Clear Search">
+                <i class="bi bi-x-circle"></i>
+              </a>
+              {% endif %}
+            </form>
+
+            <!-- Filter Tabs -->
+            <div class="flex flex-wrap gap-1.5 bg-slate-100 p-1.5 rounded-xl text-xs font-bold">
+              <a href="?status=ALL{% if search_q %}&q={{ search_q }}{% endif %}" class="px-3 py-1.5 rounded-lg transition-all {% if status_filter == 'ALL' %}bg-white text-slate-900 shadow-sm{% else %}text-slate-600 hover:text-slate-900{% endif %}">
+                All ({{ total_count }})
+              </a>
+              <a href="?status=PENDING{% if search_q %}&q={{ search_q }}{% endif %}" class="px-3 py-1.5 rounded-lg transition-all {% if status_filter == 'PENDING' %}bg-white text-amber-600 shadow-sm{% else %}text-slate-600 hover:text-slate-900{% endif %}">
+                Pending ({{ pending_count }})
+              </a>
+              <a href="?status=APPROVED{% if search_q %}&q={{ search_q }}{% endif %}" class="px-3 py-1.5 rounded-lg transition-all {% if status_filter == 'APPROVED' %}bg-white text-emerald-600 shadow-sm{% else %}text-slate-600 hover:text-slate-900{% endif %}">
+                Approved ({{ approved_count }})
+              </a>
+              <a href="?status=REJECTED{% if search_q %}&q={{ search_q }}{% endif %}" class="px-3 py-1.5 rounded-lg transition-all {% if status_filter == 'REJECTED' %}bg-white text-red-600 shadow-sm{% else %}text-slate-600 hover:text-slate-900{% endif %}">
+                Rejected ({{ rejected_count }})
+              </a>
+            </div>
+          </div>
+
+          {% if requests %}
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead>
+                <tr class="border-b border-slate-100 text-slate-400 font-bold uppercase text-[11px]">
+                  <th class="pb-3 px-3">Subordinate</th>
+                  <th class="pb-3 px-3">Category</th>
+                  <th class="pb-3 px-3">Dates</th>
+                  <th class="pb-3 px-3">Days</th>
+                  <th class="pb-3 px-3">Reason</th>
+                  <th class="pb-3 px-3">Status</th>
+                  <th class="pb-3 px-3">Submitted</th>
+                  <th class="pb-3 px-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100 text-slate-700 font-medium">
+                {% for req in requests %}
+                <tr class="hover:bg-slate-50/80 transition-colors">
+                  <td class="py-4 px-3 font-bold text-slate-900">
+                    {{ req.employee.user.get_full_name|default:req.employee.user.username }}
+                    <span class="block text-[11px] text-slate-400 font-normal">
+                      {{ req.employee.employee_code }} &bull; {{ req.employee.department.name|default:"General" }}
+                    </span>
+                  </td>
+                  <td class="py-4 px-3 whitespace-nowrap">
+                    <span class="inline-flex items-center gap-1.5 font-semibold text-slate-800">
+                      <i class="bi bi-tag-fill text-amber-500 text-xs"></i>
+                      {{ req.leave_type.name }}
+                    </span>
+                  </td>
+                  <td class="py-4 px-3 whitespace-nowrap">
+                    {{ req.start_date|date:"M d, Y" }} &rarr; {{ req.end_date|date:"M d, Y" }}
+                  </td>
+                  <td class="py-4 px-3 font-bold text-slate-900">
+                    {{ req.number_of_days }} day(s)
+                  </td>
+                  <td class="py-4 px-3 max-w-xs truncate" title="{{ req.reason }}">
+                    {{ req.reason }}
+                  </td>
+                  <td class="py-4 px-3 whitespace-nowrap">
+                    {% if req.status == "PENDING" %}
+                      <span class="px-2.5 py-1 bg-amber-50 text-amber-700 border border-amber-200 text-[10px] font-extrabold rounded-lg">PENDING</span>
+                    {% elif req.status == "APPROVED" %}
+                      <span class="px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-extrabold rounded-lg">APPROVED</span>
+                    {% elif req.status == "REJECTED" %}
+                      <span class="px-2.5 py-1 bg-red-50 text-red-700 border border-red-200 text-[10px] font-extrabold rounded-lg" title="{{ req.rejection_reason }}">REJECTED</span>
+                    {% elif req.status == "CANCELLED" %}
+                      <span class="px-2.5 py-1 bg-slate-100 text-slate-600 text-[10px] font-bold rounded-lg">CANCELLED</span>
+                    {% endif %}
+                  </td>
+                  <td class="py-4 px-3 text-slate-500 text-[11px] whitespace-nowrap">
+                    {{ req.submitted_at|date:"M d, Y" }}
+                  </td>
+                  <td class="py-4 px-3 text-right space-x-1.5 whitespace-nowrap">
+                    <a href="{% url 'employees:team_lead_leave_detail' req.id %}"
+                       class="px-2.5 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition-all inline-flex items-center gap-1" title="View Dossier">
+                      <i class="bi bi-file-earmark-person"></i> Dossier
+                    </a>
+                    {% if req.status == "PENDING" %}
+                    <form method="POST" action="{% url 'employees:team_lead_leave_approve' req.id %}" class="inline">
+                      {% csrf_token %}
+                      <input type="hidden" name="next" value="{{ request.get_full_path }}" />
+                      <button type="submit" onclick="return confirm('Approve leave request of {{ req.number_of_days }} day(s) for {{ req.employee.user.get_full_name|default:req.employee.user.username }}?')"
+                              class="px-2.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-xs font-bold shadow-sm transition-all inline-flex items-center gap-1" title="Approve">
+                        <i class="bi bi-check-lg"></i> Approve
+                      </button>
+                    </form>
+                    <button type="button" onclick="openRejectModal('{{ req.id }}', '{{ req.employee.user.get_full_name|default:req.employee.user.username|escapejs }}', '{{ req.leave_type.name|escapejs }}', '{{ req.number_of_days }}')"
+                            class="px-2.5 py-1.5 bg-red-600 hover:bg-red-700 text-white rounded-lg text-xs font-bold shadow-sm transition-all inline-flex items-center gap-1" title="Reject">
+                      <i class="bi bi-x-lg"></i> Reject
+                    </button>
+                    {% endif %}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <div class="text-center py-12 bg-slate-50/50 rounded-2xl border border-dashed border-slate-200">
+            <div class="w-12 h-12 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center mx-auto text-xl font-bold mb-3">
+              <i class="bi bi-inbox"></i>
+            </div>
+            <h3 class="text-sm font-bold text-slate-800">No Subordinate Requests Found</h3>
+            <p class="text-xs text-slate-500 mt-1 max-w-sm mx-auto">
+              There are no leave applications matching your current filter criteria.
+            </p>
+          </div>
+          {% endif %}
+        </div>
+      </main>
+    </div>
+
+    <!-- Reject Modal -->
+    <div id="rejectModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+      <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden border border-slate-100 animate-in fade-in zoom-in-95 duration-150">
+        <div class="h-16 px-6 bg-red-50 border-b border-red-100 flex items-center justify-between">
+          <div class="flex items-center gap-2.5 text-red-700">
+            <div class="w-8 h-8 rounded-lg bg-red-100 text-red-600 flex items-center justify-center font-bold">
+              <i class="bi bi-x-circle-fill"></i>
+            </div>
+            <h3 class="text-base font-extrabold">Reject Leave Request</h3>
+          </div>
+          <button onclick="closeRejectModal()" class="text-slate-400 hover:text-slate-600 text-lg">
+            <i class="bi bi-x-lg"></i>
+          </button>
+        </div>
+
+        <form id="rejectForm" method="POST" action="" class="p-6 space-y-4">
+          {% csrf_token %}
+          <input type="hidden" name="next" value="{{ request.get_full_path }}" />
+
+          <p class="text-xs text-slate-600 font-medium">
+            You are rejecting the <span id="rejectLeaveTypeName" class="font-bold text-slate-900"></span> request (<span id="rejectDaysCount" class="font-bold"></span> days) for <span id="rejectEmpName" class="font-bold text-slate-900"></span>.
+          </p>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">Rejection Reason <span class="text-red-500">*</span></label>
+            <textarea name="rejection_reason" rows="3" required placeholder="Please provide clear reason and instructions for the employee..."
+                      class="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-red-500 focus:bg-white transition-all resize-none"></textarea>
+          </div>
+
+          <div class="flex items-center justify-end gap-3 pt-2">
+            <button type="button" onclick="closeRejectModal()" class="px-4 py-2.5 border border-slate-200 text-slate-600 text-xs font-bold rounded-xl hover:bg-slate-50 transition-all">
+              Cancel
+            </button>
+            <button type="submit" class="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded-xl shadow-md shadow-red-500/20 transition-all">
+              Confirm Rejection
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <script>
+      function openRejectModal(reqId, empName, leaveTypeName, daysCount) {
+        document.getElementById('rejectForm').action = "/employees/team-lead/leave-requests/" + reqId + "/reject/";
+        document.getElementById('rejectEmpName').innerText = empName;
+        document.getElementById('rejectLeaveTypeName').innerText = leaveTypeName;
+        document.getElementById('rejectDaysCount').innerText = daysCount;
+        document.getElementById('rejectModal').classList.remove('hidden');
+      }
+
+      function closeRejectModal() {
+        document.getElementById('rejectModal').classList.add('hidden');
+      }
+    </script>
+  </body>
+</html>
+

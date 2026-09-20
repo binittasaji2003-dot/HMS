@@ -352,9 +352,15 @@
                 </a>
             </li>
             <li>
-                <a href="{% url 'hr:employee_report_list' %}" class="sidebar-link {% if 'report' in request.resolver_match.url_name %}active{% endif %}">
+                <a href="{% url 'hr:employee_report_list' %}" class="sidebar-link {% if request.resolver_match.url_name == 'employee_report_list' or request.resolver_match.url_name == 'employee_report_review' %}active{% endif %}">
                  <i class="bi bi-file-earmark-text"></i>
                 <span>Employee Reports</span>
+                </a>
+            </li>
+            <li>
+                <a href="{% url 'hr:weekly_report_list' %}" class="sidebar-link {% if 'weekly_report' in request.resolver_match.url_name or 'performance_analysis' in request.resolver_match.url_name %}active{% endif %}">
+                 <i class="bi bi-journal-check"></i>
+                <span>HR Reports</span>
                 </a>
             </li>
             <li>
@@ -364,7 +370,7 @@
                 </a>
             </li>
             <li>
-                <a href="{% url 'hr:performance_list' %}" class="sidebar-link {% if 'performance' in request.resolver_match.url_name %}active{% endif %}">
+                <a href="{% url 'hr:performance_list' %}" class="sidebar-link {% if request.resolver_match.url_name == 'performance_list' or request.resolver_match.url_name == 'performance_create' %}active{% endif %}">
                     <i class="bi bi-graph-up-arrow"></i>
                     <span>Performance Reviews</span>
                 </a>
@@ -391,8 +397,39 @@
         </div>
 
         <div class="topbar-actions">
-            <div class="icon-btn-round" title="Notifications">
-                <i class="bi bi-bell"></i>
+            <!-- HR Notification Dropdown -->
+            <div class="dropdown">
+                <div class="icon-btn-round" data-bs-toggle="dropdown" aria-expanded="false" role="button" title="Notifications">
+                    <i class="bi bi-bell"></i>
+                    {% if request.user.hr_profile and request.user.hr_profile.notifications.filter.is_read == False %}
+                        <span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle"></span>
+                    {% endif %}
+                </div>
+                <div class="dropdown-menu dropdown-menu-end shadow border-0 rounded-3 p-2 mt-2" style="min-width: 320px; max-height: 400px; overflow-y: auto;">
+                    <div class="d-flex justify-content-between align-items-center px-2 py-1 mb-2 border-bottom">
+                        <span class="fw-bold small text-dark">Notifications</span>
+                        <span class="badge bg-primary rounded-pill small">HR Portal</span>
+                    </div>
+                    {% with hr_notifs=request.user.hr_profile.notifications.all|slice:":5" %}
+                        {% if hr_notifs %}
+                            {% for notif in hr_notifs %}
+                                <a href="{% if notif.link_url %}{{ notif.link_url }}?notif_id={{ notif.notification_id }}{% else %}#{% endif %}" class="dropdown-item p-2 rounded-2 mb-1 {% if not notif.is_read %}bg-light fw-medium{% endif %} text-wrap" style="font-size: 0.82rem;">
+                                    <div class="d-flex align-items-center gap-2 mb-1">
+                                        <i class="bi bi-bell-fill text-primary"></i>
+                                        <span class="fw-semibold text-dark">{{ notif.title }}</span>
+                                    </div>
+                                    <div class="text-muted small lh-sm">{{ notif.message }}</div>
+                                    <div class="text-muted" style="font-size: 0.7rem;">{{ notif.created_at|timesince }} ago</div>
+                                </a>
+                            {% endfor %}
+                        {% else %}
+                            <div class="text-center text-muted py-3 small">
+                                <i class="bi bi-bell-slash text-muted fs-4 d-block mb-1"></i>
+                                No notifications yet
+                            </div>
+                        {% endif %}
+                    {% endwith %}
+                </div>
             </div>
             
             <a href="{% url 'hr:profile' %}" class="user-profile-widget">

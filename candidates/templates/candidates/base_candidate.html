@@ -359,6 +359,349 @@
 
   <!-- Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+  {% if candidate_popup_notification %}
+  <!-- Screening Decision Modal Popup -->
+  <div class="modal fade" id="candidateDecisionModal" tabindex="-1" aria-labelledby="candidateDecisionModalLabel" aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content rounded-4 border-0 shadow-lg overflow-hidden">
+        {% if candidate_popup_notification.notification_type == 'SHORTLISTED' %}
+          <div class="modal-header bg-success text-white py-3 px-4">
+            <div class="d-flex align-items-center gap-2">
+              <span class="fs-4">🎉</span>
+              <h5 class="modal-title fw-bold text-white mb-0" id="candidateDecisionModalLabel">Congratulations!</h5>
+            </div>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" onclick="markNotificationReadAjax('{{ candidate_popup_notification.pk }}')"></button>
+          </div>
+          <div class="modal-body p-4 text-center">
+            <div class="mx-auto mb-3 bg-success-subtle text-success rounded-circle d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; font-size: 28px;">
+              <i class="bi bi-award-fill"></i>
+            </div>
+            <p class="text-muted mb-1">Your resume has been shortlisted for:</p>
+            <h4 class="fw-bold text-dark mb-3">{{ candidate_popup_notification.application.vacancy.title }}</h4>
+            
+            <div class="d-inline-flex align-items-center gap-2 px-3 py-2 rounded-pill bg-light border mb-3">
+              <span class="text-muted small fw-semibold">Screening Score:</span>
+              <span class="badge bg-success fs-6 fw-bold">
+                {{ candidate_popup_notification.application.screening_result.match_score|default:"85" }}%
+              </span>
+            </div>
+
+            <p class="text-secondary small mb-3">
+              You have successfully moved to the next step of the recruitment process.
+            </p>
+
+            <div class="p-3 bg-primary-subtle text-primary rounded-3 text-center mb-2">
+              <span class="small fw-bold text-uppercase d-block mb-1">Next Step</span>
+              <span class="fs-6 fw-extrabold text-primary"><i class="bi bi-arrow-right-circle me-1"></i> APTITUDE ROUND</span>
+            </div>
+          </div>
+          <div class="modal-footer border-0 p-3 bg-light d-flex justify-content-center gap-2">
+            <a href="{% url 'candidates:mark_notification_read' candidate_popup_notification.pk %}?next={% url 'candidates:applications' %}" class="btn btn-blue-primary px-4">
+              <i class="bi bi-file-earmark-check me-1"></i> View Application
+            </a>
+            <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal" onclick="markNotificationReadAjax('{{ candidate_popup_notification.pk }}')">
+              Close
+            </button>
+          </div>
+
+        {% elif candidate_popup_notification.notification_type == 'APPLICATION_SUBMITTED' %}
+          <div class="modal-header bg-primary text-white py-3 px-4">
+            <div class="d-flex align-items-center gap-2">
+              <i class="bi bi-check-circle-fill fs-5"></i>
+              <h5 class="modal-title fw-bold text-white mb-0" id="candidateDecisionModalLabel">Application Submitted</h5>
+            </div>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" onclick="markNotificationReadAjax('{{ candidate_popup_notification.pk }}')"></button>
+          </div>
+          <div class="modal-body p-4 text-center">
+            <div class="mx-auto mb-3 bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; font-size: 28px;">
+              <i class="bi bi-send-check-fill"></i>
+            </div>
+            <h5 class="fw-bold text-dark mb-2">Thank you for applying!</h5>
+            <p class="text-muted mb-1">Your application for</p>
+            <h5 class="fw-bold text-primary mb-3">{{ candidate_popup_notification.application.vacancy.title|default:"the position" }}</h5>
+            <div class="p-3 bg-light rounded-3 text-secondary small text-start mb-3 border">
+              <p class="mb-2"><i class="bi bi-check2 text-success me-1"></i> Your application has been received successfully.</p>
+              <p class="mb-0"><i class="bi bi-info-circle text-primary me-1"></i> Application review and shortlisting will take place after the job application period closes.</p>
+            </div>
+          </div>
+          <div class="modal-footer border-0 p-3 bg-light d-flex justify-content-center gap-2">
+            <a href="{% url 'candidates:mark_notification_read' candidate_popup_notification.pk %}?next={% url 'candidates:applications' %}" class="btn btn-blue-primary px-4">
+              <i class="bi bi-file-earmark-check me-1"></i> View Applications
+            </a>
+            <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal" onclick="markNotificationReadAjax('{{ candidate_popup_notification.pk }}')">
+              OK
+            </button>
+          </div>
+        {% elif candidate_popup_notification.notification_type == 'APTITUDE_SCHEDULED' or candidate_popup_notification.notification_type == 'APTITUDE_RESCHEDULED' %}
+          <div class="modal-header bg-warning text-dark py-3 px-4">
+            <div class="d-flex align-items-center gap-2">
+              <span class="fs-4">🎯</span>
+              <h5 class="modal-title fw-bold mb-0" id="candidateDecisionModalLabel">
+                {% if candidate_popup_notification.notification_type == 'APTITUDE_RESCHEDULED' %}Aptitude Test Rescheduled{% else %}Aptitude Test Scheduled{% endif %}
+              </h5>
+            </div>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close" onclick="markNotificationReadAjax('{{ candidate_popup_notification.pk }}')"></button>
+          </div>
+          <div class="modal-body p-4 text-center">
+            <div class="mx-auto mb-3 bg-warning-subtle text-warning-emphasis rounded-circle d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; font-size: 28px;">
+              <i class="bi bi-clock-history"></i>
+            </div>
+            <p class="text-muted mb-1">Your aptitude assessment has been scheduled for:</p>
+            <h4 class="fw-bold text-dark mb-3">{{ candidate_popup_notification.application.vacancy.title }}</h4>
+
+            <div class="p-3 bg-light rounded-3 text-start mb-3 border">
+              <div class="d-flex justify-content-between mb-2 pb-2 border-bottom">
+                <span class="text-muted small fw-semibold"><i class="bi bi-calendar-event me-1"></i> Start Time:</span>
+                <span class="text-dark small fw-bold">{{ candidate_popup_notification.application.get_aptitude_start_datetime|date:"M d, Y, h:i A"|default:"TBD" }}</span>
+              </div>
+              <div class="d-flex justify-content-between mb-2 pb-2 border-bottom">
+                <span class="text-muted small fw-semibold"><i class="bi bi-hourglass-split me-1"></i> Duration:</span>
+                <span class="text-dark small fw-bold">{{ candidate_popup_notification.application.aptitude_duration_minutes|default:30 }} Minutes</span>
+              </div>
+              {% if candidate_popup_notification.application.aptitude_remarks %}
+                <div class="text-muted small">
+                  <span class="fw-semibold text-dark d-block mb-1"><i class="bi bi-info-circle me-1"></i> Instructions:</span>
+                  {{ candidate_popup_notification.application.aptitude_remarks }}
+                </div>
+              {% endif %}
+            </div>
+
+            <p class="text-secondary small mb-0">
+              Please ensure a stable internet connection. You can access the test from your <strong>My Applications</strong> dashboard when the window opens.
+            </p>
+          </div>
+          <div class="modal-footer border-0 p-3 bg-light d-flex justify-content-center gap-2">
+            <a href="{% url 'candidates:mark_notification_read' candidate_popup_notification.pk %}?next={% url 'candidates:applications' %}" class="btn btn-warning text-dark fw-bold px-4">
+              <i class="bi bi-file-earmark-check me-1"></i> View in My Applications
+            </a>
+            <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal" onclick="markNotificationReadAjax('{{ candidate_popup_notification.pk }}')">
+              Got It
+            </button>
+          </div>
+        {% elif candidate_popup_notification.notification_type == 'APTITUDE_CANCELLED' %}
+          <div class="modal-header bg-danger text-white py-3 px-4">
+            <div class="d-flex align-items-center gap-2">
+              <i class="bi bi-x-circle-fill fs-5"></i>
+              <h5 class="modal-title fw-bold text-white mb-0" id="candidateDecisionModalLabel">Aptitude Test Cancelled</h5>
+            </div>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" onclick="markNotificationReadAjax('{{ candidate_popup_notification.pk }}')"></button>
+          </div>
+          <div class="modal-body p-4 text-center">
+            <div class="mx-auto mb-3 bg-danger-subtle text-danger rounded-circle d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; font-size: 28px;">
+              <i class="bi bi-calendar-x-fill"></i>
+            </div>
+            <p class="text-muted mb-1">The aptitude assessment for:</p>
+            <h4 class="fw-bold text-dark mb-2">{{ candidate_popup_notification.application.vacancy.title }}</h4>
+            <p class="text-secondary small mb-0">
+              The scheduled assessment was cancelled by HR. Your application remains in shortlisted status.
+            </p>
+          </div>
+          <div class="modal-footer border-0 p-3 bg-light d-flex justify-content-center">
+            <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal" onclick="markNotificationReadAjax('{{ candidate_popup_notification.pk }}')">
+              Close
+            </button>
+          </div>
+        {% elif candidate_popup_notification.notification_type == 'INTERVIEW_ELIGIBLE' %}
+          <div class="modal-header bg-primary text-white py-3 px-4">
+            <div class="d-flex align-items-center gap-2">
+              <span class="fs-4">🎉</span>
+              <h5 class="modal-title fw-bold text-white mb-0" id="candidateDecisionModalLabel">Interview Round Reached!</h5>
+            </div>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" onclick="markNotificationReadAjax('{{ candidate_popup_notification.pk }}')"></button>
+          </div>
+          <div class="modal-body p-4 text-center">
+            <div class="mx-auto mb-3 bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; font-size: 28px;">
+              <i class="bi bi-calendar2-check-fill"></i>
+            </div>
+            <h5 class="fw-bold text-dark mb-2">Congratulations! You Passed the Aptitude Assessment</h5>
+            <p class="text-muted mb-2">Position: <strong>{{ candidate_popup_notification.application.vacancy.title }}</strong></p>
+            <div class="p-3 bg-light rounded-3 text-secondary small text-start mb-3 border">
+              <p class="mb-0">
+                <i class="bi bi-check-circle-fill text-success me-1"></i> You are eligible for the offline interview round. Please select an available interview slot from your candidate portal.
+              </p>
+            </div>
+          </div>
+          <div class="modal-footer border-0 p-3 bg-light d-flex justify-content-center gap-2">
+            {% if candidate_popup_notification.application %}
+            <a href="{% url 'candidates:mark_notification_read' candidate_popup_notification.pk %}?next={% url 'candidates:interview_slots' candidate_popup_notification.application.pk %}" class="btn btn-blue-primary px-4">
+              <i class="bi bi-calendar-plus me-1"></i> Select Interview Slot
+            </a>
+            {% endif %}
+            <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal" onclick="markNotificationReadAjax('{{ candidate_popup_notification.pk }}')">
+              Close
+            </button>
+          </div>
+
+        {% elif candidate_popup_notification.notification_type == 'INTERVIEW_SCHEDULED' %}
+          <div class="modal-header bg-success text-white py-3 px-4">
+            <div class="d-flex align-items-center gap-2">
+              <span class="fs-4">🎯</span>
+              <h5 class="modal-title fw-bold text-white mb-0" id="candidateDecisionModalLabel">Interview Scheduled Successfully</h5>
+            </div>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" onclick="markNotificationReadAjax('{{ candidate_popup_notification.pk }}')"></button>
+          </div>
+          <div class="modal-body p-4 text-center">
+            <div class="mx-auto mb-3 bg-success-subtle text-success rounded-circle d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; font-size: 28px;">
+              <i class="bi bi-building-check"></i>
+            </div>
+            <h5 class="fw-bold text-dark mb-1">{{ candidate_popup_notification.application.vacancy.title }}</h5>
+            <span class="badge bg-light text-primary border mb-3">Mode: Offline Physical Interview</span>
+
+            <div class="p-3 bg-light rounded-3 text-start small mb-3 border">
+              {% with interview=candidate_popup_notification.application.latest_interview %}
+                {% if interview %}
+                  <div class="d-flex justify-content-between mb-2 pb-2 border-bottom">
+                    <span class="text-muted fw-semibold"><i class="bi bi-calendar-event me-1"></i> Interview Date:</span>
+                    <span class="text-dark fw-bold">{{ interview.interview_date|date:"D, M d, Y" }}</span>
+                  </div>
+                  <div class="d-flex justify-content-between mb-2 pb-2 border-bottom">
+                    <span class="text-muted fw-semibold"><i class="bi bi-clock me-1"></i> Time:</span>
+                    <span class="text-dark fw-bold">{{ interview.interview_time|time:"h:i A" }}</span>
+                  </div>
+                  <div class="d-flex justify-content-between mb-2 pb-2 border-bottom">
+                    <span class="text-muted fw-semibold"><i class="bi bi-geo-alt me-1"></i> Venue:</span>
+                    <span class="text-dark fw-bold">{{ interview.location.location_name|default:"Headquarters" }}</span>
+                  </div>
+                  {% if interview.location.address %}
+                  <div class="d-flex justify-content-between mb-2 pb-2 border-bottom">
+                    <span class="text-muted fw-semibold"><i class="bi bi-pin-map me-1"></i> Address:</span>
+                    <span class="text-dark fw-bold text-end" style="max-width: 60%;">{{ interview.location.address }}, {{ interview.location.city }}</span>
+                  </div>
+                  {% endif %}
+                  {% if interview.interviewer %}
+                  <div class="d-flex justify-content-between mb-2 pb-2 border-bottom">
+                    <span class="text-muted fw-semibold"><i class="bi bi-person me-1"></i> Interviewer:</span>
+                    <span class="text-dark fw-bold">{{ interview.interviewer.user.get_full_name|default:interview.interviewer.user.email }}</span>
+                  </div>
+                  {% endif %}
+                {% else %}
+                  <p class="text-muted mb-0">{{ candidate_popup_notification.message|linebreaksbr }}</p>
+                {% endif %}
+              {% endwith %}
+            </div>
+
+            <div class="alert alert-warning py-2 px-3 text-start small mb-0 d-flex align-items-center gap-2">
+              <i class="bi bi-exclamation-triangle-fill text-warning fs-5"></i>
+              <span>Please report to the interview venue at least <strong>10 minutes before</strong> the scheduled time with original ID proof.</span>
+            </div>
+          </div>
+          <div class="modal-footer border-0 p-3 bg-light d-flex justify-content-center gap-2">
+            <a href="{% url 'candidates:mark_notification_read' candidate_popup_notification.pk %}?next={% url 'candidates:applications' %}" class="btn btn-success px-4 fw-bold">
+              <i class="bi bi-eye me-1"></i> View Interview Details
+            </a>
+            <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal" onclick="markNotificationReadAjax('{{ candidate_popup_notification.pk }}')">
+              Close
+            </button>
+          </div>
+
+        {% elif candidate_popup_notification.notification_type == 'INTERVIEW_PASSED' %}
+          <div class="modal-header bg-success text-white py-3 px-4">
+            <div class="d-flex align-items-center gap-2">
+              <span class="fs-4">🎉</span>
+              <h5 class="modal-title fw-bold text-white mb-0" id="candidateDecisionModalLabel">Congratulations! You Have Been Selected</h5>
+            </div>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" onclick="markNotificationReadAjax('{{ candidate_popup_notification.pk }}')"></button>
+          </div>
+          <div class="modal-body p-4 text-center">
+            <div class="mx-auto mb-3 bg-success-subtle text-success rounded-circle d-flex align-items-center justify-content-center" style="width: 70px; height: 70px; font-size: 34px;">
+              <i class="bi bi-trophy-fill"></i>
+            </div>
+            <h4 class="fw-bold text-dark mb-2">🎉 Congratulations!</h4>
+            <p class="text-dark mb-2">
+              We are pleased to inform you that you have been selected for the position of <strong>{{ candidate_popup_notification.application.vacancy.title }}</strong>.
+            </p>
+            <p class="text-secondary small mb-3">
+              You have successfully completed the recruitment process. Your onboarding details will be processed by our HR and Administration team.
+            </p>
+            <div class="p-3 bg-success-subtle text-success-emphasis rounded-3 small fw-bold">
+              Welcome to the next stage of your career!
+            </div>
+          </div>
+          <div class="modal-footer border-0 p-3 bg-light d-flex justify-content-center gap-2">
+            <a href="{% url 'candidates:mark_notification_read' candidate_popup_notification.pk %}?next={% url 'candidates:applications' %}" class="btn btn-success px-4 fw-bold">
+              <i class="bi bi-eye me-1"></i> View Application Status
+            </a>
+            <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal" onclick="markNotificationReadAjax('{{ candidate_popup_notification.pk }}')">
+              Close
+            </button>
+          </div>
+
+        {% elif candidate_popup_notification.notification_type == 'EMPLOYEE_CONVERTED' %}
+          <div class="modal-header bg-primary text-white py-3 px-4">
+            <div class="d-flex align-items-center gap-2">
+              <span class="fs-4">🎊</span>
+              <h5 class="modal-title fw-bold text-white mb-0" id="candidateDecisionModalLabel">Welcome to the Team!</h5>
+            </div>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" onclick="markNotificationReadAjax('{{ candidate_popup_notification.pk }}')"></button>
+          </div>
+          <div class="modal-body p-4 text-center">
+            <div class="mx-auto mb-3 bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; font-size: 28px;">
+              <i class="bi bi-person-badge-fill"></i>
+            </div>
+            <h4 class="fw-bold text-dark mb-2">🎉 Welcome to the team!</h4>
+            <p class="text-secondary small mb-3">
+              Your employee profile has been successfully created.
+            </p>
+            <div class="p-3 bg-light rounded-3 text-start small mb-0 border">
+              {{ candidate_popup_notification.message|linebreaksbr }}
+            </div>
+          </div>
+          <div class="modal-footer border-0 p-3 bg-light d-flex justify-content-center">
+            <a href="{% url 'employees:dashboard' %}" class="btn btn-primary px-4 fw-bold">
+              <i class="bi bi-speedometer2 me-1"></i> Go to Employee Portal
+            </a>
+          </div>
+        {% elif candidate_popup_notification.notification_type == 'NOT_SHORTLISTED' or candidate_popup_notification.notification_type == 'INTERVIEW_FAILED' %}
+          <div class="modal-header bg-secondary text-white py-3 px-4">
+            <div class="d-flex align-items-center gap-2">
+              <i class="bi bi-info-circle-fill fs-5"></i>
+              <h5 class="modal-title fw-bold text-white mb-0" id="candidateDecisionModalLabel">Application Status Update</h5>
+            </div>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close" onclick="markNotificationReadAjax('{{ candidate_popup_notification.pk }}')"></button>
+          </div>
+          <div class="modal-body p-4 text-center">
+            <div class="mx-auto mb-3 bg-secondary-subtle text-secondary rounded-circle d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; font-size: 28px;">
+              <i class="bi bi-envelope-paper-fill"></i>
+            </div>
+            <p class="text-muted mb-1">Your application for:</p>
+            <h4 class="fw-bold text-dark mb-2">{{ candidate_popup_notification.application.vacancy.title }}</h4>
+            <p class="text-muted mb-2">Selection process completed.</p>
+            <p class="text-secondary small mb-3">
+              Thank you for participating. At this time, we have chosen to proceed with other candidates. We appreciate your time and interest and wish you success in your future pursuits.
+            </p>
+          </div>
+          <div class="modal-footer border-0 p-3 bg-light d-flex justify-content-center">
+            <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal" onclick="markNotificationReadAjax('{{ candidate_popup_notification.pk }}')">
+              Close
+            </button>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      var modalElem = document.getElementById("candidateDecisionModal");
+      if (modalElem) {
+        var modal = new bootstrap.Modal(modalElem);
+        modal.show();
+      }
+    });
+
+    function markNotificationReadAjax(notifId) {
+      fetch("/candidates/notifications/" + notifId + "/read/?format=json", {
+        method: "GET",
+        headers: {
+          "X-Requested-With": "XMLHttpRequest"
+        }
+      }).catch(function(err) {
+        console.error("Error marking notification read:", err);
+      });
+    }
+  </script>
+  {% endif %}
+
   {% block extra_js %}{% endblock %}
 </body>
 </html>

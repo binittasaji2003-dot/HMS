@@ -1,0 +1,82 @@
+{% extends "hr/base.html" %}
+
+{% block title %}Edit Education Record | HRMS Portal{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
+    <div>
+        <div class="d-flex align-items-center gap-2 mb-1">
+            <a href="{% url 'hr:dashboard' %}" class="text-muted small text-decoration-none">Dashboard</a>
+            <span class="text-muted small">/</span>
+            <a href="{% url 'hr:profile' %}" class="text-muted small text-decoration-none">My Profile</a>
+            <span class="text-muted small">/</span>
+            <span class="text-dark small fw-medium">Edit Education</span>
+        </div>
+        <h3 class="fw-bold text-dark mb-0">Edit Educational Qualification</h3>
+    </div>
+    <div>
+        <a href="{% url 'hr:profile' %}" class="btn btn-outline-secondary btn-sm px-3">
+            <i class="bi bi-arrow-left me-1"></i> Back to Profile
+        </a>
+    </div>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-12 col-lg-8">
+        <div class="card card-custom p-4">
+            <div class="d-flex align-items-center gap-2 pb-3 mb-4 border-bottom">
+                <div class="brand-icon-box bg-light text-primary border">
+                    <i class="bi bi-mortarboard fs-5"></i>
+                </div>
+                <div>
+                    <h5 class="fw-bold text-dark mb-0">Education Details</h5>
+                    <small class="text-muted">Update your qualification, university, and passing year</small>
+                </div>
+            </div>
+
+            <form method="POST">
+                {% csrf_token %}
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label class="form-label small fw-semibold text-dark">Degree / Qualification <span class="text-danger">*</span></label>
+                        {{ form.degree }}
+                        {% if form.degree.errors %}<div class="text-danger small mt-1">{{ form.degree.errors.0 }}</div>{% endif %}
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <label class="form-label small fw-semibold text-dark">Institution / College <span class="text-danger">*</span></label>
+                        {{ form.institution }}
+                        {% if form.institution.errors %}<div class="text-danger small mt-1">{{ form.institution.errors.0 }}</div>{% endif %}
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <label class="form-label small fw-semibold text-dark">University / Board <span class="text-danger">*</span></label>
+                        {{ form.university_board }}
+                        {% if form.university_board.errors %}<div class="text-danger small mt-1">{{ form.university_board.errors.0 }}</div>{% endif %}
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <label class="form-label small fw-semibold text-dark">Year of Passing <span class="text-danger">*</span></label>
+                        {{ form.year_of_passing }}
+                        {% if form.year_of_passing.errors %}<div class="text-danger small mt-1">{{ form.year_of_passing.errors.0 }}</div>{% endif %}
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <label class="form-label small fw-semibold text-dark">Grade / Percentage / CGPA <span class="text-danger">*</span></label>
+                        {{ form.grade_percentage }}
+                        {% if form.grade_percentage.errors %}<div class="text-danger small mt-1">{{ form.grade_percentage.errors.0 }}</div>{% endif %}
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+                    <a href="{% url 'hr:profile' %}" class="btn btn-light border px-4">Cancel</a>
+                    <button type="submit" class="btn btn-blue px-4">
+                        <i class="bi bi-check-circle me-1"></i> Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

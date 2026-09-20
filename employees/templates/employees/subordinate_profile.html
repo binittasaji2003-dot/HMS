@@ -1,0 +1,242 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Subordinate Profile - {{ target_employee.full_name }} - Smart HRMS</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            hrms: {
+              blue: '#2563eb',
+              hover: '#1d4ed8',
+              navy: '#0f172a',
+              indigo: '#4f46e5'
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-slate-50 font-sans antialiased text-slate-800 min-h-screen">
+  <header class="h-20 bg-white border-b border-slate-200/80 px-6 lg:px-10 flex items-center justify-between sticky top-0 z-30 shadow-sm">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
+        <i class="bi bi-person-bounding-box text-xl"></i>
+      </div>
+      <div>
+        <h1 class="text-xl font-black text-slate-900 leading-tight">Team Subordinate Profile</h1>
+        <p class="text-xs text-slate-500 font-medium">Read-only personnel dossier for reporting employee</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-3">
+      <button onclick="window.history.back()" class="inline-flex items-center gap-2 px-4 py-2 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition">
+        <i class="bi bi-arrow-left"></i><span>Back</span>
+      </button>
+    </div>
+  </header>
+
+  <main class="p-6 lg:p-10 space-y-8 max-w-6xl mx-auto w-full">
+    <!-- Header Showcase -->
+    <div class="bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 rounded-3xl p-6 sm:p-8 text-white shadow-xl flex flex-col sm:flex-row items-center sm:items-start gap-6 border border-slate-700">
+      {% if target_employee.profile_photo %}
+        <img src="{{ target_employee.profile_photo.url }}" alt="{{ target_employee.full_name }}" class="w-28 h-28 rounded-2xl object-cover border-4 border-white/20 shadow-xl" />
+      {% else %}
+        <div class="w-28 h-28 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white font-black text-4xl flex items-center justify-center border-4 border-white/20 shadow-xl">
+          {{ target_employee.user.name|default:target_employee.user.email|slice:":1"|upper }}
+        </div>
+      {% endif %}
+
+      <div class="space-y-2 text-center sm:text-left flex-1">
+        <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2">
+          <h2 class="text-2xl sm:text-3xl font-black text-white">{{ target_employee.full_name|default:target_employee.user.email }}</h2>
+          <span class="px-3 py-1 bg-blue-500/20 text-blue-300 border border-blue-400/30 text-xs font-bold rounded-full font-mono">
+            {{ target_employee.employee_code }}
+          </span>
+          {% if target_employee.employment_status == "ACTIVE" %}
+            <span class="px-3 py-1 bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 text-xs font-bold rounded-full">Active Subordinate</span>
+          {% endif %}
+        </div>
+        <div class="text-sm font-semibold text-slate-300 flex flex-wrap items-center justify-center sm:justify-start gap-x-4 gap-y-1">
+          <span><i class="bi bi-briefcase text-blue-400 me-1"></i>{{ target_employee.designation }}</span>
+          <span><i class="bi bi-building text-indigo-400 me-1"></i>{{ target_employee.department.name|default:"General" }}</span>
+          <span><i class="bi bi-calendar-check text-amber-400 me-1"></i>Joined {{ target_employee.joining_date|date:"M d, Y" }}</span>
+        </div>
+        <div class="pt-2 flex flex-wrap gap-3">
+          <div class="bg-white/10 px-3 py-1.5 rounded-xl text-xs flex items-center gap-2">
+            <span class="text-slate-400">Email:</span>
+            <span class="font-bold text-white">{{ target_employee.user.email }}</span>
+          </div>
+          <div class="bg-white/10 px-3 py-1.5 rounded-xl text-xs flex items-center gap-2">
+            <span class="text-slate-400">Team Lead:</span>
+            <span class="font-bold text-white">{{ target_employee.team_lead_name }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <!-- Left Column: Personal Info -->
+      <div class="space-y-8 lg:col-span-1">
+        <div class="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm space-y-4">
+          <h3 class="text-sm font-extrabold text-slate-900 border-b pb-3 flex items-center gap-2">
+            <i class="bi bi-person-lines-fill text-blue-600"></i><span>Contact & Personal</span>
+          </h3>
+          <div class="space-y-3 text-xs">
+            <div class="flex justify-between py-1 border-b border-slate-50">
+              <span class="text-slate-500">Phone</span>
+              <span class="font-bold text-slate-800">{{ target_employee.phone|default:"N/A" }}</span>
+            </div>
+            <div class="flex justify-between py-1 border-b border-slate-50">
+              <span class="text-slate-500">Date of Birth</span>
+              <span class="font-bold text-slate-800">{{ target_employee.date_of_birth|date:"M d, Y"|default:"N/A" }}</span>
+            </div>
+            <div class="flex justify-between py-1 border-b border-slate-50">
+              <span class="text-slate-500">Gender</span>
+              <span class="font-bold text-slate-800">{{ target_employee.get_gender_display|default:"N/A" }}</span>
+            </div>
+            <div class="flex justify-between py-1 border-b border-slate-50">
+              <span class="text-slate-500">Personal Email</span>
+              <span class="font-bold text-slate-800">{{ target_employee.personal_email|default:"N/A" }}</span>
+            </div>
+            <div class="py-1 border-b border-slate-50">
+              <span class="text-slate-500 block mb-1">Residential Address</span>
+              <span class="font-semibold text-slate-800">{{ target_employee.address|default:"N/A" }}</span>
+            </div>
+            <div class="flex justify-between py-1">
+              <span class="text-slate-500">Location</span>
+              <span class="font-bold text-slate-800">{{ target_employee.city|default:"" }} {{ target_employee.state|default:"" }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Weekly Reports -->
+        <div class="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm space-y-4">
+          <h3 class="text-sm font-extrabold text-slate-900 border-b pb-3 flex items-center gap-2">
+            <i class="bi bi-file-earmark-text text-indigo-600"></i><span>Recent Reports</span>
+          </h3>
+          {% if recent_reports %}
+            <div class="space-y-2.5 text-xs">
+              {% for rep in recent_reports %}
+                <a href="{% url 'employees:report_detail' rep.pk %}" class="block p-3 rounded-xl bg-slate-50 hover:bg-blue-50 border border-slate-200/60 transition">
+                  <div class="font-bold text-slate-900 truncate">{{ rep.title }}</div>
+                  <div class="flex justify-between items-center text-[11px] text-slate-500 mt-1">
+                    <span>{{ rep.week_start_date|date:"M d" }} - {{ rep.week_end_date|date:"M d" }}</span>
+                    <span class="px-2 py-0.5 font-bold rounded {% if rep.status == 'REVIEWED' %}bg-emerald-100 text-emerald-800{% else %}bg-amber-100 text-amber-800{% endif %}">
+                      {{ rep.get_status_display }}
+                    </span>
+                  </div>
+                </a>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="text-xs text-slate-400 text-center py-4">No recent weekly reports.</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Right Column: Education, Experience, Documents -->
+      <div class="space-y-8 lg:col-span-2">
+        <!-- Education -->
+        <div class="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm space-y-4">
+          <h3 class="text-sm font-extrabold text-slate-900 border-b pb-3 flex items-center gap-2">
+            <i class="bi bi-mortarboard-fill text-blue-600"></i><span>Academic Background</span>
+          </h3>
+          {% if educations %}
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs">
+                <thead>
+                  <tr class="border-b text-slate-400 font-bold uppercase">
+                    <th class="pb-2">Degree</th>
+                    <th class="pb-2">Institution</th>
+                    <th class="pb-2 text-center">Year</th>
+                    <th class="pb-2 text-center">Grade</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y text-slate-700">
+                  {% for edu in educations %}
+                    <tr>
+                      <td class="py-2.5 font-bold text-slate-900">{{ edu.degree }}</td>
+                      <td class="py-2.5">{{ edu.institution }} ({{ edu.university_board }})</td>
+                      <td class="py-2.5 text-center font-bold">{{ edu.year_of_passing }}</td>
+                      <td class="py-2.5 text-center font-bold text-blue-600">{{ edu.grade_percentage }}</td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% else %}
+            <p class="text-xs text-slate-400 py-2">No educational records recorded.</p>
+          {% endif %}
+        </div>
+
+        <!-- Experience -->
+        <div class="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm space-y-4">
+          <h3 class="text-sm font-extrabold text-slate-900 border-b pb-3 flex items-center gap-2">
+            <i class="bi bi-briefcase-fill text-indigo-600"></i><span>Prior Work Experience</span>
+          </h3>
+          {% if experiences %}
+            <div class="space-y-3">
+              {% for exp in experiences %}
+                <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200/60 text-xs">
+                  <div class="flex justify-between items-center font-bold text-slate-900">
+                    <span>{{ exp.designation }} &bull; {{ exp.company_name }}</span>
+                    <span class="text-slate-500 font-normal">{{ exp.start_date|date:"M Y" }} - {% if exp.is_current %}Present{% else %}{{ exp.end_date|date:"M Y" }}{% endif %}</span>
+                  </div>
+                  {% if exp.responsibilities %}
+                    <p class="text-slate-600 mt-1.5">{{ exp.responsibilities }}</p>
+                  {% endif %}
+                </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="text-xs text-slate-400 py-2">No previous experience records (Fresher/Entry-level).</p>
+          {% endif %}
+        </div>
+
+        <!-- Documents -->
+        <div class="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm space-y-4">
+          <h3 class="text-sm font-extrabold text-slate-900 border-b pb-3 flex items-center gap-2">
+            <i class="bi bi-file-earmark-check-fill text-emerald-600"></i><span>Submitted Documents</span>
+          </h3>
+          {% if documents %}
+            <div class="overflow-x-auto">
+              <table class="w-full text-left text-xs">
+                <thead>
+                  <tr class="border-b text-slate-400 font-bold uppercase">
+                    <th class="pb-2">Document Type</th>
+                    <th class="pb-2">Upload Date</th>
+                    <th class="pb-2 text-right">Action</th>
+                  </tr>
+                </thead>
+                <tbody class="divide-y text-slate-700">
+                  {% for doc in documents %}
+                    <tr>
+                      <td class="py-2.5 font-bold text-slate-900">{{ doc.get_document_type_display }}</td>
+                      <td class="py-2.5 text-slate-500">{{ doc.uploaded_at|date:"M d, Y" }}</td>
+                      <td class="py-2.5 text-right">
+                        <a href="{{ doc.document.url }}" target="_blank" class="text-blue-600 font-bold hover:underline">
+                          <i class="bi bi-download me-1"></i> View
+                        </a>
+                      </td>
+                    </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          {% else %}
+            <p class="text-xs text-slate-400 py-2">No documents uploaded.</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </main>
+</body>
+</html>
+

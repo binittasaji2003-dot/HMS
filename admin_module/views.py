@@ -2,10 +2,14 @@ from datetime import timedelta
 
 from django.contrib import messages
 from django.contrib.auth import get_user_model, login, logout
+from django.db import transaction
 from django.db.models import Avg, Count, Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+
+from django.conf import settings
+from django.urls import reverse
 
 from .decorators import admin_required
 from .forms import (
@@ -20,7 +24,7 @@ from .forms import (
     HRManagerCreateForm,
     HRManagerProfileForm,
 )
-from .models import Announcement, Department, EmployeeApproval
+from .models import AdminNotification, Announcement, Department, EmployeeApproval
 
 from employees.models import (
     Employee,
@@ -28,9 +32,18 @@ from employees.models import (
     EmployeeReport,
     Notification,
     PerformanceWarning,
+    Team,
 )
-from hr.models import AptitudeTest, HRManager, Interview
-from candidates.models import Candidate, JobApplication, JobVacancy
+from hr.forms import HRPerformanceReviewForm
+from hr.models import (
+    AptitudeTest,
+    HRManager,
+    HRNotification,
+    HRPerformanceReview,
+    HRWeeklyReport,
+    Interview,
+)
+from candidates.models import Candidate, CandidateNotification, JobApplication, JobVacancy
 
 User = get_user_model()
 
@@ -45,6 +58,16 @@ def get_sidebar_context():
     except Exception:
         pending_recs = 0
 
+    pending_hr_reports = 0
+    unread_admin_notifs = 0
+    recent_admin_notifs = []
+    try:
+        pending_hr_reports = HRWeeklyReport.objects.filter(status__in=["SUBMITTED", "UNDER_REVIEW"]).count()
+        unread_admin_notifs = AdminNotification.objects.filter(is_read=False).count()
+        recent_admin_notifs = AdminNotification.objects.all().order_by("-created_at")[:5]
+    except Exception:
+        pass
+
     return {
         "employees_count": Employee.objects.count(),
         "hr_managers_count": HRManager.objects.filter(user__role=User.RoleChoices.HR).count(),
@@ -53,6 +76,9 @@ def get_sidebar_context():
         "candidates_count": Candidate.objects.count(),
         "approvals_pending_count": EmployeeApproval.objects.filter(status="PENDING").count(),
         "pending_recommendations_count": pending_recs,
+        "pending_hr_reports_count": pending_hr_reports,
+        "unread_admin_notifications_count": unread_admin_notifs,
+        "recent_admin_notifications": recent_admin_notifs,
         "announcements_count": Announcement.objects.count(),
     }
 
@@ -164,7 +190,7 @@ def admin_dashboard_view(request):
     department_stats = (
         Department.objects.annotate(employee_count=Count("employees"))
         .order_by("-employee_count")[:5]
-)
+    )
 
     dept_labels = [department.name for department in department_stats]
     dept_values = [department.employee_count for department in department_stats]
@@ -315,7 +341,8 @@ def admin_department_delete_view(request, department_id):
         messages.success(request, f"Department '{name}' was deleted.")
         return redirect("admin_module:departments_list")
 
-    context = {
+    context = get_sidebar_context()
+    context.update({
         "page_title": f"Delete Department: {department.name}",
         "current_page": "departments",
         "object_type": "Department",
@@ -329,7 +356,7 @@ def admin_department_delete_view(request, department_id):
             if employee_count > 0 or hr_manager_count > 0
             else None
         ),
-    }
+    })
     return render(request, "admin_module/confirm_delete.html", context)
 
 
@@ -495,20 +522,18 @@ def admin_employee_delete_view(request, employee_id):
         )
         return redirect("admin_module:employees_list")
 
-    return render(
-        request,
-        "admin_module/confirm_delete.html",
-        {
-            "page_title": f"Terminate Employee: {employee.user.name or employee.user.email}",
-            "current_page": "employees",
-            "object_type": "Employee",
-            "object_name": f"{employee.user.name or employee.user.email} ({employee.designation})",
-            "object_id": employee_id,
-            "delete_url": "admin_module:employee_delete",
-            "back_url": "admin_module:employees_list",
-            "warning_message": "Terminating this employee will deactivate their login account while preserving all historical work reports, performance reviews, warnings, and documents.",
-        },
-    )
+    context = get_sidebar_context()
+    context.update({
+        "page_title": f"Terminate Employee: {employee.user.name or employee.user.email}",
+        "current_page": "employees",
+        "object_type": "Employee",
+        "object_name": f"{employee.user.name or employee.user.email} ({employee.designation})",
+        "object_id": employee_id,
+        "delete_url": "admin_module:employee_delete",
+        "back_url": "admin_module:employees_list",
+        "warning_message": "Terminating this employee will deactivate their login account while preserving all historical work reports, performance reviews, warnings, and documents.",
+    })
+    return render(request, "admin_module/confirm_delete.html", context)
 
 
 # ============================================================================
@@ -578,14 +603,19 @@ def admin_hr_manager_create_view(request):
 
 @admin_required
 def admin_hr_manager_profile_view(request, manager_id):
-    """Profile detail for an HR Manager displaying aggregated profile, account, documents, and activity."""
+    """Profile detail for an HR Manager displaying aggregated profile, education, experience, documents, account, and activity."""
     manager = get_object_or_404(
         HRManager.objects.filter(user__role=User.RoleChoices.HR).select_related("user", "department"),
         pk=manager_id,
     )
     linked_employee = getattr(manager.user, "employee_profile", None)
-    documents = linked_employee.documents.all().order_by("-uploaded_at") if linked_employee else []
-    profile_photo = linked_employee.profile_photo if (linked_employee and linked_employee.profile_photo) else None
+    documents = list(manager.documents.all().order_by("-uploaded_at"))
+    if not documents and linked_employee:
+        documents = list(linked_employee.documents.all().order_by("-uploaded_at"))
+
+    education_records = manager.education_records.all()
+    experience_records = manager.experience_records.all()
+    profile_photo = manager.profile_photo or (linked_employee.profile_photo if linked_employee else None)
 
     aptitude_tests = manager.aptitude_tests.all().order_by("-created_at")
     interviews = manager.interviews.select_related("application", "application__candidate").order_by("-interview_date")
@@ -596,11 +626,13 @@ def admin_hr_manager_profile_view(request, manager_id):
 
     context = get_sidebar_context()
     context.update({
-        "page_title": f"{manager.user.name or manager.user.email} - HR Manager Profile",
+        "page_title": f"{manager.full_name} - HR Manager Profile",
         "current_page": "hr_managers",
         "manager": manager,
         "linked_employee": linked_employee,
         "profile_photo": profile_photo,
+        "education_records": education_records,
+        "experience_records": experience_records,
         "documents": documents,
         "aptitude_tests": aptitude_tests,
         "interviews": interviews,
@@ -661,20 +693,18 @@ def admin_hr_manager_delete_view(request, manager_id):
         messages.success(request, f"HR Manager '{name}' was deleted.")
         return redirect("admin_module:hr_managers_list")
 
-    return render(
-        request,
-        "admin_module/confirm_delete.html",
-        {
-            "page_title": f"Delete HR Manager: {manager.user.name or manager.user.email}",
-            "current_page": "hr_managers",
-            "object_type": "HR Manager",
-            "object_name": manager.user.name or manager.user.email,
-            "object_id": manager_id,
-            "delete_url": "admin_module:hr_manager_delete",
-            "back_url": "admin_module:hr_managers_list",
-            "warning_message": "Deleting this HR Manager removes their account and leaves historical records intact.",
-        },
-    )
+    context = get_sidebar_context()
+    context.update({
+        "page_title": f"Delete HR Manager: {manager.user.name or manager.user.email}",
+        "current_page": "hr_managers",
+        "object_type": "HR Manager",
+        "object_name": manager.user.name or manager.user.email,
+        "object_id": manager_id,
+        "delete_url": "admin_module:hr_manager_delete",
+        "back_url": "admin_module:hr_managers_list",
+        "warning_message": "Deleting this HR Manager removes their account and leaves historical records intact.",
+    })
+    return render(request, "admin_module/confirm_delete.html", context)
 
 
 @admin_required
@@ -825,19 +855,17 @@ def admin_announcement_delete_view(request, announcement_id):
         messages.success(request, f"Announcement '{title}' has been deleted.")
         return redirect("admin_module:announcements_list")
 
-    return render(
-        request,
-        "admin_module/confirm_delete.html",
-        {
-            "page_title": f"Delete Announcement: {announcement.title}",
-            "current_page": "announcements",
-            "object_type": "Announcement",
-            "object_name": announcement.title,
-            "object_id": announcement_id,
-            "delete_url": "admin_module:announcement_delete",
-            "back_url": "admin_module:announcements_list",
-        },
-    )
+    context = get_sidebar_context()
+    context.update({
+        "page_title": f"Delete Announcement: {announcement.title}",
+        "current_page": "announcements",
+        "object_type": "Announcement",
+        "object_name": announcement.title,
+        "object_id": announcement_id,
+        "delete_url": "admin_module:announcement_delete",
+        "back_url": "admin_module:announcements_list",
+    })
+    return render(request, "admin_module/confirm_delete.html", context)
 
 
 @admin_required
@@ -898,19 +926,17 @@ def admin_candidate_delete_view(request, candidate_id):
         messages.success(request, f"Candidate application for '{full_name}' was deleted.")
         return redirect("admin_module:candidates_list")
 
-    return render(
-        request,
-        "admin_module/confirm_delete.html",
-        {
-            "page_title": f"Delete Candidate: {full_name}",
-            "current_page": "candidates",
-            "object_type": "Candidate",
-            "object_name": full_name,
-            "object_id": candidate_id,
-            "delete_url": "admin_module:candidate_delete",
-            "back_url": "admin_module:candidates_list",
-        },
-    )
+    context = get_sidebar_context()
+    context.update({
+        "page_title": f"Delete Candidate: {full_name}",
+        "current_page": "candidates",
+        "object_type": "Candidate",
+        "object_name": full_name,
+        "object_id": candidate_id,
+        "delete_url": "admin_module:candidate_delete",
+        "back_url": "admin_module:candidates_list",
+    })
+    return render(request, "admin_module/confirm_delete.html", context)
 
 
 # ============================================================================
@@ -1144,33 +1170,69 @@ def admin_recruitment_candidate_detail_view(request, candidate_id):
     return render(request, "admin_module/recruitment_candidate_detail.html", context)
 
 
+def generate_unique_employee_code():
+    """Generates sequential and unique employee codes in standard format (e.g., EMP0001, EMP0002)."""
+    import re
+    existing_codes = Employee.objects.filter(employee_code__startswith="EMP").values_list("employee_code", flat=True)
+    max_num = 0
+    for code in existing_codes:
+        m = re.search(r"EMP-?(\d+)", code)
+        if m:
+            try:
+                num = int(m.group(1))
+                if num > max_num:
+                    max_num = num
+            except ValueError:
+                pass
+    next_num = max(max_num + 1, Employee.objects.count() + 1)
+    new_code = f"EMP{next_num:04d}"
+    while Employee.objects.filter(employee_code=new_code).exists():
+        next_num += 1
+        new_code = f"EMP{next_num:04d}"
+    return new_code
+
+
 @admin_required
 def admin_recruitment_approvals_view(request):
-    """View employee approvals pending admin review."""
-    approvals = EmployeeApproval.objects.filter(status="PENDING").select_related(
-        "employee", "employee__user", "employee__department", "employee__candidate"
+    """View employee approvals pending or historical admin review."""
+    status_filter = request.GET.get("status", "PENDING").strip().upper()
+    search_query = request.GET.get("q", "").strip()
+
+    approvals = EmployeeApproval.objects.select_related(
+        "employee", "employee__user", "employee__department", "employee__department__department_leader",
+        "employee__team", "employee__team_lead", "employee__candidate", "employee__created_by", "requested_by", "approved_by"
     ).order_by("-employee__created_at")
 
-    search_query = request.GET.get("q", "").strip()
+    if status_filter and status_filter != "ALL":
+        approvals = approvals.filter(status=status_filter)
+
     if search_query:
         approvals = approvals.filter(
             Q(employee__user__name__icontains=search_query)
             | Q(employee__user__email__icontains=search_query)
             | Q(employee__designation__icontains=search_query)
+            | Q(employee__department__name__icontains=search_query)
+            | Q(employee__employee_code__icontains=search_query)
         )
 
-    pending_list = [a.employee for a in approvals]
+    pending_count = EmployeeApproval.objects.filter(status="PENDING").count()
+    approved_count = EmployeeApproval.objects.filter(status="APPROVED").count()
+    rejected_count = EmployeeApproval.objects.filter(status="REJECTED").count()
     active_employees = Employee.objects.filter(employment_status="ACTIVE").count()
     total_employees = Employee.objects.count()
 
     context = get_sidebar_context()
     context.update({
-        "page_title": "New Employee Approvals - Smart HRMS Admin",
+        "page_title": "Employee Approval Requests - Smart HRMS Admin",
         "current_page": "recruitment",
-        "pending_list": pending_list,
-        "pending_count": len(pending_list),
+        "current_page": "recruitment_approvals",
+        "pending_approvals": approvals,
+        "pending_count": pending_count,
+        "approved_count": approved_count,
+        "rejected_count": rejected_count,
         "active_employees": active_employees,
         "total_employees": total_employees,
+        "status_filter": status_filter,
         "search": search_query,
     })
     return render(request, "admin_module/recruitment_approvals.html", context)
@@ -1180,7 +1242,9 @@ def admin_recruitment_approvals_view(request):
 def admin_recruitment_approval_review_view(request, employee_id):
     """Review screen for approving a newly selected candidate into the workforce."""
     employee = get_object_or_404(
-        Employee.objects.select_related("user", "department", "candidate"),
+        Employee.objects.select_related(
+            "user", "department", "department__department_leader", "team", "team_lead", "candidate", "created_by"
+        ),
         pk=employee_id,
     )
     approval, _ = EmployeeApproval.objects.get_or_create(
@@ -1188,53 +1252,284 @@ def admin_recruitment_approval_review_view(request, employee_id):
         defaults={"status": "PENDING"},
     )
 
-    if approval.status != "PENDING":
-        messages.info(request, f"The approval for '{employee.user.name or employee.user.email}' has already been processed ({approval.status}).")
-        return redirect("admin_module:recruitment_approvals")
+    # Fetch candidate profile details, application info, aptitude results, and interview notes
+    candidate = employee.candidate
+    latest_app = None
+    aptitude_results = []
+    interviews = []
+    screening_result = None
+    if candidate:
+        latest_app = candidate.applications.select_related("vacancy", "vacancy__department", "aptitude_test", "screening_result").order_by("-applied_at").first()
+        if latest_app:
+            screening_result = getattr(latest_app, "screening_result", None)
+            aptitude_results = latest_app.aptitude_results.select_related("test").all()
+            interviews = latest_app.interviews.select_related("interviewer__user", "location", "evaluation").order_by("interview_date", "interview_time")
+
+    departments = Department.objects.filter(is_active=True).select_related("department_leader").order_by("name")
+    teams = Team.objects.filter(is_active=True).select_related("department", "team_lead").order_by("team_name")
+    eligible_team_leads = User.objects.filter(
+        role__in=[User.RoleChoices.HR, User.RoleChoices.EMPLOYEE], is_active=True
+    ).order_by("name", "email")
 
     context = get_sidebar_context()
     context.update({
         "page_title": f"Review Approval: {employee.user.name or employee.user.email}",
         "current_page": "recruitment",
+        "current_page": "recruitment_approvals",
         "employee": employee,
         "approval": approval,
+        "candidate": candidate,
+        "latest_app": latest_app,
+        "screening": screening_result,
+        "aptitude_results": aptitude_results,
+        "interviews": interviews,
+        "departments": departments,
+        "teams": teams,
+        "eligible_team_leads": eligible_team_leads,
     })
     return render(request, "admin_module/recruitment_approval_review.html", context)
 
 
 @admin_required
 def admin_recruitment_approval_approve_view(request, employee_id):
-    """Execute approval of new employee record."""
+    """Execute approval of new employee record atomically."""
+    import datetime
+    from django.core.mail import send_mail
+
     if request.method != "POST":
         return redirect("admin_module:recruitment_approval_review", employee_id=employee_id)
 
-    employee = get_object_or_404(Employee.objects.select_related("user"), pk=employee_id)
+    employee = get_object_or_404(Employee.objects.select_related("user", "candidate", "department", "team", "team_lead"), pk=employee_id)
+    employee = get_object_or_404(
+        Employee.objects.select_related("user", "candidate", "department", "team", "team_lead", "created_by"),
+        pk=employee_id,
+    )
     approval, _ = EmployeeApproval.objects.get_or_create(
         employee=employee,
         defaults={"status": "PENDING"},
     )
 
-    if approval.status != "PENDING":
-        messages.warning(request, "This approval has already been processed.")
+    if approval.status == "APPROVED":
+        messages.warning(request, "This employee creation request has already been approved.")
+        messages.warning(request, "This employee onboarding request has already been approved.")
         return redirect("admin_module:recruitment_approvals")
 
-    approval.status = "APPROVED"
-    approval.approved_by = request.user
-    approval.approved_at = timezone.now()
-    approval.comments = request.POST.get("comments", "").strip()
-    approval.save()
+    comments = request.POST.get("comments", "").strip()
+    temporary_password = (
+        request.POST.get("temporary_password", "").strip()
+        or request.POST.get("temp_password", "").strip()
+    )
 
-    employee.employment_status = "ACTIVE"
-    employee.save(update_fields=["employment_status", "updated_at"])
+    # Optional Admin Overrides
+    custom_dept_id = request.POST.get("department")
+    if custom_dept_id:
+        dept = Department.objects.filter(pk=custom_dept_id).first()
+        if dept:
+            employee.department = dept
 
-    if employee.user:
-        employee.user.is_active = True
-        employee.user.status = User.StatusChoices.ACTIVE
-        employee.user.save(update_fields=["is_active", "status"])
+    custom_designation = request.POST.get("designation", "").strip()
+    if custom_designation:
+        employee.designation = custom_designation
+
+    custom_team_id = request.POST.get("team")
+    if custom_team_id:
+        team = Team.objects.filter(pk=custom_team_id).first()
+        if team:
+            employee.team = team
+
+    custom_lead_id = request.POST.get("team_lead")
+    if custom_lead_id:
+        lead = User.objects.filter(pk=custom_lead_id).first()
+        if lead:
+            employee.team_lead = lead
+
+    custom_joining_date = request.POST.get("joining_date", "").strip()
+    if custom_joining_date:
+        try:
+            employee.joining_date = datetime.date.fromisoformat(custom_joining_date)
+        except Exception:
+            pass
+
+    custom_emp_type = request.POST.get("employment_type", "").strip()
+    if custom_emp_type in ["FULL_TIME", "PART_TIME", "CONTRACT", "INTERN"]:
+        employee.employment_type = custom_emp_type
+
+    with transaction.atomic():
+        # Ensure unique Employee Code
+        if not employee.employee_code or employee.employee_code.startswith("EMP0000") or Employee.objects.filter(employee_code=employee.employee_code).exclude(pk=employee.pk).exists():
+            employee.employee_code = generate_unique_employee_code()
+
+        employee.employment_status = "ACTIVE"
+        employee.save()
+
+        # Update User Role & Set Temporary Password if supplied
+        user = employee.user
+        user.role = User.RoleChoices.EMPLOYEE
+        user.is_active = True
+        user.status = User.StatusChoices.ACTIVE
+        if temporary_password:
+            user.set_password(temporary_password)
+        user.save()
+
+        # Update Approval Record
+        approval.status = "APPROVED"
+        approval.approved_by = request.user
+        approval.approved_at = timezone.now()
+        approval.comments = comments
+        approval.save(update_fields=["status", "approved_by", "approved_at", "comments"])
+
+        # Update Candidate Job Application
+        cand = employee.candidate or getattr(employee.user, "candidate_profile", None) or Candidate.objects.filter(user=employee.user).first()
+        latest_app = None
+        if cand:
+            latest_app = cand.applications.filter(status__in=["FORWARDED_TO_ADMIN", "SELECTED"]).order_by("-applied_at").first() or cand.applications.order_by("-applied_at").first()
+            if latest_app:
+                latest_app.status = "HIRED"
+                latest_app.save(update_fields=["status", "updated_at"])
+
+        dept_name = employee.department.name if employee.department else "General Operations"
+        joining_date_str = employee.joining_date.strftime("%d %B %Y") if employee.joining_date else "Immediate"
+        pass_display = temporary_password if temporary_password else "Use your existing candidate account password"
+
+        # 1. In-app notification for Candidate
+        if cand:
+            CandidateNotification.objects.create(
+                candidate=cand,
+                application=latest_app,
+                title="🎉 Official Onboarding Complete - Welcome to the Team!",
+                message=(
+                    f"Dear {user.name or cand.first_name},\n\n"
+                    f"Your employee onboarding has been approved by the Admin.\n\n"
+                    f"You can now log in to the HRMS Employee Portal.\n\n"
+                    f"Employee ID: {employee.employee_code}\n"
+                    f"Email: {user.email}\n"
+                    f"Temporary Password: {pass_display}\n"
+                    f"Department: {dept_name}\n"
+                    f"Designation: {employee.designation}\n"
+                    f"Joining Date: {joining_date_str}\n\n"
+                    f"Please log in and change your password after your first login."
+                ),
+                notification_type="EMPLOYEE_CONVERTED",
+                link_url="/employees/login/",
+                is_read=False,
+            )
+
+        # 2. In-app notification for Employee Profile
+        Notification.objects.create(
+            employee=employee,
+            title="Welcome to the Organization",
+            message=f"Your employee account ({employee.employee_code}) has been activated. Welcome to the {dept_name} team!",
+            notification_type="PROFILE_UPDATE",
+            is_read=False,
+        )
+
+        # 3. In-app notification for HR Manager
+        if employee.created_by and hasattr(employee.created_by, "hr_profile"):
+            HRNotification.objects.create(
+                hr_manager=employee.created_by.hr_profile,
+                title="Employee Onboarding Approved",
+                message=f"Admin has approved the onboarding request for {user.name or user.email} ({employee.employee_code}) as {employee.designation}.",
+                notification_type="GENERAL",
+                link_url=reverse("hr:application_detail", kwargs={"pk": latest_app.pk}) if latest_app else "",
+                is_read=False,
+            )
+
+        # 4. Dispatch Email to Candidate
+        try:
+            subject = "Your HRMS Employee Account Has Been Created"
+            email_body = (
+                f"Dear {user.name or employee.candidate.first_name if employee.candidate else user.email},\n\n"
+                f"Your employee onboarding has been approved by the Admin.\n\n"
+                f"You can now log in to the HRMS Employee Portal.\n\n"
+                f"Employee ID:\n{employee.employee_code}\n\n"
+                f"Email:\n{user.email}\n\n"
+                f"Temporary Password:\n{pass_display}\n\n"
+                f"Department:\n{dept_name}\n\n"
+                f"Designation:\n{employee.designation}\n\n"
+                f"Joining Date:\n{joining_date_str}\n\n"
+                f"Please log in and change your password after your first login.\n\n"
+                f"Best regards,\nHR Management Team"
+            )
+            send_mail(
+                subject,
+                email_body,
+                getattr(settings, "DEFAULT_FROM_EMAIL", "noreply@hrms.local"),
+                [user.email],
+                fail_silently=True,
+            )
+        except Exception:
+            pass
 
     messages.success(
         request,
-        f"Employee '{employee.user.name or employee.user.email}' was approved and added to the active workforce.",
+        f"Employee onboarding approved successfully. Employee account {employee.employee_code} has been created and login credentials have been sent.",
+    )
+    return redirect("admin_module:recruitment_approvals")
+
+
+@admin_required
+def admin_recruitment_approval_reject_view(request, employee_id):
+    """Execute rejection of new employee record atomically."""
+    if request.method != "POST":
+        return redirect("admin_module:recruitment_approval_review", employee_id=employee_id)
+
+    employee = get_object_or_404(Employee.objects.select_related("user", "candidate"), pk=employee_id)
+    employee = get_object_or_404(
+        Employee.objects.select_related("user", "candidate", "created_by"),
+        pk=employee_id,
+    )
+    approval, _ = EmployeeApproval.objects.get_or_create(
+        employee=employee,
+        defaults={"status": "PENDING"},
+    )
+
+    if approval.status == "APPROVED":
+        messages.warning(request, "This approval has already been approved and cannot be rejected.")
+        return redirect("admin_module:recruitment_approvals")
+
+    rejection_reason = request.POST.get("rejection_reason", "").strip() or request.POST.get("comments", "").strip()
+    if not rejection_reason:
+        rejection_reason = "Application does not meet the necessary criteria at this time."
+
+    with transaction.atomic():
+        approval.status = "REJECTED"
+        approval.approved_by = request.user
+        approval.approved_at = timezone.now()
+        approval.comments = rejection_reason
+        approval.rejection_reason = rejection_reason
+        approval.save(update_fields=["status", "approved_by", "approved_at", "comments", "rejection_reason"])
+
+        employee.employment_status = "INACTIVE"
+        employee.save(update_fields=["employment_status", "updated_at"])
+
+        # Candidate remains in SELECTED status
+        # Candidate remains in SELECTED status (not converted to employee)
+        latest_app = None
+        if employee.candidate:
+            app = employee.candidate.applications.order_by("-applied_at").first()
+            if app:
+                app.status = "SELECTED"
+                app.save(update_fields=["status", "updated_at"])
+            latest_app = employee.candidate.applications.order_by("-applied_at").first()
+            if latest_app:
+                latest_app.status = "SELECTED"
+                latest_app.save(update_fields=["status", "updated_at"])
+
+        # Notify HR Manager of rejection with reason
+        if employee.created_by and hasattr(employee.created_by, "hr_profile"):
+            HRNotification.objects.create(
+                hr_manager=employee.created_by.hr_profile,
+                title="Employee Onboarding Request Rejected",
+                message=f"Employee onboarding request for {employee.user.name or employee.user.email} was rejected by Admin. Reason: {rejection_reason}",
+                notification_type="GENERAL",
+                link_url=reverse("hr:application_detail", kwargs={"pk": latest_app.pk}) if latest_app else "",
+                is_read=False,
+            )
+
+    messages.warning(
+        request,
+        f"Employee creation request for '{employee.user.name or employee.user.email}' has been rejected with administrative feedback.",
+        f"Employee onboarding request for '{employee.user.name or employee.user.email}' was rejected.",
     )
     return redirect("admin_module:recruitment_approvals")
 
@@ -1477,27 +1772,234 @@ def admin_responsibilities_issue_warning_view(request, warning_id):
 
 
 @admin_required
-def admin_reports_hr_weekly_view(request):
-    """HR operations weekly summary report."""
-    hr_managers = HRManager.objects.filter(user__role=User.RoleChoices.HR).select_related("user", "department").all()
+def admin_hr_reports_list_view(request):
+    """Admin view listing all submitted HR Weekly Reports with search, status filters, and KPIs."""
+    reports = HRWeeklyReport.objects.select_related(
+        "hr_manager__user", "hr_manager__department", "performance_review"
+    ).order_by("-week_start_date", "-created_at")
 
-    reports = []
-    for m in hr_managers:
-        reports.append({
-            "manager": m,
-            "tests_created": m.aptitude_tests.count(),
-            "interviews_scheduled": m.interviews.count(),
-            "warnings_issued": m.issued_warnings.count(),
-        })
+    hr_filter = request.GET.get("hr_id")
+    status_filter = request.GET.get("status")
+    search_query = request.GET.get("q", "").strip()
+
+    if hr_filter:
+        reports = reports.filter(hr_manager_id=hr_filter)
+    if status_filter:
+        if status_filter == "SUBMITTED":
+            reports = reports.filter(status__in=["SUBMITTED", "UNDER_REVIEW"])
+        else:
+            reports = reports.filter(status=status_filter)
+    if search_query:
+        reports = reports.filter(
+            Q(hr_manager__first_name__icontains=search_query) |
+            Q(hr_manager__last_name__icontains=search_query) |
+            Q(hr_manager__employee_code__icontains=search_query) |
+            Q(work_summary__icontains=search_query)
+        )
+
+    all_reports = HRWeeklyReport.objects.all()
+    reviewed_reports = all_reports.filter(status="REVIEWED", performance_review__isnull=False)
+    
+    avg_performance = 0.0
+    if reviewed_reports.exists():
+        total_pct = sum([r.performance_review.performance_percentage for r in reviewed_reports])
+        avg_performance = round(float(total_pct) / reviewed_reports.count(), 1)
+
+    hr_managers = HRManager.objects.filter(is_active=True).select_related("user", "department")
 
     context = get_sidebar_context()
     context.update({
-        "page_title": "HR Weekly Report - Smart HRMS Admin",
-        "current_page": "reports",
-        "hr_reports": reports,
-        "total_managers": hr_managers.count(),
+        "page_title": "HR Weekly Performance Reports - Smart HRMS Admin",
+        "current_page": "reports_hr_weekly",
+        "reports": reports,
+        "hr_managers": hr_managers,
+        "selected_hr": hr_filter or "",
+        "selected_status": status_filter or "",
+        "search_query": search_query,
+        "total_reports": all_reports.count(),
+        "pending_review_count": all_reports.filter(status__in=["SUBMITTED", "UNDER_REVIEW"]).count(),
+        "reviewed_count": reviewed_reports.count(),
+        "avg_performance": avg_performance,
     })
-    return render(request, "admin_module/reports_hr_weekly.html", context)
+    return render(request, "admin_module/hr_reports_list.html", context)
+
+
+# Alias for backwards compatibility
+admin_reports_hr_weekly_view = admin_hr_reports_list_view
+
+
+@admin_required
+def admin_hr_report_detail_and_review_view(request, report_id):
+    """Admin view for inspecting HR Weekly Report and performing Performance Matrix Review."""
+    report = get_object_or_404(
+        HRWeeklyReport.objects.select_related(
+            "hr_manager__user", "hr_manager__department", "performance_review__reviewed_by"
+        ),
+        pk=report_id,
+    )
+
+    # Automatically transition SUBMITTED to UNDER_REVIEW when opened by Admin
+    if report.status == "SUBMITTED":
+        report.status = "UNDER_REVIEW"
+        report.save(update_fields=["status", "updated_at"])
+
+    notif_id = request.GET.get("notif_id")
+    if notif_id:
+        AdminNotification.objects.filter(pk=notif_id).update(is_read=True)
+
+    review_instance = getattr(report, "performance_review", None)
+
+    if request.method == "POST":
+        form = HRPerformanceReviewForm(request.POST, instance=review_instance)
+        if form.is_valid():
+            review = form.save(commit=False)
+            review.report = report
+            review.reviewed_by = request.user
+            review.save()  # Triggers calculate_scores() automatically
+
+            status_decision = form.cleaned_data.get("status_decision", "REVIEWED")
+            report.status = status_decision
+            report.reviewed_at = timezone.now()
+            report.save()
+
+            # Create Real Database Notification for the HR Manager
+            if status_decision == "REVIEWED":
+                HRNotification.objects.create(
+                    hr_manager=report.hr_manager,
+                    title="Performance Review Completed",
+                    message=f"Your weekly performance report for {report.week_display} has been reviewed by Admin. Performance Score: {review.performance_percentage}% ({review.get_performance_status_display()}).",
+                    notification_type="PERFORMANCE_REVIEWED",
+                    link_url=f"/hr/reports/weekly/{report.pk}/",
+                )
+                messages.success(
+                    request,
+                    f"Performance review for {report.hr_manager.full_name} saved successfully! Score: {review.performance_percentage}% ({review.get_performance_status_display()})."
+                )
+            else:
+                HRNotification.objects.create(
+                    hr_manager=report.hr_manager,
+                    title="Weekly Report Needs Improvement",
+                    message=f"Your weekly performance report for {report.week_display} requires updates. Please check Admin remarks and recommendations.",
+                    notification_type="REPORT_NEEDS_IMPROVEMENT",
+                    link_url=f"/hr/reports/weekly/{report.pk}/",
+                )
+                messages.warning(
+                    request,
+                    f"Report returned to {report.hr_manager.full_name} with status 'Needs Improvement'."
+                )
+
+            return redirect("admin_module:hr_report_detail", report_id=report.pk)
+    else:
+        form = HRPerformanceReviewForm(instance=review_instance)
+
+    history_reviews = HRWeeklyReport.objects.filter(
+        hr_manager=report.hr_manager,
+        status="REVIEWED",
+        performance_review__isnull=False,
+    ).exclude(pk=report.pk).select_related("performance_review").order_by("-week_start_date")[:5]
+
+    context = get_sidebar_context()
+    context.update({
+        "page_title": f"Review HR Report - {report.hr_manager.full_name}",
+        "current_page": "reports_hr_weekly",
+        "report": report,
+        "review": review_instance,
+        "form": form,
+        "history_reviews": history_reviews,
+    })
+    return render(request, "admin_module/hr_report_review.html", context)
+
+
+@admin_required
+def admin_hr_performance_analysis_view(request):
+    """Admin dashboard for viewing HR Managers performance analysis matrix, analytics, and history."""
+    hr_managers = HRManager.objects.filter(is_active=True).select_related("user", "department")
+    selected_hr_id = request.GET.get("hr_id")
+
+    selected_hr = None
+    if selected_hr_id:
+        selected_hr = HRManager.objects.filter(pk=selected_hr_id).select_related("user", "department").first()
+
+    manager_stats = []
+    for m in hr_managers:
+        m_reports = HRWeeklyReport.objects.filter(hr_manager=m)
+        m_reviewed = m_reports.filter(status="REVIEWED", performance_review__isnull=False)
+        
+        avg_pct = 0.0
+        avg_score = 0.0
+        if m_reviewed.exists():
+            avg_pct = round(sum([float(r.performance_review.performance_percentage) for r in m_reviewed]) / m_reviewed.count(), 1)
+            avg_score = round(sum([float(r.performance_review.average_score) for r in m_reviewed]) / m_reviewed.count(), 2)
+
+        if avg_pct >= 85:
+            tier = "EXCELLENT"
+        elif avg_pct >= 70:
+            tier = "GOOD"
+        elif avg_pct >= 50:
+            tier = "NEEDS_IMPROVEMENT"
+        elif m_reviewed.exists():
+            tier = "UNSATISFACTORY"
+        else:
+            tier = "NO_REVIEWS"
+
+        manager_stats.append({
+            "manager": m,
+            "total_submitted": m_reports.count(),
+            "total_reviewed": m_reviewed.count(),
+            "pending_review": m_reports.filter(status__in=["SUBMITTED", "UNDER_REVIEW"]).count(),
+            "avg_pct": avg_pct,
+            "avg_score": avg_score,
+            "tier": tier,
+        })
+
+    selected_hr_history = []
+    selected_hr_criteria_averages = {}
+    if selected_hr:
+        selected_hr_history = HRWeeklyReport.objects.filter(
+            hr_manager=selected_hr,
+            status="REVIEWED",
+            performance_review__isnull=False,
+        ).select_related("performance_review").order_by("-week_start_date")
+
+        if selected_hr_history.exists():
+            count = selected_hr_history.count()
+            selected_hr_criteria_averages = {
+                "task_completion": round(sum([r.performance_review.task_completion for r in selected_hr_history]) / count, 2),
+                "quality_of_work": round(sum([r.performance_review.quality_of_work for r in selected_hr_history]) / count, 2),
+                "recruitment_coordination": round(sum([r.performance_review.recruitment_coordination for r in selected_hr_history]) / count, 2),
+                "timeliness": round(sum([r.performance_review.timeliness for r in selected_hr_history]) / count, 2),
+                "documentation": round(sum([r.performance_review.documentation for r in selected_hr_history]) / count, 2),
+                "communication": round(sum([r.performance_review.communication for r in selected_hr_history]) / count, 2),
+                "problem_solving": round(sum([r.performance_review.problem_solving for r in selected_hr_history]) / count, 2),
+                "weekly_goal_achievement": round(sum([r.performance_review.weekly_goal_achievement for r in selected_hr_history]) / count, 2),
+            }
+
+    context = get_sidebar_context()
+    context.update({
+        "page_title": "HR Performance Analysis - Smart HRMS Admin",
+        "current_page": "reports_performance",
+        "hr_managers": hr_managers,
+        "selected_hr": selected_hr,
+        "manager_stats": manager_stats,
+        "selected_hr_history": selected_hr_history,
+        "selected_hr_criteria_averages": selected_hr_criteria_averages,
+    })
+    return render(request, "admin_module/hr_performance_analysis.html", context)
+
+
+# Alias for performance reports view
+admin_reports_performance_view = admin_hr_performance_analysis_view
+
+
+@admin_required
+def admin_notification_mark_read_view(request, notification_id):
+    """Mark an admin notification as read and redirect to its target link."""
+    notif = get_object_or_404(AdminNotification, pk=notification_id)
+    notif.is_read = True
+    notif.save()
+    if notif.link_url:
+        return redirect(notif.link_url)
+    return redirect("admin_module:admin_dashboard")
 
 
 @admin_required

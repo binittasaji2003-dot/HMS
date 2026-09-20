@@ -1,0 +1,157 @@
+{% extends "hr/base.html" %}
+
+{% block title %}Employee Performance Analytics | Smart HRMS{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="fw-bold text-primary mb-1">Employee Performance Analytics Matrix</h4>
+            <p class="text-muted small mb-0">Departmental and individual performance distribution based on 8-criteria evaluations</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'hr:employee_report_list' %}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-arrow-left me-1"></i> Back to Weekly Reports
+            </a>
+        </div>
+    </div>
+
+    <!-- KPI Summary Row -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="small text-muted fw-bold text-uppercase">Evaluated Reports</span>
+                    <div class="badge bg-primary-subtle text-primary p-2 rounded-3"><i class="bi bi-check2-all"></i></div>
+                </div>
+                <div class="fs-3 fw-bold text-dark">{{ total_evaluated }}</div>
+                <small class="text-muted">Total graded submissions</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="small text-muted fw-bold text-uppercase">Average Rating</span>
+                    <div class="badge bg-warning-subtle text-warning p-2 rounded-3"><i class="bi bi-star-fill"></i></div>
+                </div>
+                <div class="fs-3 fw-bold text-dark">{{ avg_score }} <span class="fs-6 text-muted">/ 5.0</span></div>
+                <small class="text-success fw-semibold"><i class="bi bi-graph-up"></i> {{ avg_percentage }}% Performance Index</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="small text-muted fw-bold text-uppercase">High Performers</span>
+                    <div class="badge bg-success-subtle text-success p-2 rounded-3"><i class="bi bi-trophy-fill"></i></div>
+                </div>
+                <div class="fs-3 fw-bold text-success">{{ excellent_count }}</div>
+                <small class="text-muted">Score &ge; 90% (Excellent)</small>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm rounded-4 p-3 bg-white">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="small text-muted fw-bold text-uppercase">Needs Support</span>
+                    <div class="badge bg-danger-subtle text-danger p-2 rounded-3"><i class="bi bi-exclamation-octagon-fill"></i></div>
+                </div>
+                <div class="fs-3 fw-bold text-danger">{{ improvement_count }}</div>
+                <small class="text-muted">Score &lt; 60%</small>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters Card -->
+    <div class="card border-0 shadow-sm rounded-4 p-4 mb-4 bg-white">
+        <form method="GET" class="row g-3 align-items-end">
+            <div class="col-md-5">
+                <label class="form-label small fw-bold text-muted text-uppercase">Filter by Employee</label>
+                <select name="employee_id" class="form-select form-select-sm">
+                    <option value="">-- All Active Employees --</option>
+                    {% for emp in all_employees %}
+                        <option value="{{ emp.id }}" {% if selected_employee == emp.id|stringformat:"i" %}selected{% endif %}>
+                            {{ emp.full_name|default:emp.user.email }} ({{ emp.employee_code }})
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-5">
+                <label class="form-label small fw-bold text-muted text-uppercase">Filter by Department</label>
+                <select name="department_id" class="form-select form-select-sm">
+                    <option value="">-- All Departments --</option>
+                    {% for dept in departments %}
+                        <option value="{{ dept.id }}" {% if selected_department == dept.id|stringformat:"i" %}selected{% endif %}>
+                            {{ dept.name }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2 d-flex gap-2">
+                <button type="submit" class="btn btn-primary btn-sm w-100 fw-bold">Filter</button>
+                <a href="{% url 'hr:employee_performance_analysis' %}" class="btn btn-light btn-sm border">Reset</a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Evaluated Reports Matrix Table -->
+    <div class="card border-0 shadow-sm rounded-4 p-4 bg-white">
+        <h6 class="fw-bold text-dark border-bottom pb-3 mb-3">Recent Performance Evaluations</h6>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light small">
+                    <tr>
+                        <th>Employee</th>
+                        <th>Period</th>
+                        <th class="text-center">Total (40)</th>
+                        <th class="text-center">Average (5.0)</th>
+                        <th class="text-center">Percentage</th>
+                        <th>Reviewer & Feedback</th>
+                        <th class="text-end">Action</th>
+                    </tr>
+                </thead>
+                <tbody class="small">
+                    {% for r in reports %}
+                    <tr>
+                        <td>
+                            <strong>{{ r.employee.full_name|default:r.employee.user.email }}</strong><br>
+                            <span class="text-muted">{{ r.employee.employee_code }} &bull; {{ r.employee.department.name }}</span>
+                        </td>
+                        <td>
+                            <strong>{{ r.week_start_date|date:"M d" }} &mdash; {{ r.week_end_date|date:"M d, Y" }}</strong>
+                        </td>
+                        <td class="text-center fw-bold">{{ r.performance_review.total_score }}/40</td>
+                        <td class="text-center fw-bold text-primary">★ {{ r.performance_review.average_score }}</td>
+                        <td class="text-center">
+                            {% if r.performance_review.performance_percentage >= 90 %}
+                                <span class="badge bg-success-subtle text-success border border-success-subtle">{{ r.performance_review.performance_percentage }}% (Excellent)</span>
+                            {% elif r.performance_review.performance_percentage >= 75 %}
+                                <span class="badge bg-primary-subtle text-primary border border-primary-subtle">{{ r.performance_review.performance_percentage }}% (Very Good)</span>
+                            {% elif r.performance_review.performance_percentage >= 60 %}
+                                <span class="badge bg-info-subtle text-info border border-info-subtle">{{ r.performance_review.performance_percentage }}% (Good)</span>
+                            {% else %}
+                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle">{{ r.performance_review.performance_percentage }}% (Needs Work)</span>
+                            {% endif %}
+                        </td>
+                        <td style="max-width: 280px;">
+                            <div class="text-muted small">By {{ r.performance_review.reviewed_by.full_name|default:"HR Reviewer" }}</div>
+                            <div class="text-dark small text-truncate">{{ r.performance_review.overall_feedback }}</div>
+                        </td>
+                        <td class="text-end">
+                            <a href="{% url 'hr:employee_report_review' r.pk %}" class="btn btn-sm btn-outline-primary">
+                                Inspect Matrix
+                            </a>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-5">
+                            No performance evaluations match your filter criteria.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,319 @@
+{% extends "hr/base.html" %}
+
+{% block title %}Weekly Performance Report: {{ report.week_display }} - HRMS Portal{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <!-- Header with Status Badge & Actions -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <div>
+            <a href="{% url 'hr:weekly_report_list' %}" class="text-decoration-none text-muted small mb-1 d-inline-block">
+                <i class="bi bi-arrow-left me-1"></i> Back to Weekly Reports
+            </a>
+            <div class="d-flex align-items-center gap-3">
+                <h3 class="fw-bold text-dark mb-0">Weekly Report: {{ report.week_display }}</h3>
+                {% if report.status == 'DRAFT' %}
+                    <span class="badge bg-secondary-subtle text-secondary px-3 py-2 rounded-pill">Draft</span>
+                {% elif report.status == 'SUBMITTED' %}
+                    <span class="badge bg-primary-subtle text-primary px-3 py-2 rounded-pill">Submitted to Admin</span>
+                {% elif report.status == 'UNDER_REVIEW' %}
+                    <span class="badge bg-warning-subtle text-warning-emphasis px-3 py-2 rounded-pill">Under Admin Review</span>
+                {% elif report.status == 'REVIEWED' %}
+                    <span class="badge bg-success-subtle text-success px-3 py-2 rounded-pill"><i class="bi bi-check-circle me-1"></i>Reviewed by Admin</span>
+                {% elif report.status == 'NEEDS_IMPROVEMENT' %}
+                    <span class="badge bg-danger-subtle text-danger px-3 py-2 rounded-pill">Needs Improvement</span>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="d-flex gap-2">
+            {% if report.is_editable %}
+                <a href="{% url 'hr:weekly_report_edit' report.pk %}" class="btn btn-outline-primary rounded-3 px-3">
+                    <i class="bi bi-pencil me-1"></i> Edit Report
+                </a>
+                <form method="post" action="{% url 'hr:weekly_report_submit' report.pk %}" class="d-inline" onsubmit="return confirm('Submit this report to Admin?');">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-primary rounded-3 px-3 shadow-sm">
+                        <i class="bi bi-send me-1"></i> Submit to Admin
+                    </button>
+                </form>
+            {% endif %}
+        </div>
+    </div>
+
+    {% if review %}
+        <!-- PERFORMANCE EVALUATION SUMMARY HERO CARD -->
+        <div class="card card-custom border-0 mb-4 bg-primary text-white shadow-sm overflow-hidden position-relative">
+            <div class="card-body p-4 position-relative" style="z-index: 2;">
+                <div class="row align-items-center g-4">
+                    <div class="col-md-7">
+                        <div class="badge bg-white text-primary rounded-pill px-3 py-1 fw-bold mb-2">ADMIN PERFORMANCE EVALUATION</div>
+                        <h4 class="fw-bold text-white mb-1">Performance Score: {{ review.performance_percentage }}%</h4>
+                        <p class="text-white-50 mb-0">
+                            Overall Status: <strong class="text-white">{{ review.get_performance_status_display }}</strong> • Rated by System Administrator on {{ review.updated_at|date:"M d, Y" }}
+                        </p>
+                    </div>
+                    <div class="col-md-5 text-md-end">
+                        <div class="d-inline-flex align-items-center gap-3 bg-white bg-opacity-10 rounded-4 p-3">
+                            <div class="text-center">
+                                <div class="text-white-50 small">TOTAL SCORE</div>
+                                <div class="fs-4 fw-bold text-white">{{ review.total_score }} / 40</div>
+                            </div>
+                            <div class="vr bg-white opacity-25"></div>
+                            <div class="text-center">
+                                <div class="text-white-50 small">AVG RATING</div>
+                                <div class="fs-4 fw-bold text-white">{{ review.average_score }} / 5</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PERFORMANCE ANALYSIS MATRIX DETAILS TABLE -->
+        <div class="card card-custom border-0 mb-4">
+            <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-primary rounded-circle p-2"><i class="bi bi-grid-3x3-gap"></i></span>
+                    <h5 class="fw-bold text-dark mb-0">Performance Analysis Matrix</h5>
+                </div>
+                <p class="text-muted small mt-1 mb-0">Detailed breakdown across all 8 standard HR performance criteria evaluated by Admin.</p>
+            </div>
+            <div class="card-body p-4">
+                <div class="table-responsive">
+                    <table class="table table-bordered align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 30%;">Performance Criterion</th>
+                                <th style="width: 20%;" class="text-center">Admin Rating</th>
+                                <th style="width: 50%;">Admin Remarks / Observations</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="fw-semibold">1. Task Completion</td>
+                                <td class="text-center">
+                                    <span class="badge bg-primary-subtle text-primary px-3 py-1 fs-6">{{ review.task_completion }} / 5</span>
+                                </td>
+                                <td class="text-muted">{{ review.task_completion_remarks|default:"Completed assigned targets as per requirements." }}</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold">2. Quality of Work</td>
+                                <td class="text-center">
+                                    <span class="badge bg-primary-subtle text-primary px-3 py-1 fs-6">{{ review.quality_of_work }} / 5</span>
+                                </td>
+                                <td class="text-muted">{{ review.quality_of_work_remarks|default:"Standard quality maintained." }}</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold">3. Recruitment Coordination</td>
+                                <td class="text-center">
+                                    <span class="badge bg-primary-subtle text-primary px-3 py-1 fs-6">{{ review.recruitment_coordination }} / 5</span>
+                                </td>
+                                <td class="text-muted">{{ review.recruitment_coordination_remarks|default:"Effective candidate interaction and scheduling." }}</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold">4. Timeliness</td>
+                                <td class="text-center">
+                                    <span class="badge bg-primary-subtle text-primary px-3 py-1 fs-6">{{ review.timeliness }} / 5</span>
+                                </td>
+                                <td class="text-muted">{{ review.timeliness_remarks|default:"Delivered within required deadlines." }}</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold">5. Documentation / Record Management</td>
+                                <td class="text-center">
+                                    <span class="badge bg-primary-subtle text-primary px-3 py-1 fs-6">{{ review.documentation }} / 5</span>
+                                </td>
+                                <td class="text-muted">{{ review.documentation_remarks|default:"Maintained accurate candidate and process records." }}</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold">6. Communication & Coordination</td>
+                                <td class="text-center">
+                                    <span class="badge bg-primary-subtle text-primary px-3 py-1 fs-6">{{ review.communication }} / 5</span>
+                                </td>
+                                <td class="text-muted">{{ review.communication_remarks|default:"Clear communications and proactive updates." }}</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold">7. Problem Solving</td>
+                                <td class="text-center">
+                                    <span class="badge bg-primary-subtle text-primary px-3 py-1 fs-6">{{ review.problem_solving }} / 5</span>
+                                </td>
+                                <td class="text-muted">{{ review.problem_solving_remarks|default:"Handled operational hurdles effectively." }}</td>
+                            </tr>
+                            <tr>
+                                <td class="fw-semibold">8. Achievement of Weekly Goals</td>
+                                <td class="text-center">
+                                    <span class="badge bg-primary-subtle text-primary px-3 py-1 fs-6">{{ review.weekly_goal_achievement }} / 5</span>
+                                </td>
+                                <td class="text-muted">{{ review.weekly_goal_achievement_remarks|default:"Met primary weekly objectives." }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ADMIN QUALITATIVE FEEDBACK CARDS -->
+        <div class="card card-custom border-0 mb-4">
+            <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-primary rounded-circle p-2"><i class="bi bi-chat-left-quote"></i></span>
+                    <h5 class="fw-bold text-dark mb-0">Admin Performance Feedback & Action Plan</h5>
+                </div>
+            </div>
+            <div class="card-body p-4">
+                <div class="row g-4">
+                    {% if review.overall_feedback %}
+                        <div class="col-12">
+                            <div class="p-3 bg-light rounded-3 border-start border-4 border-primary">
+                                <h6 class="fw-bold text-dark mb-1">Executive Summary / Overall Feedback</h6>
+                                <p class="text-muted mb-0 small">{{ review.overall_feedback }}</p>
+                            </div>
+                        </div>
+                    {% endif %}
+                    {% if review.strengths %}
+                        <div class="col-md-6">
+                            <div class="p-3 bg-success-subtle rounded-3 border-start border-4 border-success h-100">
+                                <h6 class="fw-bold text-success-emphasis mb-1"><i class="bi bi-star-fill me-1"></i>Observed Strengths</h6>
+                                <p class="text-success-emphasis mb-0 small">{{ review.strengths }}</p>
+                            </div>
+                        </div>
+                    {% endif %}
+                    {% if review.areas_for_improvement %}
+                        <div class="col-md-6">
+                            <div class="p-3 bg-warning-subtle rounded-3 border-start border-4 border-warning h-100">
+                                <h6 class="fw-bold text-warning-emphasis mb-1"><i class="bi bi-exclamation-circle me-1"></i>Areas for Improvement</h6>
+                                <p class="text-warning-emphasis mb-0 small">{{ review.areas_for_improvement }}</p>
+                            </div>
+                        </div>
+                    {% endif %}
+                    {% if review.recommendations %}
+                        <div class="col-md-6">
+                            <div class="p-3 bg-info-subtle rounded-3 border-start border-4 border-info h-100">
+                                <h6 class="fw-bold text-info-emphasis mb-1"><i class="bi bi-lightbulb me-1"></i>Recommendations & Action Points</h6>
+                                <p class="text-info-emphasis mb-0 small">{{ review.recommendations }}</p>
+                            </div>
+                        </div>
+                    {% endif %}
+                    {% if review.next_week_expectations %}
+                        <div class="col-md-6">
+                            <div class="p-3 bg-light rounded-3 border-start border-4 border-secondary h-100">
+                                <h6 class="fw-bold text-dark mb-1"><i class="bi bi-bullseye me-1"></i>Next Week Expectations</h6>
+                                <p class="text-muted mb-0 small">{{ review.next_week_expectations }}</p>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- REPORT DETAILS SECTIONS -->
+    <div class="row g-4">
+        <!-- Section 1 & 2: Work Summary & Tasks -->
+        <div class="col-lg-8">
+            <div class="card card-custom border-0 mb-4">
+                <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+                    <h5 class="fw-bold text-dark mb-0">Weekly Work Summary</h5>
+                </div>
+                <div class="card-body p-4">
+                    <p class="text-dark mb-4 lead" style="font-size: 1rem;">{{ report.work_summary }}</p>
+                    
+                    <h6 class="fw-bold text-dark mb-2">Tasks Completed:</h6>
+                    <div class="p-3 bg-light rounded-3 text-dark mb-4" style="white-space: pre-line;">{{ report.tasks_completed }}</div>
+
+                    <div class="row g-3">
+                        {% if report.achievements %}
+                            <div class="col-md-6">
+                                <h6 class="fw-bold text-success mb-1"><i class="bi bi-trophy me-1"></i>Achievements:</h6>
+                                <div class="p-3 bg-light rounded-3 text-dark small" style="white-space: pre-line;">{{ report.achievements }}</div>
+                            </div>
+                        {% endif %}
+                        {% if report.challenges %}
+                            <div class="col-md-6">
+                                <h6 class="fw-bold text-danger mb-1"><i class="bi bi-exclamation-triangle me-1"></i>Challenges:</h6>
+                                <div class="p-3 bg-light rounded-3 text-dark small" style="white-space: pre-line;">{{ report.challenges }}</div>
+                            </div>
+                        {% endif %}
+                        {% if report.pending_tasks %}
+                            <div class="col-md-6">
+                                <h6 class="fw-bold text-warning-emphasis mb-1"><i class="bi bi-clock-history me-1"></i>Pending Tasks:</h6>
+                                <div class="p-3 bg-light rounded-3 text-dark small" style="white-space: pre-line;">{{ report.pending_tasks }}</div>
+                            </div>
+                        {% endif %}
+                        {% if report.next_week_plan %}
+                            <div class="col-md-6">
+                                <h6 class="fw-bold text-primary mb-1"><i class="bi bi-calendar-check me-1"></i>Next Week Plan:</h6>
+                                <div class="p-3 bg-light rounded-3 text-dark small" style="white-space: pre-line;">{{ report.next_week_plan }}</div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar: Meta Information & Supporting Recruitment Numbers -->
+        <div class="col-lg-4">
+            <!-- Report Meta Info -->
+            <div class="card card-custom border-0 mb-4">
+                <div class="card-body p-4">
+                    <h6 class="fw-bold text-dark mb-3">Report Details</h6>
+                    <div class="d-flex justify-content-between py-2 border-bottom small">
+                        <span class="text-muted">Report ID</span>
+                        <span class="fw-semibold text-dark">#{{ report.report_id }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between py-2 border-bottom small">
+                        <span class="text-muted">Week Period</span>
+                        <span class="fw-semibold text-dark">{{ report.week_display }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between py-2 border-bottom small">
+                        <span class="text-muted">Submitted Date</span>
+                        <span class="fw-semibold text-dark">{{ report.submitted_at|date:"M d, Y, h:i A"|default:"Not Submitted" }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between py-2 border-bottom small">
+                        <span class="text-muted">Current Status</span>
+                        <span class="fw-semibold text-dark">{{ report.get_status_display }}</span>
+                    </div>
+                    {% if report.reviewed_at %}
+                        <div class="d-flex justify-content-between py-2 small">
+                            <span class="text-muted">Reviewed Date</span>
+                            <span class="fw-semibold text-success">{{ report.reviewed_at|date:"M d, Y, h:i A" }}</span>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Supporting Recruitment Activity -->
+            <div class="card card-custom border-0 mb-4">
+                <div class="card-body p-4">
+                    <h6 class="fw-bold text-dark mb-3">Recruitment Supporting Activity</h6>
+                    <div class="d-flex justify-content-between py-2 border-bottom small">
+                        <span class="text-muted"><i class="bi bi-briefcase me-2 text-primary"></i>Vacancies Handled</span>
+                        <span class="fw-bold text-dark">{{ report.vacancies_worked }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between py-2 border-bottom small">
+                        <span class="text-muted"><i class="bi bi-file-earmark-person me-2 text-primary"></i>Candidates Screened</span>
+                        <span class="fw-bold text-dark">{{ report.candidates_screened }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between py-2 border-bottom small">
+                        <span class="text-muted"><i class="bi bi-check2-circle me-2 text-primary"></i>Shortlisted</span>
+                        <span class="fw-bold text-dark">{{ report.candidates_shortlisted }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between py-2 border-bottom small">
+                        <span class="text-muted"><i class="bi bi-patch-question me-2 text-primary"></i>Aptitude Tests</span>
+                        <span class="fw-bold text-dark">{{ report.aptitude_tests }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between py-2 border-bottom small">
+                        <span class="text-muted"><i class="bi bi-calendar-event me-2 text-primary"></i>Interviews Scheduled</span>
+                        <span class="fw-bold text-dark">{{ report.interviews }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between py-2 small">
+                        <span class="text-muted"><i class="bi bi-person-check me-2 text-success"></i>Candidates Selected</span>
+                        <span class="fw-bold text-success">{{ report.candidates_selected }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

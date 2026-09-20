@@ -1,6 +1,6 @@
 {% extends "candidates/base_candidate.html" %}
 
-{% block title %}Assessment Result - {{ application.vacancy.title }} | Smart HRMS{% endblock title %}
+{% block title %}Assessment Submitted - {{ application.vacancy.title }} | Smart HRMS{% endblock title %}
 
 {% block content %}
 <div class="row justify-content-center">
@@ -8,43 +8,29 @@
         <div class="portal-card bg-white p-4 p-md-5 text-center shadow-sm border">
             <!-- Status Icon -->
             <div class="mb-3">
-                {% if result.passed or result.percentage >= 50 %}
-                    <div class="rounded-circle bg-success-subtle text-success p-4 d-inline-flex align-items-center justify-content-center mb-2" style="width: 80px; height: 80px;">
-                        <i class="bi bi-check-circle-fill fs-1"></i>
-                    </div>
-                    <h3 class="fw-extrabold text-success mb-1">Assessment Passed!</h3>
-                    <p class="text-muted small">You have successfully met the aptitude assessment criteria for this position.</p>
-                {% else %}
-                    <div class="rounded-circle bg-warning-subtle text-warning p-4 d-inline-flex align-items-center justify-content-center mb-2" style="width: 80px; height: 80px;">
-                        <i class="bi bi-award fs-1"></i>
-                    </div>
-                    <h3 class="fw-extrabold text-dark mb-1">Assessment Completed</h3>
-                    <p class="text-muted small">Your aptitude assessment submission has been recorded and submitted to HR for evaluation.</p>
-                {% endif %}
+                <div class="rounded-circle bg-success-subtle text-success p-4 d-inline-flex align-items-center justify-content-center mb-2" style="width: 80px; height: 80px;">
+                    <i class="bi bi-check-circle-fill fs-1"></i>
+                </div>
+                <h3 class="fw-extrabold text-dark mb-1">Aptitude Assessment Submitted</h3>
+                <p class="text-muted small">Your answers have been recorded successfully and submitted for recruitment review.</p>
             </div>
 
-            <!-- Score Summary Card -->
-            <div class="p-4 rounded-3 bg-light border mb-4">
-                <div class="row g-3 align-items-center">
-                    <div class="col-4 border-end">
-                        <span class="text-muted small text-uppercase fw-semibold d-block">Score</span>
-                        <h2 class="fw-extrabold text-dark mb-0">{{ result.score }}</h2>
+            <!-- Confirmation Information Card -->
+            <div class="p-4 rounded-3 bg-light border mb-4 text-start">
+                <div class="d-flex align-items-center gap-3 mb-3 pb-3 border-bottom">
+                    <div class="p-2 bg-primary bg-opacity-10 text-primary rounded-circle">
+                        <i class="bi bi-patch-check-fill fs-4"></i>
                     </div>
-                    <div class="col-4 border-end">
-                        <span class="text-muted small text-uppercase fw-semibold d-block">Total Marks</span>
-                        <h2 class="fw-extrabold text-secondary mb-0">{{ result.total_marks }}</h2>
-                    </div>
-                    <div class="col-4">
-                        <span class="text-muted small text-uppercase fw-semibold d-block">Percentage</span>
-                        <h2 class="fw-extrabold {% if result.passed or result.percentage >= 50 %}text-success{% else %}text-primary{% endif %} mb-0">{{ result.percentage }}%</h2>
+                    <div>
+                        <div class="fw-bold text-dark">Submission Confirmation</div>
+                        <div class="text-muted small">
+                            Status: <span class="badge bg-info-subtle text-info-emphasis border px-2 py-0.5">Under HR Review</span>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Details List -->
-            <div class="text-start border rounded-3 p-3 mb-4 bg-white">
                 <div class="d-flex justify-content-between py-2 border-bottom small">
-                    <span class="text-muted">Job Vacancy:</span>
+                    <span class="text-muted">Target Position:</span>
                     <strong class="text-dark">{{ application.vacancy.title }}</strong>
                 </div>
                 <div class="d-flex justify-content-between py-2 border-bottom small">
@@ -52,25 +38,48 @@
                     <span class="text-dark fw-semibold">{{ application.vacancy.department.name }}</span>
                 </div>
                 <div class="d-flex justify-content-between py-2 border-bottom small">
-                    <span class="text-muted">Candidate:</span>
-                    <span class="text-dark fw-semibold">{{ application.candidate.full_name }}</span>
+                    <span class="text-muted">Application Reference:</span>
+                    <span class="text-dark fw-semibold">#APP-{{ application.pk }}</span>
                 </div>
                 <div class="d-flex justify-content-between py-2 border-bottom small">
-                    <span class="text-muted">Assessment Completed On:</span>
-                    <span class="text-dark">{{ result.completed_at|date:"F d, Y, h:i A" }}</span>
+                    <span class="text-muted">Submission Mode:</span>
+                    <span class="text-dark fw-medium">
+                        {% if attempt and attempt.submission_type == 'AUTO_SUBMITTED' or result and result.submission_type == 'AUTO_SUBMITTED' %}
+                            <span class="badge bg-secondary">Auto-Submitted on Timer Expiration</span>
+                        {% else %}
+                            <span class="badge bg-success bg-opacity-10 text-success border">Candidate Submitted</span>
+                        {% endif %}
+                    </span>
                 </div>
                 <div class="d-flex justify-content-between py-2 small">
-                    <span class="text-muted">Current Application Status:</span>
-                    <span class="badge px-3 py-1.5 {% if application.status == 'INTERVIEW' %}bg-primary{% elif application.status == 'SELECTED' %}bg-success{% elif application.status == 'REJECTED' %}bg-danger{% else %}bg-warning text-dark{% endif %}">
-                        {{ application.get_status_display }}
+                    <span class="text-muted">Completed On:</span>
+                    <span class="text-dark">
+                        {% if attempt and attempt.completed_at %}
+                            {{ attempt.completed_at|date:"F d, Y, h:i A" }}
+                        {% elif result and result.completed_at %}
+                            {{ result.completed_at|date:"F d, Y, h:i A" }}
+                        {% else %}
+                            Just now
+                        {% endif %}
                     </span>
                 </div>
             </div>
 
-            <!-- Next Steps & Navigation -->
+            <!-- Review Notice -->
+            <div class="p-3 bg-primary-subtle rounded-3 text-start mb-4 border border-primary-subtle">
+                <div class="d-flex align-items-start gap-2">
+                    <i class="bi bi-info-circle-fill text-primary fs-5 mt-0.5"></i>
+                    <div class="small text-primary-emphasis">
+                        <strong>What happens next?</strong><br>
+                        Our HR recruitment team will evaluate your assessment and overall profile. You will be notified regarding the recruitment decision and subsequent interview rounds.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Navigation Buttons -->
             <div class="d-flex flex-column flex-sm-row justify-content-center gap-2">
                 <a href="{% url 'candidates:applications' %}" class="btn-blue-primary px-4 py-2">
-                    <i class="bi bi-arrow-left me-1"></i> Return to My Applications
+                    <i class="bi bi-file-earmark-check me-1"></i> My Applications
                 </a>
                 <a href="{% url 'candidates:dashboard' %}" class="btn btn-light border px-4 py-2">
                     <i class="bi bi-speedometer2 me-1"></i> Go to Dashboard
@@ -80,4 +89,3 @@
     </div>
 </div>
 {% endblock content %}
-

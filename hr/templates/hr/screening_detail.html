@@ -1,0 +1,349 @@
+{% extends "hr/base.html" %}
+
+{% block title %}Resume Screening Result — {{ candidate.first_name }} {{ candidate.last_name }} | Smart HRMS{% endblock %}
+
+{% block content %}
+<!-- Header Bar -->
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <a href="{% url 'hr:job_screening' job.pk %}" class="text-decoration-none small text-muted">
+            <i class="bi bi-arrow-left me-1"></i> Back to {{ job.title }} Screening
+        </a>
+        <h4 class="fw-bold text-primary mt-1 mb-0">
+            <i class="bi bi-file-earmark-medical me-2"></i>Resume Screening Result
+        </h4>
+    </div>
+    <div class="d-flex gap-2">
+        {% if application.applied_resume or candidate.resume %}
+        <a href="{{ application.applied_resume.url|default:candidate.resume.url }}" target="_blank" class="btn btn-outline-secondary">
+            <i class="bi bi-file-earmark-pdf me-1"></i> View Resume
+        </a>
+        {% endif %}
+        <a href="{% url 'hr:application_detail' application.pk %}" class="btn btn-outline-primary">
+            <i class="bi bi-person-lines-fill me-1"></i> View Application
+        </a>
+        <button type="button" class="btn btn-outline-dark" data-bs-toggle="modal" data-bs-target="#overrideModal">
+            <i class="bi bi-pencil-square me-1"></i> Override Outcome
+        </button>
+    </div>
+</div>
+
+<!-- Candidate & Job Summary Card -->
+<div class="card card-custom p-4 mb-4 shadow-sm">
+    <div class="row g-3 align-items-center">
+        <div class="col-md-6">
+            <span class="text-muted small text-uppercase fw-semibold">Candidate</span>
+            <h4 class="fw-bold text-dark mb-1">{{ candidate.first_name }} {{ candidate.last_name }}</h4>
+            <div class="small text-muted">
+                <i class="bi bi-envelope me-1"></i>{{ candidate.user.email }}
+                {% if candidate.phone %}&bull; <i class="bi bi-telephone ms-1 me-1"></i>{{ candidate.phone }}{% endif %}
+            </div>
+        </div>
+        <div class="col-md-3">
+            <span class="text-muted small text-uppercase fw-semibold">Applied For</span>
+            <div class="fw-bold text-primary fs-6">{{ job.title }}</div>
+            <div class="small text-muted">{{ job.department.name }}</div>
+        </div>
+        <div class="col-md-3">
+            <span class="text-muted small text-uppercase fw-semibold">Application Date</span>
+            <div class="fw-bold text-dark fs-6">{{ application.applied_at|date:"d F Y" }}</div>
+            <div class="small text-muted">Screened on {{ screening.screened_at|date:"M d, Y H:i" }}</div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <!-- Left Column: Detailed Criteria Breakdowns -->
+    <div class="col-12 col-lg-8">
+        <!-- 1. Required Skill Match -->
+        <div class="card card-custom p-4 mb-4 shadow-sm">
+            <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                <h5 class="fw-bold text-primary mb-0">
+                    <i class="bi bi-check2-square me-2"></i>1. Required Skills Match (Mandatory)
+                </h5>
+                <span class="badge {% if screening.required_skills_matched == screening.required_skills_total and screening.required_skills_total > 0 %}bg-success{% else %}bg-warning text-dark{% endif %} px-3 py-1.5 fs-6">
+                    Matched: {{ screening.required_skills_matched }} / {{ screening.required_skills_total }}
+                </span>
+            </div>
+
+            <div class="table-responsive mb-3">
+                <table class="table table-bordered align-middle mb-0">
+                    <thead class="table-light small">
+                        <tr>
+                            <th>Required Skill</th>
+                            <th>Screening Status</th>
+                            <th>Evaluation</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for sk in screening.required_skills_data %}
+                        <tr>
+                            <td class="fw-bold text-dark">{{ sk.skill }}</td>
+                            <td>
+                                {% if sk.matched %}
+                                    <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">
+                                        <i class="bi bi-check-lg me-1"></i>✓ Matched
+                                    </span>
+                                {% else %}
+                                    <span class="badge bg-danger-subtle text-danger border border-danger-subtle px-2 py-1">
+                                        <i class="bi bi-x-lg me-1"></i>✗ Not Found in Resume
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td class="small text-muted">
+                                {% if sk.matched %}
+                                    Candidate demonstrates competence in {{ sk.skill }}.
+                                {% else %}
+                                    Missing required skill required for this role.
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="3" class="text-muted text-center py-2">No mandatory skills specified for this position.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="small">
+                <strong>Missing Required Skills:</strong>
+                {% if screening.required_skills_matched == screening.required_skills_total %}
+                    <span class="text-success fw-semibold ms-1">None (All {{ screening.required_skills_total }} Required Skills Satisfied)</span>
+                {% else %}
+                    <span class="text-danger fw-semibold ms-1">
+                        {% for sk in screening.required_skills_data %}
+                            {% if not sk.matched %}{{ sk.skill }}{% if not forloop.last %}, {% endif %}{% endif %}
+                        {% endfor %}
+                    </span>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- 2. Preferred Skill Match -->
+        {% if screening.preferred_skills_total > 0 %}
+        <div class="card card-custom p-4 mb-4 shadow-sm">
+            <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                <h5 class="fw-bold text-primary mb-0">
+                    <i class="bi bi-stars me-2"></i>2. Preferred Skills Match (Bonus Criteria)
+                </h5>
+                <span class="badge bg-info-subtle text-info border border-info-subtle px-3 py-1.5 fs-6">
+                    Matched: {{ screening.preferred_skills_matched }} / {{ screening.preferred_skills_total }}
+                </span>
+            </div>
+            <div class="d-flex flex-wrap gap-2">
+                {% for sk in screening.preferred_skills_data %}
+                    <span class="badge {% if sk.matched %}bg-success-subtle text-success border border-success-subtle{% else %}bg-light text-muted border{% endif %} px-3 py-2 fs-6">
+                        {% if sk.matched %}✓{% else %}✗{% endif %} {{ sk.skill }}
+                    </span>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- 3. Education, Graduation & Experience Breakdowns -->
+        <div class="card card-custom p-4 mb-4 shadow-sm">
+            <h5 class="fw-bold text-primary mb-3 pb-2 border-bottom">
+                <i class="bi bi-mortarboard me-2"></i>3. Academic & Professional Qualifications
+            </h5>
+
+            <!-- Education -->
+            <div class="p-3 bg-light rounded border mb-3">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <strong class="text-dark">Educational Qualification</strong>
+                    {% if screening.education_matched %}
+                        <span class="badge bg-success"><i class="bi bi-check-lg me-1"></i>✓ Matched</span>
+                    {% else %}
+                        <span class="badge bg-danger"><i class="bi bi-x-lg me-1"></i>✗ Not Matched</span>
+                    {% endif %}
+                </div>
+                <div class="row g-2 small">
+                    <div class="col-sm-6">
+                        <span class="text-muted d-block">Required:</span>
+                        <strong>{{ screening.required_education|default:job.minimum_qualification }}</strong>
+                    </div>
+                    <div class="col-sm-6">
+                        <span class="text-muted d-block">Candidate:</span>
+                        <strong>{{ screening.candidate_education|default:"None specified" }}</strong>
+                    </div>
+                </div>
+                {% if screening.education_remarks %}
+                <div class="small text-muted mt-2 border-top pt-1">{{ screening.education_remarks }}</div>
+                {% endif %}
+            </div>
+
+            <!-- Graduation Year -->
+            <div class="p-3 bg-light rounded border mb-3">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <strong class="text-dark">Graduation Year Eligibility</strong>
+                    {% if screening.graduation_year_matched %}
+                        <span class="badge bg-success"><i class="bi bi-check-lg me-1"></i>✓ Matched</span>
+                    {% else %}
+                        <span class="badge bg-danger"><i class="bi bi-x-lg me-1"></i>✗ Not Matched</span>
+                    {% endif %}
+                </div>
+                <div class="row g-2 small">
+                    <div class="col-sm-6">
+                        <span class="text-muted d-block">Required Range:</span>
+                        <strong>{{ screening.required_graduation_range|default:"Any / Open" }}</strong>
+                    </div>
+                    <div class="col-sm-6">
+                        <span class="text-muted d-block">Candidate Passing Year:</span>
+                        <strong>{{ screening.candidate_graduation_year|default:"Not specified" }}</strong>
+                    </div>
+                </div>
+                {% if screening.graduation_remarks %}
+                <div class="small text-muted mt-2 border-top pt-1">{{ screening.graduation_remarks }}</div>
+                {% endif %}
+            </div>
+
+            <!-- Experience -->
+            <div class="p-3 bg-light rounded border">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <strong class="text-dark">Work Experience</strong>
+                    {% if screening.experience_matched %}
+                        <span class="badge bg-success"><i class="bi bi-check-lg me-1"></i>✓ Matched</span>
+                    {% else %}
+                        <span class="badge bg-danger"><i class="bi bi-x-lg me-1"></i>✗ Not Matched</span>
+                    {% endif %}
+                </div>
+                <div class="row g-2 small">
+                    <div class="col-sm-6">
+                        <span class="text-muted d-block">Required:</span>
+                        <strong>{{ screening.required_experience|default:job.experience_display }}</strong>
+                    </div>
+                    <div class="col-sm-6">
+                        <span class="text-muted d-block">Candidate Experience:</span>
+                        <strong>{{ screening.candidate_experience|default:"Fresher" }}</strong>
+                    </div>
+                </div>
+                {% if screening.experience_remarks %}
+                <div class="small text-muted mt-2 border-top pt-1">{{ screening.experience_remarks }}</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- 4. Extracted Skills Reference -->
+        <div class="card card-custom p-4 shadow-sm">
+            <h5 class="fw-bold text-primary mb-3 pb-2 border-bottom">
+                <i class="bi bi-code-square me-2"></i>4. Extracted Resume Skills & Technologies
+            </h5>
+            <div class="d-flex flex-wrap gap-1">
+                {% for skill in screening.extracted_skills %}
+                    <span class="badge bg-light text-dark border px-2.5 py-1.5 fs-6">{{ skill }}</span>
+                {% empty %}
+                    <span class="text-muted small">No technical skills detected in uploaded resume document.</span>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Final Screening Decision Box -->
+    <div class="col-12 col-lg-4">
+        <!-- Final Result Card -->
+        <div class="card card-custom p-4 mb-4 shadow-sm {% if screening.status == 'SHORTLISTED' %}border-top border-4 border-success{% else %}border-top border-4 border-secondary{% endif %} sticky-top" style="top: 20px;">
+            <span class="text-muted small text-uppercase fw-semibold d-block text-center">Final Screening Decision</span>
+            <div class="text-center my-3">
+                {% if screening.status == 'SHORTLISTED' %}
+                    <div class="display-6 text-success fw-bold">
+                        <i class="bi bi-check-circle-fill"></i> SHORTLISTED
+                    </div>
+                    <span class="badge bg-success px-3 py-1.5 fs-6 mt-1">Recommended for Next Round</span>
+                {% elif screening.status == 'NOT_SHORTLISTED' %}
+                    <div class="display-6 text-secondary fw-bold">
+                        <i class="bi bi-x-circle-fill"></i> NOT SHORTLISTED
+                    </div>
+                    <span class="badge bg-secondary px-3 py-1.5 fs-6 mt-1">Unmet Mandatory Criteria</span>
+                {% elif screening.status == 'MANUAL_REVIEW' %}
+                    <div class="display-6 text-warning fw-bold">
+                        <i class="bi bi-eye-fill"></i> MANUAL REVIEW
+                    </div>
+                    <span class="badge bg-warning text-dark px-3 py-1.5 fs-6 mt-1">Pending HR Assessment</span>
+                {% else %}
+                    <div class="display-6 text-dark fw-bold">{{ screening.get_status_display }}</div>
+                {% endif %}
+            </div>
+
+            <div class="bg-light p-3 rounded border my-3">
+                <label class="small text-muted fw-bold text-uppercase d-block mb-1">Decision Summary:</label>
+                <p class="small text-dark mb-0 font-monospace" style="line-height: 1.6;">
+                    "{{ screening.decision_reason }}"
+                </p>
+            </div>
+
+            {% if screening.missing_requirements %}
+            <div class="alert alert-danger p-3 rounded mb-3 small">
+                <strong class="d-block mb-1"><i class="bi bi-exclamation-octagon-fill me-1"></i>Missing Mandatory Requirements:</strong>
+                <ul class="mb-0 ps-3">
+                    {% for item in screening.missing_requirements %}
+                        <li>{{ item }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+
+            <div class="border-top pt-3 text-center">
+                <span class="text-muted small text-uppercase fw-semibold d-block">Overall Match Score</span>
+                <h2 class="fw-bold text-primary mb-1">{{ screening.match_score|default:0|floatformat:1 }}%</h2>
+                <div class="progress mb-3" style="height: 8px;">
+                    <div class="progress-bar {% if screening.status == 'SHORTLISTED' %}bg-success{% else %}bg-primary{% endif %}" style="width: {{ screening.match_score|default:0 }}%;"></div>
+                </div>
+            </div>
+
+            {% if screening.is_manual_override %}
+            <div class="alert alert-info small mb-3">
+                <i class="bi bi-info-circle-fill me-1"></i>
+                <strong>Manually Overridden by HR:</strong><br>
+                {{ screening.override_notes|default:"Status adjusted manually by recruiter." }}
+            </div>
+            {% endif %}
+
+            <div class="d-grid gap-2">
+                <a href="{% url 'hr:application_detail' application.pk %}" class="btn btn-blue py-2">
+                    <i class="bi bi-arrow-right-circle me-1"></i> Proceed to Application Review
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Manual Override Modal -->
+<div class="modal fade" id="overrideModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <form method="POST" action="{% url 'hr:application_screening_override' application.pk %}">
+                {% csrf_token %}
+                <div class="modal-header border-bottom">
+                    <h5 class="modal-title fw-bold">
+                        <i class="bi bi-pencil-square me-2 text-primary"></i>Override Screening Decision
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="small text-muted mb-3">
+                        Adjust the screening status for <strong>{{ candidate.first_name }} {{ candidate.last_name }}</strong> for the <strong>{{ job.title }}</strong> position.
+                    </p>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">New Screening Status <span class="text-danger">*</span></label>
+                        <select name="status" class="form-select custom-input" required>
+                            <option value="SHORTLISTED" {% if screening.status == 'SHORTLISTED' %}selected{% endif %}>Shortlisted</option>
+                            <option value="NOT_SHORTLISTED" {% if screening.status == 'NOT_SHORTLISTED' %}selected{% endif %}>Not Shortlisted</option>
+                            <option value="MANUAL_REVIEW" {% if screening.status == 'MANUAL_REVIEW' %}selected{% endif %}>Manual Review</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-semibold">Audit Notes / Reason for Override</label>
+                        <textarea name="override_notes" rows="3" class="form-control custom-input" placeholder="Explain why the screening decision is being manually modified...">{{ screening.override_notes }}</textarea>
+                    </div>
+                </div>
+                <div class="modal-footer border-top">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

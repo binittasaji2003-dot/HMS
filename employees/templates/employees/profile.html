@@ -1,216 +1,784 @@
 {% load static %}
-
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>My Profile - HRMS</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet"
-          href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              hrms: {
-                blue: '#1677ff',
-                hover: '#0958d9'
-              }
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>My Profile - Smart HRMS</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            hrms: {
+              blue: '#2563eb',
+              hover: '#1d4ed8',
+              navy: '#0f172a',
+              indigo: '#4f46e5'
             }
           }
         }
       }
-    </script>
-  </head>
-  <body class="bg-slate-50 font-sans antialiased text-slate-800 min-h-screen flex">
-    <!-- Left Sidebar -->
-    <aside class="w-64 bg-white border-r border-slate-200/80 flex flex-col justify-between hidden md:flex shrink-0 min-h-screen">
-      <div>
-        <div class="h-20 flex items-center px-6 border-b border-slate-100">
-          <a href="{% url 'employees:dashboard' %}"
-             class="flex items-center gap-3 text-hrms-blue">
-            <div class="w-9 h-9 bg-hrms-blue text-white rounded-xl flex items-center justify-center text-lg shadow-sm">
-              <i class="bi bi-people-fill"></i>
-            </div>
-            <span class="text-xl font-extrabold tracking-tight text-slate-900">HRMS</span>
-          </a>
-        </div>
-        <nav class="p-4 space-y-1.5">
-          <a href="{% url 'employees:dashboard' %}"
-             class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-600 hover:text-hrms-blue hover:bg-blue-50/60 rounded-xl">
-            <i class="bi bi-grid text-base"></i><span>Dashboard</span>
-          </a>
-          <a href="{% url 'employees:profile' %}"
-             class="flex items-center gap-3 px-4 py-3 text-sm font-bold text-white bg-hrms-blue rounded-xl shadow-md shadow-blue-500/20">
-            <i class="bi bi-person-fill text-base"></i><span>My Profile</span>
-          </a>
-          <a href="{% url 'employees:reports_list' %}"
-             class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-600 hover:text-hrms-blue hover:bg-blue-50/60 rounded-xl">
-            <i class="bi bi-file-earmark-text text-base"></i><span>Reports</span>
-          </a>
-          <a href="{% url 'employees:performance' %}"
-             class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-600 hover:text-hrms-blue hover:bg-blue-50/60 rounded-xl">
-            <i class="bi bi-bar-chart-line text-base"></i><span>Performance</span>
-          </a>
-          <a href="{% url 'employees:announcements' %}"
-             class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-600 hover:text-hrms-blue hover:bg-blue-50/60 rounded-xl">
-            <i class="bi bi-megaphone text-base"></i><span>Announcements</span>
-          </a>
-          <a href="{% url 'employees:notifications' %}"
-             class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-600 hover:text-hrms-blue hover:bg-blue-50/60 rounded-xl">
-            <i class="bi bi-bell text-base"></i><span>Notifications</span>
-          </a>
-        </nav>
-      </div>
-      <div class="p-4 border-t border-slate-100">
-        <a href="{% url 'employees:logout' %}"
-           class="flex items-center gap-3 px-4 py-3 text-sm font-bold text-slate-700 hover:text-red-600 hover:bg-red-50 rounded-xl">
-          <i class="bi bi-box-arrow-right text-base"></i><span>Logout</span>
+    }
+  </script>
+  <style>
+    .custom-input {
+      width: 100%;
+      padding: 0.55rem 0.85rem;
+      font-size: 0.85rem;
+      border-radius: 0.75rem;
+      border: 1px solid #cbd5e1;
+      background-color: #f8fafc;
+      color: #1e293b;
+      outline: none;
+      transition: all 0.15s ease-in-out;
+    }
+    .custom-input:focus {
+      border-color: #2563eb;
+      background-color: #ffffff;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+    }
+  </style>
+</head>
+<body class="bg-slate-50 font-sans antialiased text-slate-800 min-h-screen flex flex-col md:flex-row">
+  <!-- Left Sidebar -->
+  <aside class="w-64 bg-slate-900 text-white flex flex-col justify-between hidden md:flex shrink-0 min-h-screen border-r border-slate-800 shadow-xl">
+    <div>
+      <div class="h-20 flex items-center px-6 border-b border-slate-800">
+        <a href="{% url 'employees:dashboard' %}" class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-gradient-to-tr from-blue-600 to-indigo-500 text-white rounded-xl flex items-center justify-center text-xl shadow-lg shadow-blue-500/30 font-bold">
+            <i class="bi bi-person-badge"></i>
+          </div>
+          <div>
+            <span class="text-lg font-black tracking-tight text-white block">Smart HRMS</span>
+            <span class="text-[10px] font-semibold text-blue-400 uppercase tracking-widest block">Employee Portal</span>
+          </div>
         </a>
       </div>
-    </aside>
-    <!-- Main Content -->
-    <div class="flex-1 flex flex-col min-w-0">
-      <header class="h-20 bg-white border-b border-slate-200/80 px-6 lg:px-10 flex items-center justify-between">
-        <h1 class="text-xl font-extrabold text-slate-900">My Profile</h1>
-        <a href="{% url 'employees:dashboard' %}"
-           class="text-xs font-bold text-hrms-blue hover:underline">← Back to Dashboard</a>
-      </header>
-      <main class="p-6 lg:p-10 space-y-8 max-w-5xl mx-auto w-full">
-        {% if messages %}
-          {% for message in messages %}
-            <div class="p-4 text-xs font-semibold rounded-xl bg-blue-50 text-blue-800 border border-blue-200">{{ message }}</div>
-          {% endfor %}
-        {% endif %}
-        <!-- Header Profile Card -->
-        <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm flex flex-col sm:flex-row items-center gap-6">
-          {% if employee.profile_photo %}
-            <img src="{{ employee.profile_photo.url }}"
-                 alt="Profile Photo"
-                 class="w-24 h-24 rounded-full object-cover border-2 border-hrms-blue" />
-          {% else %}
-            <div class="w-24 h-24 rounded-full bg-blue-100 text-hrms-blue font-extrabold text-3xl flex items-center justify-center border-2 border-hrms-blue">
-              {{ employee.user.get_full_name|default:employee.user.email|slice:":1"|upper }}
-            </div>
-          {% endif %}
-          <div class="space-y-1 text-center sm:text-left flex-1">
-            <h2 class="text-2xl font-extrabold text-slate-900">{{ employee.user.name|default:employee.user.email }}</h2>
-            <div class="text-sm font-semibold text-hrms-blue">{{ employee.designation }} &bull; {{ employee.department.name }}</div>
-            <div class="text-xs text-slate-500">Employee Code: <span class="font-bold text-slate-700">{{ employee.employee_code }}</span> | Joined: <span class="font-bold text-slate-700">{{ employee.joining_date|date:"d M Y" }}</span></div>
-          </div>
-        </div>
-        <!-- Profile Tabs Grid -->
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <!-- Edit Personal Information & Photo -->
-          <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm space-y-5">
-            <h3 class="text-base font-bold text-slate-900 border-b pb-3">Edit Personal Information</h3>
-            <form method="POST" enctype="multipart/form-data" class="space-y-4">
-              {% csrf_token %}
-              <input type="hidden" name="action" value="update_profile" />
-              <div>
-                <label class="block text-xs font-bold text-slate-700 mb-1">Full Name</label>
-                {{ profile_form.name }}
-              </div>
-              <div>
-                <label class="block text-xs font-bold text-slate-700 mb-1">Email Address</label>
-                {{ profile_form.email }}
-              </div>
-              <div>
-                <label class="block text-xs font-bold text-slate-700 mb-1">Upload/Update Profile Photo</label>
-                {{ profile_form.profile_photo }}
-              </div>
-              <button type="submit"
-                      class="px-5 py-2.5 bg-hrms-blue text-white text-xs font-bold rounded-xl hover:bg-hrms-hover shadow-sm">
-                Save Profile Changes
-              </button>
-            </form>
-          </div>
-          <!-- Change Password -->
-          <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm space-y-5">
-            <h3 class="text-base font-bold text-slate-900 border-b pb-3">Change Password</h3>
-            <form method="POST" class="space-y-4">
-              {% csrf_token %}
-              <input type="hidden" name="action" value="change_password" />
-              {% for field in pwd_form %}
-                <div>
-                  <label class="block text-xs font-bold text-slate-700 mb-1">{{ field.label }}</label>
-                  <input type="{{ field.field.widget.input_type }}"
-                         name="{{ field.name }}"
-                         class="w-full h-10 px-3 text-xs bg-slate-50 border border-slate-200 rounded-xl outline-none focus:border-hrms-blue"
-                         required />
-                  {% if field.errors %}
-                    <div class="text-[11px] text-red-600 mt-1">{{ field.errors.0 }}</div>
-                  {% endif %}
-                </div>
-              {% endfor %}
-              <button type="submit"
-                      class="px-5 py-2.5 bg-slate-800 text-white text-xs font-bold rounded-xl hover:bg-slate-900 shadow-sm">
-                Update Password
-              </button>
-            </form>
-          </div>
-        </div>
-        <!-- Uploaded Documents Section -->
-        <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm space-y-6">
-          <div class="flex items-center justify-between border-b pb-4">
-            <h3 class="text-base font-bold text-slate-900">Uploaded Documents</h3>
-          </div>
-          <!-- Upload Form -->
-          <form method="POST"
-                enctype="multipart/form-data"
-                class="flex flex-col sm:flex-row items-center gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200/80">
-            {% csrf_token %}
-            <input type="hidden" name="action" value="upload_document" />
-            <div class="flex-1 w-full">
-              <label class="block text-xs font-bold text-slate-700 mb-1">Document Type</label>
-              {{ doc_form.document_type }}
-            </div>
-            <div class="flex-1 w-full">
-              <label class="block text-xs font-bold text-slate-700 mb-1">Select File</label>
-              {{ doc_form.document }}
-            </div>
-            <button type="submit"
-                    class="w-full sm:w-auto px-5 py-2.5 bg-hrms-blue text-white text-xs font-bold rounded-xl hover:bg-hrms-hover shrink-0 mt-3 sm:mt-5">
-              Upload Document
-            </button>
-          </form>
-          <!-- Documents List -->
-          <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs">
-              <thead>
-                <tr class="border-b text-slate-400 font-bold uppercase">
-                  <th class="pb-3">Document Type</th>
-                  <th class="pb-3">Uploaded Date</th>
-                  <th class="pb-3 text-right">Download</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y text-slate-700">
-                {% if documents %}
-                  {% for doc in documents %}
-                    <tr>
-                      <td class="py-3 font-bold text-slate-900">{{ doc.get_document_type_display }}</td>
-                      <td class="py-3 text-slate-500">{{ doc.uploaded_at|date:"d M Y" }}</td>
-                      <td class="py-3 text-right">
-                        <a href="{{ doc.document.url }}"
-                           target="_blank"
-                           class="text-hrms-blue font-bold hover:underline">
-                          <i class="bi bi-download me-1"></i> Download
-                        </a>
-                      </td>
-                    </tr>
-                  {% endfor %}
-                {% else %}
-                  <tr>
-                    <td colspan="3" class="py-4 text-center text-slate-400">No documents uploaded yet.</td>
-                  </tr>
-                {% endif %}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </main>
+      <nav class="p-4 space-y-1.5">
+        <a href="{% url 'employees:dashboard' %}" class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition">
+          <i class="bi bi-grid-fill text-base"></i><span>Dashboard</span>
+        </a>
+        <a href="{% url 'employees:profile' %}" class="flex items-center gap-3 px-4 py-3 text-sm font-bold text-white bg-blue-600 rounded-xl shadow-md shadow-blue-600/30">
+          <i class="bi bi-person-circle text-base"></i><span>My Profile</span>
+        </a>
+        <a href="{% url 'employees:reports_list' %}" class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition">
+          <i class="bi bi-file-earmark-bar-graph text-base"></i><span>Weekly Reports</span>
+        </a>
+        <a href="{% url 'employees:leave_management' %}" class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition">
+          <i class="bi bi-calendar2-check text-base"></i><span>Leave Management</span>
+        </a>
+        <a href="{% url 'employees:performance' %}" class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition">
+          <i class="bi bi-award text-base"></i><span>Performance & Scores</span>
+        </a>
+        <a href="{% url 'employees:announcements' %}" class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition">
+          <i class="bi bi-megaphone text-base"></i><span>Announcements</span>
+        </a>
+        <a href="{% url 'employees:notifications' %}" class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition">
+          <i class="bi bi-bell text-base"></i><span>Notifications</span>
+        </a>
+      </nav>
     </div>
-  </body>
+    <div class="p-4 border-t border-slate-800">
+      <a href="{% url 'employees:logout' %}" class="flex items-center gap-3 px-4 py-3 text-sm font-bold text-rose-400 hover:text-white hover:bg-rose-600/20 rounded-xl transition">
+        <i class="bi bi-box-arrow-right text-base"></i><span>Sign Out</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- Main Workspace -->
+  <div class="flex-1 flex flex-col min-w-0">
+    <!-- Top Header -->
+    <header class="h-20 bg-white border-b border-slate-200/80 px-6 lg:px-10 flex items-center justify-between sticky top-0 z-30 shadow-sm">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
+          <i class="bi bi-person-vcard text-lg"></i>
+        </div>
+        <div>
+          <h1 class="text-xl font-black text-slate-900 leading-tight">Employee Profile</h1>
+          <p class="text-xs text-slate-500 font-medium">Manage personal records, education, experience, documents, and account credentials</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-4">
+        <a href="{% url 'employees:dashboard' %}" class="inline-flex items-center gap-2 px-4 py-2 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition">
+          <i class="bi bi-arrow-left"></i><span>Back to Dashboard</span>
+        </a>
+      </div>
+    </header>
+
+    <!-- Page Content Container -->
+    <main class="p-6 lg:p-10 space-y-8 max-w-7xl mx-auto w-full">
+      <!-- Flash Messages -->
+      {% if messages %}
+        <div class="space-y-2">
+          {% for message in messages %}
+            <div class="p-4 text-xs font-semibold rounded-2xl flex items-center gap-3 {% if message.tags == 'error' %}bg-rose-50 text-rose-800 border border-rose-200{% elif message.tags == 'warning' %}bg-amber-50 text-amber-800 border border-amber-200{% else %}bg-emerald-50 text-emerald-800 border border-emerald-200{% endif %}">
+              <i class="bi {% if message.tags == 'error' %}bi-exclamation-octagon-fill text-rose-500{% elif message.tags == 'warning' %}bi-exclamation-triangle-fill text-amber-500{% else %}bi-check-circle-fill text-emerald-500{% endif %} text-base"></i>
+              <span>{{ message }}</span>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <!-- Header Card: Employee Profile Showcase -->
+      <div class="bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden border border-slate-700">
+        <div class="absolute -right-10 -bottom-10 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="flex flex-col sm:flex-row items-center sm:items-start gap-6 relative z-10">
+          <!-- Avatar -->
+          <div class="relative group">
+            {% if employee.profile_photo %}
+              <img src="{{ employee.profile_photo.url }}" alt="{{ employee.full_name }}" class="w-28 h-28 sm:w-32 sm:h-32 rounded-2xl object-cover border-4 border-white/20 shadow-xl shadow-black/40" />
+            {% else %}
+              <div class="w-28 h-28 sm:w-32 sm:h-32 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white font-black text-4xl flex items-center justify-center border-4 border-white/20 shadow-xl shadow-black/40">
+                {{ employee.user.name|default:employee.user.email|slice:":1"|upper }}
+              </div>
+            {% endif %}
+            <button onclick="document.getElementById('editPersonalModal').classList.remove('hidden')" class="absolute -bottom-2 -right-2 bg-blue-600 hover:bg-blue-500 text-white w-9 h-9 rounded-xl flex items-center justify-center text-sm shadow-lg border-2 border-slate-900 transition" title="Update Profile Photo">
+              <i class="bi bi-camera-fill"></i>
+            </button>
+          </div>
+
+          <!-- Employee Main Details -->
+          <div class="space-y-3 text-center sm:text-left flex-1">
+            <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2">
+              <h2 class="text-2xl sm:text-3xl font-black text-white">{{ employee.full_name|default:employee.user.email }}</h2>
+              <span class="px-3 py-1 bg-blue-500/20 text-blue-300 border border-blue-400/30 text-xs font-bold rounded-full">
+                {{ employee.employee_code }}
+              </span>
+              {% if employee.employment_status == "ACTIVE" %}
+                <span class="px-3 py-1 bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 text-xs font-bold rounded-full flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span> Active Employee
+                </span>
+              {% else %}
+                <span class="px-3 py-1 bg-slate-500/20 text-slate-300 border border-slate-400/30 text-xs font-bold rounded-full">
+                  {{ employee.get_employment_status_display }}
+                </span>
+              {% endif %}
+            </div>
+
+            <div class="text-sm font-semibold text-slate-300 flex flex-wrap items-center justify-center sm:justify-start gap-x-4 gap-y-1">
+              <span><i class="bi bi-briefcase-fill text-blue-400 me-1.5"></i>{{ employee.designation }}</span>
+              <span><i class="bi bi-building text-indigo-400 me-1.5"></i>{{ employee.department.name|default:"General Dept" }}</span>
+              <span><i class="bi bi-calendar-event text-amber-400 me-1.5"></i>Joined {{ employee.joining_date|date:"M d, Y" }}</span>
+            </div>
+
+            <!-- Dynamic Team Lead Info Badge -->
+            <div class="pt-2 flex flex-wrap items-center justify-center sm:justify-start gap-3">
+              <div class="bg-white/10 backdrop-blur-md px-3.5 py-1.5 rounded-xl border border-white/10 text-xs flex items-center gap-2">
+                <i class="bi bi-person-lines-fill text-blue-400"></i>
+                <span class="text-slate-400">Reporting Team Lead:</span>
+                <span class="font-bold text-white">{{ employee.team_lead_name }}</span>
+              </div>
+              <div class="bg-white/10 backdrop-blur-md px-3.5 py-1.5 rounded-xl border border-white/10 text-xs flex items-center gap-2">
+                <i class="bi bi-envelope-fill text-indigo-400"></i>
+                <span class="text-slate-400">Work Email:</span>
+                <span class="font-bold text-white">{{ employee.user.email }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Quick Action Buttons -->
+          <div class="flex flex-col gap-2 shrink-0 w-full sm:w-auto">
+            <button onclick="document.getElementById('editPersonalModal').classList.remove('hidden')" class="px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2 transition">
+              <i class="bi bi-pencil-square"></i><span>Edit Personal Info</span>
+            </button>
+            <button onclick="document.getElementById('changePwdModal').classList.remove('hidden')" class="px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white text-xs font-bold rounded-xl border border-white/10 flex items-center justify-center gap-2 transition">
+              <i class="bi bi-shield-lock"></i><span>Change Password</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Layout: 2 Columns Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Left Column: Personal Info + System/Professional Info (1 col) -->
+        <div class="space-y-8 lg:col-span-1">
+          <!-- Professional & System Information (Read-Only) -->
+          <div class="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h3 class="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+                <i class="bi bi-buildings-fill text-blue-600"></i><span>Professional Details</span>
+              </h3>
+              <span class="px-2 py-0.5 bg-slate-100 text-slate-500 text-[10px] font-bold rounded-md">System Managed</span>
+            </div>
+
+            <div class="space-y-3 text-xs">
+              <div class="flex justify-between items-center py-1.5 border-b border-slate-50">
+                <span class="text-slate-500 font-medium">Employee ID</span>
+                <span class="font-mono font-bold text-slate-800">#{{ employee.id }}</span>
+              </div>
+              <div class="flex justify-between items-center py-1.5 border-b border-slate-50">
+                <span class="text-slate-500 font-medium">Employee Code</span>
+                <span class="font-mono font-bold text-blue-600 bg-blue-50 px-2 py-0.5 rounded">{{ employee.employee_code }}</span>
+              </div>
+              <div class="flex justify-between items-center py-1.5 border-b border-slate-50">
+                <span class="text-slate-500 font-medium">Department</span>
+                <span class="font-bold text-slate-800">{{ employee.department.name|default:"General" }}</span>
+              </div>
+              <div class="flex justify-between items-center py-1.5 border-b border-slate-50">
+                <span class="text-slate-500 font-medium">Designation</span>
+                <span class="font-bold text-slate-800">{{ employee.designation }}</span>
+              </div>
+              <div class="flex justify-between items-center py-1.5 border-b border-slate-50">
+                <span class="text-slate-500 font-medium">Reporting Lead</span>
+                <span class="font-bold text-indigo-600">{{ employee.team_lead_name }}</span>
+              </div>
+              <div class="flex justify-between items-center py-1.5 border-b border-slate-50">
+                <span class="text-slate-500 font-medium">Joining Date</span>
+                <span class="font-bold text-slate-800">{{ employee.joining_date|date:"F d, Y" }}</span>
+              </div>
+              <div class="flex justify-between items-center py-1.5">
+                <span class="text-slate-500 font-medium">System Role</span>
+                <span class="font-bold text-slate-800">{{ employee.user.role|default:"Employee" }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Personal Information Card -->
+          <div class="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h3 class="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+                <i class="bi bi-person-fill text-blue-600"></i><span>Personal Information</span>
+              </h3>
+              <button onclick="document.getElementById('editPersonalModal').classList.remove('hidden')" class="text-blue-600 hover:text-blue-700 text-xs font-bold flex items-center gap-1">
+                <i class="bi bi-pencil"></i> Edit
+              </button>
+            </div>
+
+            <div class="space-y-3 text-xs">
+              <div class="flex justify-between items-center py-1.5 border-b border-slate-50">
+                <span class="text-slate-500 font-medium">Full Name</span>
+                <span class="font-bold text-slate-800">{{ employee.full_name|default:"Not Provided" }}</span>
+              </div>
+              <div class="flex justify-between items-center py-1.5 border-b border-slate-50">
+                <span class="text-slate-500 font-medium">Date of Birth</span>
+                <span class="font-bold text-slate-800">{{ employee.date_of_birth|date:"M d, Y"|default:"Not Provided" }}</span>
+              </div>
+              <div class="flex justify-between items-center py-1.5 border-b border-slate-50">
+                <span class="text-slate-500 font-medium">Gender</span>
+                <span class="font-bold text-slate-800">{{ employee.get_gender_display|default:"Not Specified" }}</span>
+              </div>
+              <div class="flex justify-between items-center py-1.5 border-b border-slate-50">
+                <span class="text-slate-500 font-medium">Contact Phone</span>
+                <span class="font-bold text-slate-800">{{ employee.phone|default:"Not Provided" }}</span>
+              </div>
+              <div class="flex justify-between items-center py-1.5 border-b border-slate-50">
+                <span class="text-slate-500 font-medium">Work Email</span>
+                <span class="font-bold text-slate-800">{{ employee.user.email }}</span>
+              </div>
+              <div class="flex justify-between items-center py-1.5 border-b border-slate-50">
+                <span class="text-slate-500 font-medium">Personal Email</span>
+                <span class="font-bold text-slate-800">{{ employee.personal_email|default:"Not Provided" }}</span>
+              </div>
+              <div class="py-1.5 border-b border-slate-50 space-y-1">
+                <span class="text-slate-500 font-medium block">Residential Address</span>
+                <span class="font-semibold text-slate-800 block">{{ employee.address|default:"Not Provided" }}</span>
+              </div>
+              <div class="flex justify-between items-center py-1.5">
+                <span class="text-slate-500 font-medium">City / State / Pin</span>
+                <span class="font-bold text-slate-800">
+                  {% if employee.city or employee.state %}
+                    {{ employee.city|default:"" }}{% if employee.city and employee.state %}, {% endif %}{{ employee.state|default:"" }} {{ employee.pincode|default:"" }}
+                  {% else %}
+                    Not Provided
+                  {% endif %}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Account Security Card -->
+          <div class="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+              <h3 class="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+                <i class="bi bi-shield-check text-indigo-600"></i><span>Account & Security</span>
+              </h3>
+            </div>
+            <div class="space-y-3 text-xs">
+              <div class="flex justify-between items-center py-1.5 border-b border-slate-50">
+                <span class="text-slate-500 font-medium">Username / Login</span>
+                <span class="font-mono font-bold text-slate-800">{{ employee.user.username }}</span>
+              </div>
+              <div class="flex justify-between items-center py-1.5 border-b border-slate-50">
+                <span class="text-slate-500 font-medium">Last Login</span>
+                <span class="font-bold text-slate-800">{{ employee.user.last_login|date:"M d, Y H:i"|default:"Never" }}</span>
+              </div>
+              <div class="flex justify-between items-center py-1.5 border-b border-slate-50">
+                <span class="text-slate-500 font-medium">Account Created</span>
+                <span class="font-bold text-slate-800">{{ employee.user.date_joined|date:"M d, Y" }}</span>
+              </div>
+              <div class="pt-2">
+                <button onclick="document.getElementById('changePwdModal').classList.remove('hidden')" class="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-xs flex items-center justify-center gap-2 transition">
+                  <i class="bi bi-key-fill"></i><span>Update Account Password</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right Column: Education, Experience, Uploaded Documents (2 cols) -->
+        <div class="space-y-8 lg:col-span-2">
+          <!-- Educational Background Section -->
+          <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-sm space-y-6">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+              <div>
+                <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                  <i class="bi bi-mortarboard-fill text-blue-600"></i><span>Educational Background</span>
+                </h3>
+                <p class="text-xs text-slate-500 mt-0.5">Degrees, qualifications, universities and academic records</p>
+              </div>
+              <button onclick="document.getElementById('addEducationModal').classList.remove('hidden')" class="px-3.5 py-2 bg-blue-50 text-blue-700 hover:bg-blue-100 text-xs font-bold rounded-xl flex items-center gap-1.5 transition">
+                <i class="bi bi-plus-circle-fill"></i><span>Add Education</span>
+              </button>
+            </div>
+
+            {% if educations %}
+              <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs">
+                  <thead>
+                    <tr class="border-b border-slate-200 text-slate-400 font-bold uppercase tracking-wider">
+                      <th class="pb-3">Degree / Course</th>
+                      <th class="pb-3">Institution & Board</th>
+                      <th class="pb-3 text-center">Year</th>
+                      <th class="pb-3 text-center">Grade / CGPA</th>
+                      <th class="pb-3 text-right">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-100 text-slate-700">
+                    {% for edu in educations %}
+                      <tr class="hover:bg-slate-50/60 transition">
+                        <td class="py-3.5 font-bold text-slate-900">{{ edu.degree }}</td>
+                        <td class="py-3.5">
+                          <div class="font-semibold text-slate-800">{{ edu.institution }}</div>
+                          <div class="text-[11px] text-slate-500">{{ edu.university_board }}</div>
+                        </td>
+                        <td class="py-3.5 text-center font-bold text-slate-700">{{ edu.year_of_passing }}</td>
+                        <td class="py-3.5 text-center">
+                          <span class="px-2 py-0.5 bg-blue-50 text-blue-700 font-bold rounded-md">{{ edu.grade_percentage }}</span>
+                        </td>
+                        <td class="py-3.5 text-right">
+                          <form method="POST" action="{% url 'employees:education_delete' edu.pk %}" onsubmit="return confirm('Are you sure you want to delete this education record?');" class="inline">
+                            {% csrf_token %}
+                            <button type="submit" class="text-slate-400 hover:text-rose-600 transition" title="Delete">
+                              <i class="bi bi-trash3 text-sm"></i>
+                            </button>
+                          </form>
+                        </td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            {% else %}
+              <div class="p-8 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-300">
+                <i class="bi bi-mortarboard text-3xl text-slate-400 block mb-2"></i>
+                <p class="text-xs font-semibold text-slate-600">No educational background added yet.</p>
+                <p class="text-[11px] text-slate-400 mt-1">Click "Add Education" above to list your academic qualifications.</p>
+              </div>
+            {% endif %}
+          </div>
+
+          <!-- Previous Work Experience Section -->
+          <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-sm space-y-6">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+              <div>
+                <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                  <i class="bi bi-briefcase-fill text-indigo-600"></i><span>Previous Work Experience</span>
+                </h3>
+                <p class="text-xs text-slate-500 mt-0.5">Prior employment history, companies, and roles</p>
+              </div>
+              <button onclick="document.getElementById('addExperienceModal').classList.remove('hidden')" class="px-3.5 py-2 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 text-xs font-bold rounded-xl flex items-center gap-1.5 transition">
+                <i class="bi bi-plus-circle-fill"></i><span>Add Experience</span>
+              </button>
+            </div>
+
+            {% if experiences %}
+              <div class="space-y-4">
+                {% for exp in experiences %}
+                  <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200/70 relative group hover:border-indigo-200 transition">
+                    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-200/50 pb-2">
+                      <div>
+                        <h4 class="text-sm font-extrabold text-slate-900">{{ exp.designation }}</h4>
+                        <p class="text-xs font-semibold text-indigo-600">{{ exp.company_name }}</p>
+                      </div>
+                      <div class="flex items-center gap-3">
+                        <span class="px-2.5 py-1 bg-slate-200/60 text-slate-700 text-[11px] font-bold rounded-lg">
+                          {{ exp.start_date|date:"M Y" }} &mdash; {% if exp.is_current %}Present{% else %}{{ exp.end_date|date:"M Y"|default:"Present" }}{% endif %}
+                        </span>
+                        <form method="POST" action="{% url 'employees:experience_delete' exp.pk %}" onsubmit="return confirm('Are you sure you want to delete this experience record?');" class="inline">
+                          {% csrf_token %}
+                          <button type="submit" class="text-slate-400 hover:text-rose-600 transition" title="Delete">
+                            <i class="bi bi-trash3 text-sm"></i>
+                          </button>
+                        </form>
+                      </div>
+                    </div>
+                    {% if exp.responsibilities %}
+                      <p class="text-xs text-slate-600 mt-2.5 leading-relaxed whitespace-pre-line">{{ exp.responsibilities }}</p>
+                    {% endif %}
+                  </div>
+                {% endfor %}
+              </div>
+            {% else %}
+              <div class="p-8 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-300">
+                <i class="bi bi-briefcase text-3xl text-slate-400 block mb-2"></i>
+                <p class="text-xs font-semibold text-slate-600">No previous work experience recorded.</p>
+                <p class="text-[11px] text-slate-400 mt-1">If this is your first professional role or you're a fresher, no action is needed.</p>
+              </div>
+            {% endif %}
+          </div>
+
+          <!-- Uploaded Documents & Certificates Section -->
+          <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-sm space-y-6">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+              <div>
+                <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                  <i class="bi bi-file-earmark-check-fill text-emerald-600"></i><span>Employee Documents</span>
+                </h3>
+                <p class="text-xs text-slate-500 mt-0.5">Identity proofs, academic certificates, resume & offer letters</p>
+              </div>
+              <button onclick="document.getElementById('uploadDocModal').classList.remove('hidden')" class="px-3.5 py-2 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 text-xs font-bold rounded-xl flex items-center gap-1.5 transition">
+                <i class="bi bi-cloud-arrow-up-fill"></i><span>Upload Document</span>
+              </button>
+            </div>
+
+            {% if documents %}
+              <div class="overflow-x-auto">
+                <table class="w-full text-left text-xs">
+                  <thead>
+                    <tr class="border-b border-slate-200 text-slate-400 font-bold uppercase tracking-wider">
+                      <th class="pb-3">Document Type</th>
+                      <th class="pb-3">Uploaded Date</th>
+                      <th class="pb-3 text-center">Status</th>
+                      <th class="pb-3 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody class="divide-y divide-slate-100 text-slate-700">
+                    {% for doc in documents %}
+                      <tr class="hover:bg-slate-50/60 transition">
+                        <td class="py-3.5">
+                          <div class="font-bold text-slate-900 flex items-center gap-2">
+                            <i class="bi bi-file-earmark-pdf-fill text-rose-500 text-base"></i>
+                            <span>{{ doc.get_document_type_display }}</span>
+                          </div>
+                        </td>
+                        <td class="py-3.5 text-slate-500 font-medium">{{ doc.uploaded_at|date:"M d, Y" }}</td>
+                        <td class="py-3.5 text-center">
+                          {% if doc.is_verified %}
+                            <span class="px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold text-[10px] rounded-full">
+                              <i class="bi bi-patch-check-fill me-1"></i> Verified
+                            </span>
+                          {% else %}
+                            <span class="px-2.5 py-1 bg-amber-50 text-amber-700 border border-amber-200 font-bold text-[10px] rounded-full">
+                              Uploaded
+                            </span>
+                          {% endif %}
+                        </td>
+                        <td class="py-3.5 text-right space-x-2">
+                          <a href="{{ doc.document.url }}" target="_blank" class="inline-flex items-center gap-1 px-2.5 py-1 bg-blue-50 text-blue-700 hover:bg-blue-100 font-bold rounded-lg transition" title="View/Download">
+                            <i class="bi bi-download"></i><span>View</span>
+                          </a>
+                          <form method="POST" action="{% url 'employees:document_delete' doc.pk %}" onsubmit="return confirm('Are you sure you want to remove this document?');" class="inline">
+                            {% csrf_token %}
+                            <button type="submit" class="text-slate-400 hover:text-rose-600 transition" title="Delete">
+                              <i class="bi bi-trash3 text-sm"></i>
+                            </button>
+                          </form>
+                        </td>
+                      </tr>
+                    {% endfor %}
+                  </tbody>
+                </table>
+              </div>
+            {% else %}
+              <div class="p-8 text-center bg-slate-50 rounded-2xl border border-dashed border-slate-300">
+                <i class="bi bi-cloud-upload text-3xl text-slate-400 block mb-2"></i>
+                <p class="text-xs font-semibold text-slate-600">No documents uploaded yet.</p>
+                <p class="text-[11px] text-slate-400 mt-1">Upload ID proofs, degree certificates, or resumes using the button above.</p>
+              </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Modal 1: Edit Personal Information -->
+  <div id="editPersonalModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 sm:p-8 shadow-2xl border border-slate-100 space-y-6">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+        <div>
+          <h3 class="text-lg font-black text-slate-900">Edit Personal Information</h3>
+          <p class="text-xs text-slate-500">Update your contact details, name, and profile picture</p>
+        </div>
+        <button onclick="document.getElementById('editPersonalModal').classList.add('hidden')" class="text-slate-400 hover:text-slate-700 text-xl font-bold">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+
+      <form method="POST" enctype="multipart/form-data" class="space-y-4">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="update_profile" />
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">First Name *</label>
+            {{ profile_form.first_name }}
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Middle Name</label>
+            {{ profile_form.middle_name }}
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Last Name *</label>
+            {{ profile_form.last_name }}
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Date of Birth</label>
+            {{ profile_form.date_of_birth }}
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Gender</label>
+            {{ profile_form.gender }}
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Contact Phone</label>
+            {{ profile_form.phone }}
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Work / Login Email *</label>
+            {{ profile_form.email }}
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Personal Email (Optional)</label>
+          {{ profile_form.personal_email }}
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Residential Address</label>
+          {{ profile_form.address }}
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">City</label>
+            {{ profile_form.city }}
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">State</label>
+            {{ profile_form.state }}
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Pincode</label>
+            {{ profile_form.pincode }}
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Profile Photo</label>
+          {{ profile_form.profile_photo }}
+        </div>
+
+        <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
+          <button type="button" onclick="document.getElementById('editPersonalModal').classList.add('hidden')" class="px-5 py-2.5 bg-slate-100 text-slate-700 text-xs font-bold rounded-xl hover:bg-slate-200 transition">
+            Cancel
+          </button>
+          <button type="submit" class="px-6 py-2.5 bg-blue-600 text-white text-xs font-bold rounded-xl hover:bg-blue-500 shadow-md shadow-blue-600/30 transition">
+            Save Changes
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 2: Add Education -->
+  <div id="addEducationModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-slate-100 space-y-6">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+        <div>
+          <h3 class="text-lg font-black text-slate-900">Add Education Record</h3>
+          <p class="text-xs text-slate-500">Record your academic qualifications</p>
+        </div>
+        <button onclick="document.getElementById('addEducationModal').classList.add('hidden')" class="text-slate-400 hover:text-slate-700 text-xl font-bold">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+
+      <form method="POST" action="{% url 'employees:education_add' %}" class="space-y-4">
+        {% csrf_token %}
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Degree / Course Title *</label>
+          {{ education_form.degree }}
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Institution / College Name *</label>
+          {{ education_form.institution }}
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">University / Board *</label>
+          {{ education_form.university_board }}
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Year of Passing *</label>
+            {{ education_form.year_of_passing }}
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Grade / CGPA / % *</label>
+            {{ education_form.grade_percentage }}
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
+          <button type="button" onclick="document.getElementById('addEducationModal').classList.add('hidden')" class="px-5 py-2.5 bg-slate-100 text-slate-700 text-xs font-bold rounded-xl hover:bg-slate-200 transition">
+            Cancel
+          </button>
+          <button type="submit" class="px-6 py-2.5 bg-blue-600 text-white text-xs font-bold rounded-xl hover:bg-blue-500 shadow-md shadow-blue-600/30 transition">
+            Save Record
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 3: Add Work Experience -->
+  <div id="addExperienceModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-slate-100 space-y-6">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+        <div>
+          <h3 class="text-lg font-black text-slate-900">Add Work Experience</h3>
+          <p class="text-xs text-slate-500">Record previous roles, company and duties</p>
+        </div>
+        <button onclick="document.getElementById('addExperienceModal').classList.add('hidden')" class="text-slate-400 hover:text-slate-700 text-xl font-bold">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+
+      <form method="POST" action="{% url 'employees:experience_add' %}" class="space-y-4">
+        {% csrf_token %}
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Company / Organization *</label>
+          {{ experience_form.company_name }}
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Job Designation *</label>
+          {{ experience_form.designation }}
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Start Date *</label>
+            {{ experience_form.start_date }}
+          </div>
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">End Date</label>
+            {{ experience_form.end_date }}
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          {{ experience_form.is_current }}
+          <label for="id_is_current" class="text-xs font-bold text-slate-700">Currently Working Here</label>
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Responsibilities & Achievements</label>
+          {{ experience_form.responsibilities }}
+        </div>
+
+        <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
+          <button type="button" onclick="document.getElementById('addExperienceModal').classList.add('hidden')" class="px-5 py-2.5 bg-slate-100 text-slate-700 text-xs font-bold rounded-xl hover:bg-slate-200 transition">
+            Cancel
+          </button>
+          <button type="submit" class="px-6 py-2.5 bg-indigo-600 text-white text-xs font-bold rounded-xl hover:bg-indigo-500 shadow-md shadow-indigo-600/30 transition">
+            Save Experience
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 4: Upload Document -->
+  <div id="uploadDocModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-slate-100 space-y-6">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+        <div>
+          <h3 class="text-lg font-black text-slate-900">Upload Employee Document</h3>
+          <p class="text-xs text-slate-500">PDF, JPG, PNG or DOC file (Max 10MB)</p>
+        </div>
+        <button onclick="document.getElementById('uploadDocModal').classList.add('hidden')" class="text-slate-400 hover:text-slate-700 text-xl font-bold">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+
+      <form method="POST" enctype="multipart/form-data" class="space-y-4">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="upload_document" />
+
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Document Category *</label>
+          {{ doc_form.document_type }}
+        </div>
+        <div>
+          <label class="block text-xs font-bold text-slate-700 mb-1">Select File *</label>
+          {{ doc_form.document }}
+        </div>
+
+        <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
+          <button type="button" onclick="document.getElementById('uploadDocModal').classList.add('hidden')" class="px-5 py-2.5 bg-slate-100 text-slate-700 text-xs font-bold rounded-xl hover:bg-slate-200 transition">
+            Cancel
+          </button>
+          <button type="submit" class="px-6 py-2.5 bg-emerald-600 text-white text-xs font-bold rounded-xl hover:bg-emerald-500 shadow-md shadow-emerald-600/30 transition">
+            Upload Document
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal 5: Change Password -->
+  <div id="changePwdModal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl border border-slate-100 space-y-6">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+        <div>
+          <h3 class="text-lg font-black text-slate-900">Change Account Password</h3>
+          <p class="text-xs text-slate-500">Ensure a strong, unique password</p>
+        </div>
+        <button onclick="document.getElementById('changePwdModal').classList.add('hidden')" class="text-slate-400 hover:text-slate-700 text-xl font-bold">
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+
+      <form method="POST" class="space-y-4">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="change_password" />
+        {% for field in pwd_form %}
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">{{ field.label }}</label>
+            <input type="{{ field.field.widget.input_type }}" name="{{ field.name }}" class="custom-input" required />
+            {% if field.errors %}
+              <div class="text-[11px] text-rose-600 mt-1 font-semibold">{{ field.errors.0 }}</div>
+            {% endif %}
+          </div>
+        {% endfor %}
+
+        <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
+          <button type="button" onclick="document.getElementById('changePwdModal').classList.add('hidden')" class="px-5 py-2.5 bg-slate-100 text-slate-700 text-xs font-bold rounded-xl hover:bg-slate-200 transition">
+            Cancel
+          </button>
+          <button type="submit" class="px-6 py-2.5 bg-slate-900 text-white text-xs font-bold rounded-xl hover:bg-slate-800 shadow-md transition">
+            Update Password
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</body>
 </html>

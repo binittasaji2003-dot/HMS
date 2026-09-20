@@ -1,0 +1,224 @@
+{% extends "hr/base.html" %}
+
+{% block title %}Interview Slot Management | Smart HRMS{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <h4 class="fw-bold text-primary mb-1">
+            <i class="bi bi-clock-history me-2"></i>Interview Slot Management
+        </h4>
+        <p class="text-muted small mb-0">Create and manage physical offline interview time slots for shortlisted candidates</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'hr:interview_list' %}" class="btn btn-outline-primary btn-sm">
+            <i class="bi bi-person-video3 me-1"></i> Interview Dashboard
+        </a>
+        <button type="button" class="btn btn-blue btn-sm" data-bs-toggle="modal" data-bs-target="#createSlotModal">
+            <i class="bi bi-plus-circle me-1"></i> Create Interview Slots
+        </button>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card card-custom p-3 border-0 shadow-sm mb-4">
+    <form method="GET" class="row g-2 align-items-end">
+        <div class="col-md-4">
+            <label class="form-label small fw-semibold text-muted">Filter by Job Vacancy</label>
+            <select name="vacancy_id" class="form-select form-select-sm">
+                <option value="">All Job Vacancies</option>
+                {% for v in vacancies %}
+                    <option value="{{ v.pk }}" {% if selected_vacancy == v.pk|stringformat:"s" %}selected{% endif %}>{{ v.title }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label small fw-semibold text-muted">Status</label>
+            <select name="status" class="form-select form-select-sm">
+                <option value="">All Statuses</option>
+                <option value="AVAILABLE" {% if selected_status == 'AVAILABLE' %}selected{% endif %}>Available</option>
+                <option value="BOOKED" {% if selected_status == 'BOOKED' %}selected{% endif %}>Booked</option>
+                <option value="CANCELLED" {% if selected_status == 'CANCELLED' %}selected{% endif %}>Cancelled</option>
+            </select>
+        </div>
+        <div class="col-md-3">
+            <label class="form-label small fw-semibold text-muted">Date</label>
+            <input type="date" name="date" class="form-control form-control-sm" value="{{ selected_date }}">
+        </div>
+        <div class="col-md-2 d-flex gap-1">
+            <button type="submit" class="btn btn-sm btn-primary w-100">Filter</button>
+            <a href="{% url 'hr:interview_slots' %}" class="btn btn-sm btn-light border">Reset</a>
+        </div>
+    </form>
+</div>
+
+<!-- Slots Table -->
+<div class="card card-custom p-3 shadow-sm border-0">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light small">
+                <tr>
+                    <th>Slot Date & Time</th>
+                    <th>Job Position</th>
+                    <th>Physical Location</th>
+                    <th>Interviewer</th>
+                    <th>Type</th>
+                    <th>Status</th>
+                    <th>Booked By</th>
+                    <th class="text-end">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="small">
+                {% for slot in slots %}
+                <tr>
+                    <td>
+                        <strong class="text-dark">{{ slot.interview_date|date:"D, M d, Y" }}</strong><br>
+                        <span class="badge bg-light text-primary border">
+                            <i class="bi bi-clock me-1"></i>{{ slot.formatted_time_range }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if slot.vacancy %}
+                            <span class="fw-semibold text-dark">{{ slot.vacancy.title }}</span>
+                        {% else %}
+                            <span class="badge bg-secondary">All Open Positions</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <strong class="text-dark"><i class="bi bi-geo-alt-fill text-danger me-1"></i>{{ slot.location.location_name }}</strong><br>
+                        <small class="text-muted">{{ slot.location.address }}, {{ slot.location.city }}</small>
+                    </td>
+                    <td>
+                        {{ slot.interviewer.user.get_full_name|default:slot.interviewer.user.email }}
+                    </td>
+                    <td>
+                        <span class="badge bg-info text-dark">{{ slot.get_interview_type_display }}</span>
+                    </td>
+                    <td>
+                        {% if slot.status == 'AVAILABLE' %}
+                            <span class="badge bg-success">Available</span>
+                        {% elif slot.status == 'BOOKED' %}
+                            <span class="badge bg-primary">Booked</span>
+                        {% else %}
+                            <span class="badge bg-danger">Cancelled</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if slot.booked_by %}
+                            <strong>{{ slot.booked_by.first_name }} {{ slot.booked_by.last_name }}</strong><br>
+                            <small class="text-muted">{{ slot.booked_by.user.email }}</small>
+                        {% else %}
+                            <span class="text-muted fst-italic">Open for candidate selection</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-end">
+                        {% if slot.status == 'AVAILABLE' %}
+                            <form method="POST" action="{% url 'hr:interview_slot_cancel' slot.slot_id %}" class="d-inline" onsubmit="return confirm('Cancel this available interview slot?');">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-x-circle me-1"></i>Cancel
+                                </button>
+                            </form>
+                        {% elif slot.status == 'BOOKED' %}
+                            <form method="POST" action="{% url 'hr:interview_slot_cancel' slot.slot_id %}" class="d-inline" onsubmit="return confirm('Cancelling a booked slot will notify the candidate. Proceed?');">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-outline-warning">
+                                    <i class="bi bi-x-circle me-1"></i>Cancel Booking
+                                </button>
+                            </form>
+                        {% else %}
+                            <span class="text-muted small">Cancelled</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8" class="text-center text-muted py-4">No interview slots found matching criteria.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Create Slot Modal -->
+<div class="modal fade text-start" id="createSlotModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-bottom">
+                <h5 class="modal-title fw-bold text-dark">
+                    <i class="bi bi-calendar2-plus me-2 text-primary"></i>Create Offline Interview Slot
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="{% url 'hr:interview_slot_create' %}">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Target Job Vacancy (Optional)</label>
+                            <select name="vacancy_id" class="form-select">
+                                <option value="">All Job Vacancies (General Slot)</option>
+                                {% for v in vacancies %}
+                                    <option value="{{ v.pk }}">{{ v.title }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Interview Type</label>
+                            <select name="interview_type" class="form-select" required>
+                                <option value="TECHNICAL">Technical Interview</option>
+                                <option value="HR">HR Interview</option>
+                                <option value="FINAL">Final Interview</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Interview Location / Venue <span class="text-danger">*</span></label>
+                            <select name="location_id" class="form-select" required>
+                                <option value="">Select Physical Office Location...</option>
+                                {% for loc in locations %}
+                                    <option value="{{ loc.pk }}">{{ loc.location_name }} - {{ loc.city }} ({{ loc.address }})</option>
+                                {% endfor %}
+                            </select>
+                            <small class="text-muted">Offline interviews must take place at an authorized physical company location.</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label small fw-semibold">Interviewer</label>
+                            <select name="interviewer_id" class="form-select">
+                                {% for hr in interviewers %}
+                                    <option value="{{ hr.pk }}" {% if hr.user == request.user %}selected{% endif %}>
+                                        {{ hr.user.get_full_name|default:hr.user.email }} ({{ hr.department.name|default:"HR Operations" }})
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-semibold">Interview Date <span class="text-danger">*</span></label>
+                            <input type="date" name="interview_date" class="form-control" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-semibold">Start Time <span class="text-danger">*</span></label>
+                            <input type="time" name="start_time" class="form-control" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small fw-semibold">End Time <span class="text-danger">*</span></label>
+                            <input type="time" name="end_time" class="form-control" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-semibold">Reporting & Venue Instructions</label>
+                            <textarea name="instructions" rows="2" class="form-control" placeholder="e.g. Please report at 4th floor reception with original ID proof and printed resume 10 minutes prior to the slot."></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-top">
+                    <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-blue">
+                        <i class="bi bi-check2-circle me-1"></i>Publish Slot
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

@@ -1,0 +1,322 @@
+{% extends "hr/base.html" %}
+
+{% block title %}{{ job.title }} | Job Vacancy Details | Smart HRMS{% endblock %}
+
+{% block content %}
+<!-- Header Bar -->
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <a href="{% url 'hr:job_list' %}" class="text-decoration-none small text-muted">
+            <i class="bi bi-arrow-left me-1"></i> Back to All Vacancies
+        </a>
+        <h4 class="fw-bold text-primary mt-1 mb-1">{{ job.title }}</h4>
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+            {% if job.role_designation %}
+            <span class="badge bg-light text-dark border"><i class="bi bi-person-badge me-1"></i>{{ job.role_designation }}</span>
+            {% endif %}
+            <span class="badge bg-light text-primary border"><i class="bi bi-building me-1"></i>{{ job.department.name }}</span>
+            <span class="badge bg-light text-secondary border"><i class="bi bi-geo-alt me-1"></i>{{ job.location }}{% if job.state %}, {{ job.state }}{% endif %}</span>
+            <span class="badge bg-light text-info border"><i class="bi bi-laptop me-1"></i>{{ job.get_work_mode_display }}</span>
+            <span class="badge bg-light text-dark border">{{ job.get_employment_type_display }}</span>
+        </div>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+        <a href="{% url 'hr:job_screening' job.pk %}" class="btn btn-outline-success">
+            <i class="bi bi-person-check-fill me-1"></i> Resume Screening
+        </a>
+        <a href="{% url 'hr:job_shortlisted' job.pk %}" class="btn btn-outline-primary">
+            <i class="bi bi-check2-circle me-1"></i> Shortlisted ({{ shortlisted_count }})
+        </a>
+        <a href="{% url 'hr:job_edit' job.pk %}" class="btn btn-outline-secondary">
+            <i class="bi bi-pencil me-1"></i> Edit Vacancy
+        </a>
+        {% if job.status == 'OPEN' %}
+        <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal" data-bs-target="#closeJobModal">
+            <i class="bi bi-slash-circle me-1"></i> Close Position
+        </button>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Status Banner -->
+{% if job.status == 'OPEN' %}
+<div class="alert alert-success d-flex justify-content-between align-items-center shadow-sm mb-4">
+    <div>
+        <i class="bi bi-check-circle-fill me-2 fs-5"></i>
+        <strong>Position Active & Accepting Applications</strong>
+        {% if job.closing_date %}
+        <span class="ms-2 small text-muted">&bull; Application Deadline: <strong>{{ job.closing_date|date:"F d, Y" }}</strong></span>
+        {% else %}
+        <span class="ms-2 small text-muted">&bull; Open indefinitely until manually closed</span>
+        {% endif %}
+    </div>
+    <span class="badge bg-success px-3 py-2">Open</span>
+</div>
+{% elif job.status == 'CLOSED' %}
+<div class="alert alert-secondary d-flex justify-content-between align-items-center shadow-sm mb-4">
+    <div>
+        <i class="bi bi-slash-circle-fill me-2 fs-5"></i>
+        <strong>Position Closed</strong>
+        <span class="ms-2 small">
+            {% if job.closed_reason == 'DEADLINE_EXPIRED' %}
+            (Application deadline expired on {{ job.closing_date|date:"F d, Y" }})
+            {% elif job.closed_reason == 'MANUALLY_CLOSED' %}
+            (Manually closed by HR{% if job.closed_by %} {{ job.closed_by.name|default:job.closed_by.email }}{% endif %} on {{ job.closed_at|date:"M d, Y" }})
+            {% endif %}
+        </span>
+    </div>
+    <span class="badge bg-dark px-3 py-2">Closed</span>
+</div>
+{% endif %}
+
+<!-- Metrics Row -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="card card-custom p-3 border-0 shadow-sm text-center">
+            <span class="text-muted small fw-semibold text-uppercase">Total Applicants</span>
+            <h3 class="fw-bold text-primary mb-0 mt-1">{{ applications_count }}</h3>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card card-custom p-3 border-0 shadow-sm text-center border-start border-4 border-info">
+            <span class="text-muted small fw-semibold text-uppercase">Shortlisted</span>
+            <h3 class="fw-bold text-info mb-0 mt-1">{{ shortlisted_count }}</h3>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card card-custom p-3 border-0 shadow-sm text-center border-start border-4 border-success">
+            <span class="text-muted small fw-semibold text-uppercase">Selected / Hired</span>
+            <h3 class="fw-bold text-success mb-0 mt-1">{{ selected_count }}</h3>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card card-custom p-3 border-0 shadow-sm text-center border-start border-4 border-warning">
+            <span class="text-muted small fw-semibold text-uppercase">Open Positions</span>
+            <h3 class="fw-bold text-warning mb-0 mt-1">{{ job.number_of_openings }}</h3>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <!-- Left Column: Requirements & Details -->
+    <div class="col-12 col-lg-8">
+        <!-- Card: Job Description -->
+        <div class="card card-custom p-4 mb-4 shadow-sm">
+            <h5 class="fw-bold text-primary mb-3 pb-2 border-bottom">
+                <i class="bi bi-card-text me-2"></i>Job Description
+            </h5>
+            <div class="text-secondary" style="white-space: pre-line; line-height: 1.6;">{{ job.description }}</div>
+
+            {% if job.responsibilities %}
+            <h5 class="fw-bold text-primary mt-4 mb-3 pb-2 border-bottom">
+                <i class="bi bi-list-check me-2"></i>Key Responsibilities
+            </h5>
+            <div class="text-secondary" style="white-space: pre-line; line-height: 1.6;">{{ job.responsibilities }}</div>
+            {% endif %}
+        </div>
+
+        <!-- Card: Skills & Qualifications Summary -->
+        <div class="card card-custom p-4 mb-4 shadow-sm">
+            <h5 class="fw-bold text-primary mb-3 pb-2 border-bottom">
+                <i class="bi bi-stars me-2"></i>Skills & Competencies
+            </h5>
+            <div class="mb-4">
+                <label class="fw-bold text-dark small mb-2 text-uppercase">Mandatory / Core Skills:</label>
+                <div>
+                    {% for skill in job.skills_required.split %}
+                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle px-2 py-1 me-1 mb-1">{{ skill|cut:"," }}</span>
+                    {% empty %}
+                        <span class="text-muted small">None specified</span>
+                    {% endfor %}
+                </div>
+            </div>
+
+            {% if job.preferred_skills %}
+            <div class="mb-4">
+                <label class="fw-bold text-dark small mb-2 text-uppercase">Preferred / Bonus Skills:</label>
+                <div>
+                    {% for skill in job.preferred_skills.split %}
+                        <span class="badge bg-info-subtle text-info border border-info-subtle px-2 py-1 me-1 mb-1">{{ skill|cut:"," }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            {% if job.qualifications %}
+            <div>
+                <label class="fw-bold text-dark small mb-2 text-uppercase">Qualifications Overview:</label>
+                <p class="text-secondary mb-0 small">{{ job.qualifications }}</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Card: Applications Received for This Position -->
+        <div class="card card-custom p-4 shadow-sm">
+            <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                <h5 class="fw-bold text-primary mb-0">
+                    <i class="bi bi-people-fill me-2"></i>Applications ({{ applications_count }})
+                </h5>
+                <a href="{% url 'hr:application_list' %}?q={{ job.title|urlencode }}" class="btn btn-sm btn-outline-blue">
+                    View in Application Manager <i class="bi bi-arrow-right ms-1"></i>
+                </a>
+            </div>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Candidate</th>
+                            <th>Applied Date</th>
+                            <th>Eligibility</th>
+                            <th>Current Stage</th>
+                            <th class="text-end">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for app in applications %}
+                        <tr>
+                            <td>
+                                <strong>{{ app.candidate.first_name }} {{ app.candidate.last_name }}</strong>
+                                <div class="small text-muted">{{ app.candidate.user.email }}</div>
+                            </td>
+                            <td class="small text-muted">{{ app.applied_at|date:"M d, Y" }}</td>
+                            <td>
+                                {% if app.eligibility_status == 'ELIGIBLE' %}
+                                <span class="badge bg-success-subtle text-success border border-success-subtle">Eligible</span>
+                                {% elif app.eligibility_status == 'NOT_ELIGIBLE' %}
+                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle">Not Eligible</span>
+                                {% else %}
+                                <span class="badge bg-warning-subtle text-warning border border-warning-subtle">Review</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge bg-light text-primary border">{{ app.get_status_display }}</span>
+                            </td>
+                            <td class="text-end">
+                                <a href="{% url 'hr:application_detail' app.pk %}" class="btn btn-sm btn-outline-primary">
+                                    Review
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-4">
+                                No applications received for this vacancy yet.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Structured Specifications -->
+    <div class="col-12 col-lg-4">
+        <div class="card card-custom p-4 shadow-sm sticky-top" style="top: 20px;">
+            <h5 class="fw-bold text-primary mb-3 pb-2 border-bottom">
+                <i class="bi bi-sliders me-2"></i>Position Specifications
+            </h5>
+            <ul class="list-unstyled mb-0">
+                <li class="mb-3">
+                    <span class="text-muted small text-uppercase d-block fw-semibold">Department</span>
+                    <strong>{{ job.department.name }}</strong>
+                </li>
+                <li class="mb-3">
+                    <span class="text-muted small text-uppercase d-block fw-semibold">Employment Type</span>
+                    <strong>{{ job.get_employment_type_display }}</strong>
+                </li>
+                <li class="mb-3">
+                    <span class="text-muted small text-uppercase d-block fw-semibold">Work Mode</span>
+                    <strong>{{ job.get_work_mode_display }}</strong>
+                </li>
+                <li class="mb-3">
+                    <span class="text-muted small text-uppercase d-block fw-semibold">Location</span>
+                    <strong>{{ job.location }}{% if job.state %}, {{ job.state }}{% endif %} ({{ job.country }})</strong>
+                </li>
+                <li class="mb-3">
+                    <span class="text-muted small text-uppercase d-block fw-semibold">Openings</span>
+                    <strong>{{ job.number_of_openings }} Position{{ job.number_of_openings|pluralize }}</strong>
+                </li>
+                <hr class="my-3">
+                <li class="mb-3">
+                    <span class="text-muted small text-uppercase d-block fw-semibold">Minimum Qualification</span>
+                    <strong class="text-primary">{{ job.minimum_qualification }}</strong>
+                </li>
+                {% if job.required_field_of_study %}
+                <li class="mb-3">
+                    <span class="text-muted small text-uppercase d-block fw-semibold">Field of Study</span>
+                    <strong>{{ job.required_field_of_study }}</strong>
+                </li>
+                {% endif %}
+                {% if job.graduation_year_min or job.graduation_year_max %}
+                <li class="mb-3">
+                    <span class="text-muted small text-uppercase d-block fw-semibold">Graduation Year Eligibility</span>
+                    <strong>
+                        {% if job.graduation_year_min and job.graduation_year_max %}
+                        {{ job.graduation_year_min }} – {{ job.graduation_year_max }}
+                        {% elif job.graduation_year_min %}
+                        {{ job.graduation_year_min }} or later
+                        {% else %}
+                        Up to {{ job.graduation_year_max }}
+                        {% endif %}
+                    </strong>
+                </li>
+                {% endif %}
+                <li class="mb-3">
+                    <span class="text-muted small text-uppercase d-block fw-semibold">Experience Requirement</span>
+                    <strong>{{ job.experience_display }}</strong>
+                </li>
+                <hr class="my-3">
+                <li class="mb-2">
+                    <span class="text-muted small text-uppercase d-block fw-semibold">Posted On</span>
+                    <span class="small">{{ job.posted_date|date:"F d, Y" }}</span>
+                </li>
+                {% if job.posted_by %}
+                <li class="mb-2">
+                    <span class="text-muted small text-uppercase d-block fw-semibold">Posted By</span>
+                    <span class="small">{{ job.posted_by.name|default:job.posted_by.email }}</span>
+                </li>
+                {% endif %}
+                {% if job.closing_date %}
+                <li class="mb-0">
+                    <span class="text-muted small text-uppercase d-block fw-semibold">Deadline</span>
+                    <span class="small fw-bold {% if job.is_deadline_passed %}text-danger{% else %}text-success{% endif %}">
+                        {{ job.closing_date|date:"F d, Y" }}
+                    </span>
+                </li>
+                {% endif %}
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Manual Close Confirmation Modal -->
+{% if job.status == 'OPEN' %}
+<div class="modal fade" id="closeJobModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-bottom">
+                <h5 class="modal-title fw-bold text-danger">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>Close Job Vacancy
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-2">Are you sure you want to manually close <strong>{{ job.title }}</strong>?</p>
+                <div class="alert alert-warning small mb-0">
+                    <i class="bi bi-info-circle me-1"></i> Candidates will immediately be unable to view this job as open or apply. Existing applications will remain safely stored.
+                </div>
+            </div>
+            <div class="modal-footer border-top">
+                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                <form method="POST" action="{% url 'hr:job_close' job.pk %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Confirm & Close</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+

@@ -22,7 +22,7 @@
         <div class="col-12 col-md-6">
           <div class="input-group">
             <span class="input-group-text bg-white border-end-0 text-muted"><i class="bi bi-search"></i></span>
-            <input type="text" name="q" value="{{ query }}" class="form-control border-start-0" placeholder="Search by job title, skill, or keyword...">
+            <input type="text" name="q" value="{{ query }}" class="form-control border-start-0" placeholder="Search by title, role, skill, or location...">
           </div>
         </div>
         <div class="col-12 col-md-4">
@@ -65,12 +65,22 @@
                   {{ job.title }}
                 </a>
               </h5>
+              {% if job.role_designation %}
+              <div class="small text-muted mb-2"><i class="bi bi-person-badge me-1"></i>{{ job.role_designation }}</div>
+              {% endif %}
+
               <div class="d-flex flex-wrap gap-2 text-muted small mb-3">
                 <span><i class="bi bi-geo-alt"></i> {{ job.location }}</span>
-                {% if job.experience_required %}
-                  <span>&bull; <i class="bi bi-briefcase"></i> {{ job.experience_required }}</span>
-                {% endif %}
+                <span>&bull; <i class="bi bi-briefcase"></i> {{ job.get_employment_type_display }}</span>
+                <span>&bull; <i class="bi bi-laptop"></i> {{ job.get_work_mode_display }}</span>
               </div>
+
+              <!-- Badges for Qual & Experience -->
+              <div class="mb-3 d-flex flex-wrap gap-1">
+                <span class="badge bg-light text-primary border small">{{ job.minimum_qualification }}</span>
+                <span class="badge bg-light text-dark border small">{{ job.experience_display }}</span>
+              </div>
+
               <p class="text-muted small line-clamp-3 mb-4" style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
                 {{ job.description }}
               </p>

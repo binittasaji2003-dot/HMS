@@ -1,145 +1,228 @@
 {% load static %}
-
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Work Reports - HRMS</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet"
-          href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              hrms: {
-                blue: '#1677ff',
-                hover: '#0958d9'
-              }
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Weekly Work Reports - Smart HRMS</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            hrms: {
+              blue: '#2563eb',
+              hover: '#1d4ed8',
+              navy: '#0f172a',
+              indigo: '#4f46e5'
             }
           }
         }
       }
-    </script>
-  </head>
-  <body class="bg-slate-50 font-sans antialiased text-slate-800 min-h-screen flex">
-    <!-- Left Sidebar -->
-    <aside class="w-64 bg-white border-r border-slate-200/80 flex flex-col justify-between hidden md:flex shrink-0 min-h-screen">
-      <div>
-        <div class="h-20 flex items-center px-6 border-b border-slate-100">
-          <a href="{% url 'employees:dashboard' %}"
-             class="flex items-center gap-3 text-hrms-blue">
-            <div class="w-9 h-9 bg-hrms-blue text-white rounded-xl flex items-center justify-center text-lg shadow-sm">
-              <i class="bi bi-people-fill"></i>
-            </div>
-            <span class="text-xl font-extrabold tracking-tight text-slate-900">HRMS</span>
-          </a>
-        </div>
-        <nav class="p-4 space-y-1.5">
-          <a href="{% url 'employees:dashboard' %}"
-             class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-600 hover:text-hrms-blue hover:bg-blue-50/60 rounded-xl">
-            <i class="bi bi-grid text-base"></i><span>Dashboard</span>
-          </a>
-          <a href="{% url 'employees:profile' %}"
-             class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-600 hover:text-hrms-blue hover:bg-blue-50/60 rounded-xl">
-            <i class="bi bi-person text-base"></i><span>My Profile</span>
-          </a>
-          <a href="{% url 'employees:reports_list' %}"
-             class="flex items-center gap-3 px-4 py-3 text-sm font-bold text-white bg-hrms-blue rounded-xl shadow-md shadow-blue-500/20">
-            <i class="bi bi-file-earmark-text-fill text-base"></i><span>Reports</span>
-          </a>
-          <a href="{% url 'employees:performance' %}"
-             class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-600 hover:text-hrms-blue hover:bg-blue-50/60 rounded-xl">
-            <i class="bi bi-bar-chart-line text-base"></i><span>Performance</span>
-          </a>
-          <a href="{% url 'employees:announcements' %}"
-             class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-600 hover:text-hrms-blue hover:bg-blue-50/60 rounded-xl">
-            <i class="bi bi-megaphone text-base"></i><span>Announcements</span>
-          </a>
-          <a href="{% url 'employees:notifications' %}"
-             class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-600 hover:text-hrms-blue hover:bg-blue-50/60 rounded-xl">
-            <i class="bi bi-bell text-base"></i><span>Notifications</span>
-          </a>
-        </nav>
-      </div>
-      <div class="p-4 border-t border-slate-100">
-        <a href="{% url 'employees:logout' %}"
-           class="flex items-center gap-3 px-4 py-3 text-sm font-bold text-slate-700 hover:text-red-600 hover:bg-red-50 rounded-xl">
-          <i class="bi bi-box-arrow-right text-base"></i><span>Logout</span>
+    }
+  </script>
+</head>
+<body class="bg-slate-50 font-sans antialiased text-slate-800 min-h-screen flex flex-col md:flex-row">
+  <!-- Left Sidebar -->
+  <aside class="w-64 bg-slate-900 text-white flex flex-col justify-between hidden md:flex shrink-0 min-h-screen border-r border-slate-800 shadow-xl">
+    <div>
+      <div class="h-20 flex items-center px-6 border-b border-slate-800">
+        <a href="{% url 'employees:dashboard' %}" class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-gradient-to-tr from-blue-600 to-indigo-500 text-white rounded-xl flex items-center justify-center text-xl shadow-lg shadow-blue-500/30 font-bold">
+            <i class="bi bi-person-badge"></i>
+          </div>
+          <div>
+            <span class="text-lg font-black tracking-tight text-white block">Smart HRMS</span>
+            <span class="text-[10px] font-semibold text-blue-400 uppercase tracking-widest block">Employee Portal</span>
+          </div>
         </a>
       </div>
-    </aside>
-    <!-- Main Content -->
-    <div class="flex-1 flex flex-col min-w-0">
-      <header class="h-20 bg-white border-b border-slate-200/80 px-6 lg:px-10 flex items-center justify-between">
-        <h1 class="text-xl font-extrabold text-slate-900">Work Reports</h1>
-        <a href="{% url 'employees:submit_report' %}"
-           class="px-4 py-2 bg-hrms-blue text-white text-xs font-bold rounded-xl hover:bg-hrms-hover shadow-sm">
-          + Submit Work Report
+      <nav class="p-4 space-y-1.5">
+        <a href="{% url 'employees:dashboard' %}" class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition">
+          <i class="bi bi-grid-fill text-base"></i><span>Dashboard</span>
         </a>
-      </header>
-      <main class="p-6 lg:p-10 space-y-6 max-w-5xl mx-auto w-full">
-        {% if messages %}
-          {% for message in messages %}
-            <div class="p-4 text-xs font-semibold rounded-xl bg-blue-50 text-blue-800 border border-blue-200">{{ message }}</div>
-          {% endfor %}
-        {% endif %}
-        <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm space-y-4">
-          <div class="flex items-center justify-between border-b pb-4">
-            <h2 class="text-base font-bold text-slate-900">Submitted Reports</h2>
-            <span class="text-xs text-slate-500 font-semibold">Total: {{ reports.count }}</span>
-          </div>
-          <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs">
-              <thead>
-                <tr class="border-b text-slate-400 font-bold uppercase">
-                  <th class="pb-3">Report Title</th>
-                  <th class="pb-3">Week Period</th>
-                  <th class="pb-3">Submitted On</th>
-                  <th class="pb-3">Status</th>
-                  <th class="pb-3 text-right">Action</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y text-slate-700">
-                {% if reports %}
-                  {% for r in reports %}
-                    <tr class="hover:bg-slate-50">
-                      <td class="py-3.5 font-bold text-slate-900">{{ r.title }}</td>
-                      <td class="py-3.5 text-slate-500">{{ r.week_start_date }} to {{ r.week_end_date }}</td>
-                      <td class="py-3.5 text-slate-500">{{ r.submitted_at|date:"d M Y" }}</td>
-                      <td class="py-3.5">
-                        {% if r.status == 'SUBMITTED' %}
-                          <span class="px-2.5 py-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 rounded-full">Submitted</span>
-                        {% elif r.status == 'REVIEWED' %}
-                          <span class="px-2.5 py-1 text-[11px] font-bold text-blue-700 bg-blue-50 rounded-full">Reviewed</span>
-                        {% else %}
-                          <span class="px-2.5 py-1 text-[11px] font-bold text-amber-700 bg-amber-50 rounded-full">{{ r.get_status_display }}</span>
-                        {% endif %}
-                      </td>
-                      <td class="py-3.5 text-right">
-                        {% if r.status == 'SUBMITTED' or r.status == 'DRAFT' %}
-                          <a href="{% url 'employees:edit_report' r.report_id %}"
-                             class="px-3 py-1.5 text-xs font-bold text-hrms-blue bg-blue-50 hover:bg-blue-100 rounded-lg">
-                            <i class="bi bi-pencil me-1"></i> Edit
-                          </a>
-                        {% else %}
-                          <span class="text-slate-400 text-xs italic">HR Reviewed</span>
-                        {% endif %}
-                      </td>
-                    </tr>
-                  {% endfor %}
-                {% else %}
-                  <tr>
-                    <td colspan="5" class="py-6 text-center text-slate-400">No work reports submitted yet.</td>
-                  </tr>
-                {% endif %}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </main>
+        <a href="{% url 'employees:profile' %}" class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition">
+          <i class="bi bi-person-circle text-base"></i><span>My Profile</span>
+        </a>
+        <a href="{% url 'employees:reports_list' %}" class="flex items-center gap-3 px-4 py-3 text-sm font-bold text-white bg-blue-600 rounded-xl shadow-md shadow-blue-600/30">
+          <i class="bi bi-file-earmark-bar-graph text-base"></i><span>Weekly Reports</span>
+        </a>
+        <a href="{% url 'employees:leave_management' %}" class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition">
+          <i class="bi bi-calendar2-check text-base"></i><span>Leave Management</span>
+        </a>
+        <a href="{% url 'employees:performance' %}" class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition">
+          <i class="bi bi-award text-base"></i><span>Performance & Scores</span>
+        </a>
+        <a href="{% url 'employees:announcements' %}" class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition">
+          <i class="bi bi-megaphone text-base"></i><span>Announcements</span>
+        </a>
+        <a href="{% url 'employees:notifications' %}" class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition">
+          <i class="bi bi-bell text-base"></i><span>Notifications</span>
+        </a>
+      </nav>
     </div>
-  </body>
+    <div class="p-4 border-t border-slate-800">
+      <a href="{% url 'employees:logout' %}" class="flex items-center gap-3 px-4 py-3 text-sm font-bold text-rose-400 hover:text-white hover:bg-rose-600/20 rounded-xl transition">
+        <i class="bi bi-box-arrow-right text-base"></i><span>Sign Out</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- Main Workspace -->
+  <div class="flex-1 flex flex-col min-w-0">
+    <header class="h-20 bg-white border-b border-slate-200/80 px-6 lg:px-10 flex items-center justify-between sticky top-0 z-30 shadow-sm">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
+          <i class="bi bi-file-earmark-bar-graph text-lg"></i>
+        </div>
+        <div>
+          <h1 class="text-xl font-black text-slate-900 leading-tight">Weekly Performance Reports</h1>
+          <p class="text-xs text-slate-500 font-medium">Track your weekly deliverable submissions, HR evaluation matrices, and scores</p>
+        </div>
+      </div>
+      <a href="{% url 'employees:submit_report' %}" class="inline-flex items-center gap-2 px-4 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-blue-600/30 transition">
+        <i class="bi bi-plus-lg"></i><span>Create Weekly Report</span>
+      </a>
+    </header>
+
+    <main class="p-6 lg:p-10 space-y-6 max-w-7xl mx-auto w-full">
+      {% if messages %}
+        <div class="space-y-2">
+          {% for message in messages %}
+            <div class="p-4 text-xs font-semibold rounded-2xl flex items-center gap-3 {% if message.tags == 'error' %}bg-rose-50 text-rose-800 border border-rose-200{% elif message.tags == 'warning' %}bg-amber-50 text-amber-800 border border-amber-200{% else %}bg-emerald-50 text-emerald-800 border border-emerald-200{% endif %}">
+              <i class="bi bi-info-circle-fill"></i>
+              <span>{{ message }}</span>
+            </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <!-- Reports History Card -->
+      <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-sm space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+          <div>
+            <h2 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+              <i class="bi bi-clock-history text-blue-600"></i><span>Report Submissions & Evaluation History</span>
+            </h2>
+            <p class="text-xs text-slate-500 mt-0.5">Total Records: <strong class="text-slate-800">{{ reports.count }}</strong></p>
+          </div>
+          <a href="{% url 'employees:submit_report' %}" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl transition inline-flex items-center justify-center gap-2">
+            <i class="bi bi-plus-circle"></i><span>New Report</span>
+          </a>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead>
+              <tr class="border-b border-slate-200 text-slate-400 font-bold uppercase tracking-wider">
+                <th class="pb-3">Report Title & Period</th>
+                <th class="pb-3">Progress</th>
+                <th class="pb-3 text-center">Status</th>
+                <th class="pb-3 text-center">HR Evaluation Score</th>
+                <th class="pb-3 text-right">Actions</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 text-slate-700">
+              {% if reports %}
+                {% for r in reports %}
+                  <tr class="hover:bg-slate-50/70 transition">
+                    <td class="py-4">
+                      <a href="{% url 'employees:report_detail' r.report_id %}" class="font-bold text-slate-900 hover:text-blue-600 text-sm block">
+                        {{ r.title }}
+                      </a>
+                      <div class="text-[11px] text-slate-500 mt-0.5 flex items-center gap-2">
+                        <i class="bi bi-calendar3"></i>
+                        <span>{{ r.week_start_date|date:"M d, Y" }} &mdash; {{ r.week_end_date|date:"M d, Y" }}</span>
+                      </div>
+                    </td>
+                    <td class="py-4">
+                      {% if r.progress_status == "ON_TRACK" %}
+                        <span class="px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold text-[10px] rounded-full">
+                          On Track
+                        </span>
+                      {% elif r.progress_status == "AHEAD" %}
+                        <span class="px-2.5 py-1 bg-blue-50 text-blue-700 border border-blue-200 font-bold text-[10px] rounded-full">
+                          Ahead
+                        </span>
+                      {% elif r.progress_status == "DELAYED" %}
+                        <span class="px-2.5 py-1 bg-amber-50 text-amber-700 border border-amber-200 font-bold text-[10px] rounded-full">
+                          Delayed
+                        </span>
+                      {% elif r.progress_status == "BLOCKED" %}
+                        <span class="px-2.5 py-1 bg-rose-50 text-rose-700 border border-rose-200 font-bold text-[10px] rounded-full">
+                          Blocked
+                        </span>
+                      {% else %}
+                        <span class="px-2.5 py-1 bg-indigo-50 text-indigo-700 border border-indigo-200 font-bold text-[10px] rounded-full">
+                          Completed
+                        </span>
+                      {% endif %}
+                    </td>
+                    <td class="py-4 text-center">
+                      {% if r.status == 'DRAFT' %}
+                        <span class="px-2.5 py-1 bg-slate-100 text-slate-700 border border-slate-300 font-bold text-[10px] rounded-full">
+                          <i class="bi bi-pencil me-1"></i> Draft
+                        </span>
+                      {% elif r.status == 'SUBMITTED' %}
+                        <span class="px-2.5 py-1 bg-blue-50 text-blue-700 border border-blue-200 font-bold text-[10px] rounded-full">
+                          <i class="bi bi-send me-1"></i> Submitted
+                        </span>
+                      {% elif r.status == 'UNDER_REVIEW' %}
+                        <span class="px-2.5 py-1 bg-amber-50 text-amber-700 border border-amber-200 font-bold text-[10px] rounded-full">
+                          <i class="bi bi-hourglass-split me-1"></i> Under Review
+                        </span>
+                      {% elif r.status == 'REVIEWED' %}
+                        <span class="px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold text-[10px] rounded-full">
+                          <i class="bi bi-check2-circle me-1"></i> Reviewed
+                        </span>
+                      {% elif r.status == 'NEEDS_CORRECTION' %}
+                        <span class="px-2.5 py-1 bg-rose-50 text-rose-700 border border-rose-200 font-bold text-[10px] rounded-full">
+                          <i class="bi bi-arrow-repeat me-1"></i> Needs Correction
+                        </span>
+                      {% endif %}
+                    </td>
+                    <td class="py-4 text-center">
+                      {% if r.performance_review %}
+                        <div class="inline-flex flex-col items-center">
+                          <span class="font-extrabold text-blue-600 text-sm">
+                            {{ r.performance_review.average_score }}/5.0
+                          </span>
+                          <span class="text-[10px] font-bold text-slate-500">
+                            ({{ r.performance_review.performance_percentage }}%)
+                          </span>
+                        </div>
+                      {% else %}
+                        <span class="text-[11px] text-slate-400 italic">Pending Review</span>
+                      {% endif %}
+                    </td>
+                    <td class="py-4 text-right space-x-2">
+                      <a href="{% url 'employees:report_detail' r.report_id %}" class="inline-flex items-center gap-1 px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition">
+                        <i class="bi bi-eye"></i><span>Details</span>
+                      </a>
+                      {% if r.status == 'DRAFT' or r.status == 'NEEDS_CORRECTION' %}
+                        <a href="{% url 'employees:edit_report' r.report_id %}" class="inline-flex items-center gap-1 px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-xs rounded-xl transition">
+                          <i class="bi bi-pencil"></i><span>Edit</span>
+                        </a>
+                      {% endif %}
+                    </td>
+                  </tr>
+                {% endfor %}
+              {% else %}
+                <tr>
+                  <td colspan="5" class="py-10 text-center text-slate-400">
+                    <i class="bi bi-journal-x text-3xl block mb-2"></i>
+                    <p class="font-semibold text-xs text-slate-600">No weekly work reports found.</p>
+                    <p class="text-[11px] text-slate-400 mt-1">Click "Create Weekly Report" to submit your first report.</p>
+                  </td>
+                </tr>
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+  </div>
+</body>
 </html>

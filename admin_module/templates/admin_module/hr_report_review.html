@@ -1,0 +1,466 @@
+{% extends "admin_module/base_admin.html" %}
+
+{% block title %}Review HR Weekly Report - Smart HRMS Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <!-- Header with Breadcrumbs and Back link -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <div>
+            <a href="{% url 'admin_module:hr_reports_list' %}" class="text-decoration-none text-muted small mb-1 d-inline-block">
+                <i class="bi bi-arrow-left me-1"></i> Back to HR Reports
+            </a>
+            <div class="d-flex align-items-center gap-3">
+                <h3 class="fw-bold text-dark mb-0">Review HR Performance: {{ report.hr_manager.full_name }}</h3>
+                {% if report.status == 'DRAFT' %}
+                    <span class="badge bg-secondary-subtle text-secondary px-3 py-2 rounded-pill">Draft</span>
+                {% elif report.status == 'SUBMITTED' %}
+                    <span class="badge bg-primary-subtle text-primary px-3 py-2 rounded-pill">Submitted</span>
+                {% elif report.status == 'UNDER_REVIEW' %}
+                    <span class="badge bg-warning-subtle text-warning-emphasis px-3 py-2 rounded-pill">Under Review</span>
+                {% elif report.status == 'REVIEWED' %}
+                    <span class="badge bg-success-subtle text-success px-3 py-2 rounded-pill"><i class="bi bi-check-circle me-1"></i>Reviewed</span>
+                {% elif report.status == 'NEEDS_IMPROVEMENT' %}
+                    <span class="badge bg-danger-subtle text-danger px-3 py-2 rounded-pill">Needs Improvement</span>
+                {% endif %}
+            </div>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'admin_module:hr_manager_detail' report.hr_manager.pk %}" class="btn btn-outline-secondary rounded-3 px-3">
+                <i class="bi bi-person-badge me-1"></i> HR Profile
+            </a>
+        </div>
+    </div>
+
+    <!-- SECTION 1 & 2: HR Information & Report Period Banner -->
+    <div class="card card-custom border-0 mb-4 shadow-sm">
+        <div class="card-body p-4">
+            <div class="row g-3 align-items-center">
+                <div class="col-md-3 border-end">
+                    <div class="text-muted small fw-bold">HR MANAGER</div>
+                    <div class="fw-bold fs-5 text-dark">{{ report.hr_manager.full_name }}</div>
+                    <div class="text-muted small">{{ report.hr_manager.employee_code }} • {{ report.hr_manager.designation|default:"HR Manager" }}</div>
+                </div>
+                <div class="col-md-3 border-end">
+                    <div class="text-muted small fw-bold">DEPARTMENT</div>
+                    <div class="fw-semibold text-dark">{{ report.hr_manager.department.name|default:"General HR" }}</div>
+                    <div class="text-muted small">{{ report.hr_manager.user.email }}</div>
+                </div>
+                <div class="col-md-3 border-end">
+                    <div class="text-muted small fw-bold">REPORT PERIOD</div>
+                    <div class="fw-bold text-primary">{{ report.week_display }}</div>
+                    <div class="text-muted small">Report #{{ report.report_id }}</div>
+                </div>
+                <div class="col-md-3">
+                    <div class="text-muted small fw-bold">SUBMISSION AUDIT</div>
+                    <div class="fw-semibold text-dark">{{ report.submitted_at|date:"M d, Y, h:i A"|default:"Not Submitted" }}</div>
+                    <div class="text-muted small">Status: <strong>{{ report.get_status_display }}</strong></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECTION 3: Weekly Work Summary & Tasks -->
+    <div class="row g-4 mb-4">
+        <div class="col-lg-8">
+            <div class="card card-custom border-0 h-100 shadow-sm">
+                <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge bg-primary rounded-circle p-2"><i class="bi bi-file-earmark-text"></i></span>
+                        <h5 class="fw-bold text-dark mb-0">Weekly Work Summary & Core Deliverables</h5>
+                    </div>
+                </div>
+                <div class="card-body p-4">
+                    <h6 class="text-muted small fw-bold mb-2 text-uppercase">Summary of Responsibilities:</h6>
+                    <div class="p-3 bg-light rounded-3 text-dark mb-4 lead" style="font-size: 0.95rem;">
+                        {{ report.work_summary }}
+                    </div>
+
+                    <h6 class="text-muted small fw-bold mb-2 text-uppercase">Major Tasks Completed:</h6>
+                    <div class="p-3 bg-light rounded-3 text-dark mb-4" style="white-space: pre-line; font-size: 0.92rem;">
+                        {{ report.tasks_completed }}
+                    </div>
+
+                    <div class="row g-3">
+                        {% if report.achievements %}
+                            <div class="col-md-6">
+                                <h6 class="text-success small fw-bold mb-1 text-uppercase"><i class="bi bi-trophy me-1"></i>Key Achievements:</h6>
+                                <div class="p-3 bg-success-subtle text-success-emphasis rounded-3 small" style="white-space: pre-line;">
+                                    {{ report.achievements }}
+                                </div>
+                            </div>
+                        {% endif %}
+                        {% if report.challenges %}
+                            <div class="col-md-6">
+                                <h6 class="text-danger small fw-bold mb-1 text-uppercase"><i class="bi bi-exclamation-triangle me-1"></i>Challenges & Blockers:</h6>
+                                <div class="p-3 bg-danger-subtle text-danger-emphasis rounded-3 small" style="white-space: pre-line;">
+                                    {{ report.challenges }}
+                                </div>
+                            </div>
+                        {% endif %}
+                        {% if report.pending_tasks %}
+                            <div class="col-md-6">
+                                <h6 class="text-warning-emphasis small fw-bold mb-1 text-uppercase"><i class="bi bi-clock-history me-1"></i>Pending / Ongoing:</h6>
+                                <div class="p-3 bg-warning-subtle text-warning-emphasis rounded-3 small" style="white-space: pre-line;">
+                                    {{ report.pending_tasks }}
+                                </div>
+                            </div>
+                        {% endif %}
+                        {% if report.next_week_plan %}
+                            <div class="col-md-6">
+                                <h6 class="text-primary small fw-bold mb-1 text-uppercase"><i class="bi bi-calendar-check me-1"></i>Next Week Plan:</h6>
+                                <div class="p-3 bg-primary-subtle text-primary-emphasis rounded-3 small" style="white-space: pre-line;">
+                                    {{ report.next_week_plan }}
+                                </div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECTION 4: Supporting Recruitment Pipeline Activity -->
+        <div class="col-lg-4">
+            <div class="card card-custom border-0 h-100 shadow-sm">
+                <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge bg-info rounded-circle p-2 text-white"><i class="bi bi-bar-chart-line"></i></span>
+                        <h5 class="fw-bold text-dark mb-0">Recruitment Activity Numbers</h5>
+                    </div>
+                    <p class="text-muted small mt-1 mb-0">Supporting metrics for the week (not scored in isolation).</p>
+                </div>
+                <div class="card-body p-4">
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-3 border-bottom">
+                            <div>
+                                <i class="bi bi-briefcase text-primary me-2"></i>
+                                <span class="fw-medium text-dark">Vacancies Worked</span>
+                            </div>
+                            <span class="badge bg-primary-subtle text-primary rounded-pill fs-6">{{ report.vacancies_worked }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-3 border-bottom">
+                            <div>
+                                <i class="bi bi-file-earmark-person text-info me-2"></i>
+                                <span class="fw-medium text-dark">Resumes Screened</span>
+                            </div>
+                            <span class="badge bg-info-subtle text-info rounded-pill fs-6">{{ report.candidates_screened }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-3 border-bottom">
+                            <div>
+                                <i class="bi bi-check2-circle text-primary me-2"></i>
+                                <span class="fw-medium text-dark">Candidates Shortlisted</span>
+                            </div>
+                            <span class="badge bg-primary-subtle text-primary rounded-pill fs-6">{{ report.candidates_shortlisted }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-3 border-bottom">
+                            <div>
+                                <i class="bi bi-patch-question text-warning me-2"></i>
+                                <span class="fw-medium text-dark">Aptitude Tests Coordinated</span>
+                            </div>
+                            <span class="badge bg-warning-subtle text-warning-emphasis rounded-pill fs-6">{{ report.aptitude_tests }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-3 border-bottom">
+                            <div>
+                                <i class="bi bi-calendar-event text-secondary me-2"></i>
+                                <span class="fw-medium text-dark">Interviews Scheduled/Conducted</span>
+                            </div>
+                            <span class="badge bg-secondary-subtle text-secondary rounded-pill fs-6">{{ report.interviews }}</span>
+                        </li>
+                        <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-3">
+                            <div>
+                                <i class="bi bi-award text-success me-2"></i>
+                                <span class="fw-medium text-dark">Candidates Selected</span>
+                            </div>
+                            <span class="badge bg-success-subtle text-success rounded-pill fs-6">{{ report.candidates_selected }}</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SECTION 5: PERFORMANCE ANALYSIS MATRIX EVALUATION FORM -->
+    <form method="post" id="performanceReviewForm">
+        {% csrf_token %}
+
+        <div class="card card-custom border-0 mb-4 shadow-sm">
+            <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge bg-primary rounded-circle p-2"><i class="bi bi-grid-3x3-gap"></i></span>
+                        <div>
+                            <h5 class="fw-bold text-dark mb-0">Performance Analysis Matrix Evaluation</h5>
+                            <p class="text-muted small mb-0">Evaluate performance across the 8 standard measurable criteria (Scale: 1 = Needs Significant Improvement to 5 = Excellent).</p>
+                        </div>
+                    </div>
+                    <!-- Live Dynamic Calculation Scorebox -->
+                    <div class="d-flex align-items-center gap-3 bg-light border rounded-3 p-2 px-3">
+                        <div class="text-center">
+                            <div class="text-muted small" style="font-size: 0.7rem; font-weight: 700;">TOTAL SCORE</div>
+                            <div class="fw-bold text-dark fs-5" id="liveTotalScore">-- / 40</div>
+                        </div>
+                        <div class="vr"></div>
+                        <div class="text-center">
+                            <div class="text-muted small" style="font-size: 0.7rem; font-weight: 700;">AVG RATING</div>
+                            <div class="fw-bold text-dark fs-5" id="liveAvgRating">-- / 5</div>
+                        </div>
+                        <div class="vr"></div>
+                        <div class="text-center">
+                            <div class="text-muted small" style="font-size: 0.7rem; font-weight: 700;">PERFORMANCE %</div>
+                            <div class="fw-bold text-primary fs-5" id="livePercentage">--%</div>
+                        </div>
+                        <div class="vr"></div>
+                        <div class="text-center">
+                            <div class="text-muted small" style="font-size: 0.7rem; font-weight: 700;">RESULT TIER</div>
+                            <span class="badge bg-primary rounded-pill px-2" id="liveTierBadge">Good</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-body p-4">
+                <div class="table-responsive">
+                    <table class="table table-bordered align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 25%;">Performance Criterion</th>
+                                <th style="width: 28%;">Admin Rating (1 to 5)</th>
+                                <th style="width: 47%;">Admin Remarks & Specific Observations</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <!-- 1. Task Completion -->
+                            <tr>
+                                <td class="fw-semibold">
+                                    <div class="text-dark">1. Task Completion</div>
+                                    <small class="text-muted">Execution of assigned weekly tasks & duties</small>
+                                </td>
+                                <td>{{ form.task_completion }}</td>
+                                <td>{{ form.task_completion_remarks }}</td>
+                            </tr>
+                            <!-- 2. Quality of Work -->
+                            <tr>
+                                <td class="fw-semibold">
+                                    <div class="text-dark">2. Quality of Work</div>
+                                    <small class="text-muted">Accuracy, thoroughness, and attention to detail</small>
+                                </td>
+                                <td>{{ form.quality_of_work }}</td>
+                                <td>{{ form.quality_of_work_remarks }}</td>
+                            </tr>
+                            <!-- 3. Recruitment Coordination -->
+                            <tr>
+                                <td class="fw-semibold">
+                                    <div class="text-dark">3. Recruitment Coordination</div>
+                                    <small class="text-muted">Candidate outreach, testing & interview scheduling</small>
+                                </td>
+                                <td>{{ form.recruitment_coordination }}</td>
+                                <td>{{ form.recruitment_coordination_remarks }}</td>
+                            </tr>
+                            <!-- 4. Timeliness -->
+                            <tr>
+                                <td class="fw-semibold">
+                                    <div class="text-dark">4. Timeliness</div>
+                                    <small class="text-muted">Adherence to deadlines, response speed & punctuality</small>
+                                </td>
+                                <td>{{ form.timeliness }}</td>
+                                <td>{{ form.timeliness_remarks }}</td>
+                            </tr>
+                            <!-- 5. Documentation -->
+                            <tr>
+                                <td class="fw-semibold">
+                                    <div class="text-dark">5. Documentation & Records</div>
+                                    <small class="text-muted">Maintenance of ATS logs, profiles & HR records</small>
+                                </td>
+                                <td>{{ form.documentation }}</td>
+                                <td>{{ form.documentation_remarks }}</td>
+                            </tr>
+                            <!-- 6. Communication -->
+                            <tr>
+                                <td class="fw-semibold">
+                                    <div class="text-dark">6. Communication & Coordination</div>
+                                    <small class="text-muted">Interdepartmental collaboration & candidate relations</small>
+                                </td>
+                                <td>{{ form.communication }}</td>
+                                <td>{{ form.communication_remarks }}</td>
+                            </tr>
+                            <!-- 7. Problem Solving -->
+                            <tr>
+                                <td class="fw-semibold">
+                                    <div class="text-dark">7. Problem Solving</div>
+                                    <small class="text-muted">Resolving operational roadblocks & scheduling conflicts</small>
+                                </td>
+                                <td>{{ form.problem_solving }}</td>
+                                <td>{{ form.problem_solving_remarks }}</td>
+                            </tr>
+                            <!-- 8. Weekly Goals -->
+                            <tr>
+                                <td class="fw-semibold">
+                                    <div class="text-dark">8. Achievement of Goals</div>
+                                    <small class="text-muted">Attainment of weekly milestone targets</small>
+                                </td>
+                                <td>{{ form.weekly_goal_achievement }}</td>
+                                <td>{{ form.weekly_goal_achievement_remarks }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- ADMIN QUALITATIVE FEEDBACK & DECISION -->
+        <div class="card card-custom border-0 mb-4 shadow-sm">
+            <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-primary rounded-circle p-2"><i class="bi bi-chat-left-quote"></i></span>
+                    <h5 class="fw-bold text-dark mb-0">Admin Qualitative Feedback & Guidance</h5>
+                </div>
+            </div>
+            <div class="card-body p-4">
+                <div class="row g-4">
+                    <div class="col-12">
+                        <label class="form-label text-dark fw-semibold">Overall Feedback & Performance Summary</label>
+                        {{ form.overall_feedback }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-success-emphasis fw-semibold"><i class="bi bi-star-fill text-warning me-1"></i>Observed Strengths</label>
+                        {{ form.strengths }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-warning-emphasis fw-semibold"><i class="bi bi-exclamation-triangle text-warning me-1"></i>Areas for Improvement</label>
+                        {{ form.areas_for_improvement }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-info-emphasis fw-semibold"><i class="bi bi-lightbulb text-info me-1"></i>Recommendations & Action Points</label>
+                        {{ form.recommendations }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-dark fw-semibold"><i class="bi bi-bullseye text-secondary me-1"></i>Next Week Target Expectations</label>
+                        {{ form.next_week_expectations }}
+                    </div>
+                </div>
+
+                <hr class="my-4">
+
+                <div class="row align-items-center g-3">
+                    <div class="col-md-6">
+                        <label class="form-label text-dark fw-bold mb-1">Status Decision</label>
+                        {{ form.status_decision }}
+                        <div class="form-text">Marking as Reviewed completes evaluation and dispatches notification to HR.</div>
+                    </div>
+                    <div class="col-md-6 text-md-end pt-3">
+                        <button type="submit" class="btn btn-primary rounded-3 px-4 py-2 fw-semibold shadow-sm" onclick="return confirm('Save this performance evaluation and send review feedback to HR?');">
+                            <i class="bi bi-check2-circle me-1"></i> Save Performance Review
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <!-- SECTION 6: HR Performance History -->
+    {% if history_reviews %}
+        <div class="card card-custom border-0 mb-4 shadow-sm">
+            <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+                <h6 class="fw-bold text-dark mb-1">Previous Performance Reviews for {{ report.hr_manager.full_name }}</h6>
+            </div>
+            <div class="card-body p-0 pt-3">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0">
+                        <thead class="bg-light">
+                            <tr>
+                                <th class="ps-4">Report Week</th>
+                                <th>Total Score</th>
+                                <th>Average Rating</th>
+                                <th>Performance %</th>
+                                <th>Performance Tier</th>
+                                <th>Reviewed On</th>
+                                <th class="pe-4 text-end">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for prev in history_reviews %}
+                                <tr>
+                                    <td class="ps-4 fw-semibold text-dark">{{ prev.week_display }}</td>
+                                    <td>{{ prev.performance_review.total_score }} / 40</td>
+                                    <td>{{ prev.performance_review.average_score }} / 5</td>
+                                    <td><strong class="text-primary">{{ prev.performance_review.performance_percentage }}%</strong></td>
+                                    <td>
+                                        {% if prev.performance_review.performance_percentage >= 85 %}
+                                            <span class="badge bg-success-subtle text-success rounded-pill px-2">Excellent</span>
+                                        {% elif prev.performance_review.performance_percentage >= 70 %}
+                                            <span class="badge bg-primary-subtle text-primary rounded-pill px-2">Good</span>
+                                        {% elif prev.performance_review.performance_percentage >= 50 %}
+                                            <span class="badge bg-warning-subtle text-warning-emphasis rounded-pill px-2">Needs Improvement</span>
+                                        {% else %}
+                                            <span class="badge bg-danger-subtle text-danger rounded-pill px-2">Unsatisfactory</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="text-muted small">{{ prev.reviewed_at|date:"M d, Y" }}</td>
+                                    <td class="pe-4 text-end">
+                                        <a href="{% url 'admin_module:hr_report_detail' prev.pk %}" class="btn btn-sm btn-outline-secondary rounded-2">
+                                            View
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Dynamic Client-side Matrix Calculator Script -->
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    const ratingSelects = document.querySelectorAll(".matrix-rating");
+    const totalElem = document.getElementById("liveTotalScore");
+    const avgElem = document.getElementById("liveAvgRating");
+    const pctElem = document.getElementById("livePercentage");
+    const tierBadge = document.getElementById("liveTierBadge");
+
+    function calculateMatrix() {
+        let total = 0;
+        let count = ratingSelects.length;
+
+        ratingSelects.forEach(select => {
+            const val = parseInt(select.value) || 0;
+            total += val;
+        });
+
+        const maxScore = count * 5;
+        const avg = count > 0 ? (total / count).toFixed(2) : "0.00";
+        const pct = maxScore > 0 ? ((total / maxScore) * 100).toFixed(1) : "0.0";
+
+        if (totalElem) totalElem.textContent = `${total} / ${maxScore}`;
+        if (avgElem) avgElem.textContent = `${avg} / 5`;
+        if (pctElem) pctElem.textContent = `${pct}%`;
+
+        if (tierBadge) {
+            const pctNum = parseFloat(pct);
+            if (pctNum >= 85) {
+                tierBadge.className = "badge bg-success rounded-pill px-2";
+                tierBadge.textContent = "Excellent";
+            } else if (pctNum >= 70) {
+                tierBadge.className = "badge bg-primary rounded-pill px-2";
+                tierBadge.textContent = "Good";
+            } else if (pctNum >= 50) {
+                tierBadge.className = "badge bg-warning text-dark rounded-pill px-2";
+                tierBadge.textContent = "Needs Improvement";
+            } else {
+                tierBadge.className = "badge bg-danger rounded-pill px-2";
+                tierBadge.textContent = "Unsatisfactory";
+            }
+        }
+    }
+
+    ratingSelects.forEach(select => {
+        select.addEventListener("change", calculateMatrix);
+    });
+
+    calculateMatrix();
+});
+</script>
+{% endblock %}
+

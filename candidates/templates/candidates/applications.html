@@ -35,6 +35,14 @@
                 <span class="portal-badge-blue">{{ app.vacancy.department.name }}</span>
                 <span class="portal-badge-gray"><i class="bi bi-geo-alt"></i> {{ app.vacancy.location }}</span>
                 <span class="portal-badge-gray">#APP-{{ app.pk }}</span>
+                <span class="badge bg-light text-primary border" style="font-size: 11px;">
+                  <i class="bi bi-person-lines-fill me-1"></i>{{ app.get_information_source_display }}
+                </span>
+                {% if app.eligibility_status == 'ELIGIBLE' %}
+                  <span class="badge bg-success-subtle text-success border border-success-subtle" style="font-size: 11px;">
+                    <i class="bi bi-check-circle-fill me-1"></i>Eligible
+                  </span>
+                {% endif %}
               </div>
               <h4 class="fw-bold text-dark mb-1">
                 <a href="{% url 'candidates:job_detail' app.vacancy.vacancy_id %}" class="text-dark text-decoration-none hover-primary">
@@ -51,18 +59,39 @@
 
             <!-- Status Pill & Primary Quick Action -->
             <div class="d-flex flex-column align-items-md-end gap-2">
-              <span class="badge px-3 py-2 fs-6 {% if app.status == 'SELECTED' %}bg-success{% elif app.status == 'REJECTED' %}bg-danger{% elif app.status == 'SHORTLISTED' %}bg-primary{% elif app.status == 'INTERVIEW' %}bg-info text-dark{% elif app.status == 'APTITUDE' %}bg-warning text-dark{% else %}bg-secondary{% endif %}" style="border-radius: 20px;">
-                <i class="bi bi-circle-fill small me-1"></i> {{ app.get_status_display }}
-              </span>
+              <div class="d-flex align-items-center gap-2 flex-wrap justify-content-end">
+                {% if app.screening_result and app.status != 'APPLIED' %}
+                  <span class="badge {% if app.screening_result.status == 'SHORTLISTED' or app.status == 'SHORTLISTED' %}bg-success-subtle text-success border border-success-subtle{% elif app.screening_result.status == 'NOT_SHORTLISTED' or app.status == 'REJECTED' %}bg-danger-subtle text-danger border border-danger-subtle{% else %}bg-light text-muted border{% endif %} px-2.5 py-1.5 fw-bold" style="font-size: 12px;">
+                    <i class="bi bi-speedometer2 me-1"></i> Screening: {{ app.screening_result.match_score }}%
+                  </span>
+                {% endif %}
+                <span class="badge px-3 py-2 fs-6 {% if app.status == 'SELECTED' or app.status == 'FORWARDED_TO_ADMIN' or app.status == 'HIRED' %}bg-success{% elif app.status == 'REJECTED' %}bg-danger{% elif app.status == 'SHORTLISTED' or app.status == 'INTERVIEW_SCHEDULING' %}bg-primary{% elif app.status == 'INTERVIEW_SCHEDULED' or app.status == 'INTERVIEW' or app.status == 'INTERVIEW_REVIEW' %}bg-info text-dark{% elif app.status == 'APTITUDE_TEST_SCHEDULED' or app.status == 'APTITUDE' %}bg-warning text-dark{% elif app.status == 'APTITUDE_REVIEW' %}bg-info text-dark{% else %}bg-secondary{% endif %}" style="border-radius: 20px;">
+                  <i class="bi bi-circle-fill small me-1"></i> {% if app.status == 'REJECTED' and app.screening_result.status == 'NOT_SHORTLISTED' %}NOT SHORTLISTED{% elif app.status == 'FORWARDED_TO_ADMIN' %}SELECTED (ONBOARDING){% else %}{{ app.get_status_display }}{% endif %}
+                </span>
+              </div>
 
               <div class="d-flex flex-wrap gap-2">
-                {% if app.status == 'APTITUDE' and not app.aptitude_results.exists %}
-                  <a href="{% url 'candidates:take_aptitude_test' app.pk %}" class="btn btn-sm btn-warning text-dark fw-bold shadow-sm">
-                    <i class="bi bi-stopwatch me-1"></i> Start Aptitude Test
+                {% if app.status == 'INTERVIEW_SCHEDULING' %}
+                  <a href="{% url 'candidates:interview_slots' app.pk %}" class="btn btn-sm btn-success fw-bold shadow-sm">
+                    <i class="bi bi-calendar-plus me-1"></i> Select Interview Slot
                   </a>
-                {% elif app.aptitude_results.exists %}
-                  <a href="{% url 'candidates:aptitude_result' app.pk %}" class="btn btn-sm btn-outline-success">
-                    <i class="bi bi-award me-1"></i> View Test Result
+                {% elif app.status == 'APTITUDE_TEST_SCHEDULED' %}
+                  {% if app.is_aptitude_window_open %}
+                    <a href="{% url 'candidates:take_aptitude_test' app.pk %}" class="btn btn-sm btn-warning text-dark fw-bold shadow-sm">
+                      <i class="bi bi-play-circle-fill me-1"></i> Start Aptitude Test
+                    </a>
+                  {% else %}
+                    <button class="btn btn-sm btn-light border text-muted" disabled title="Opens at scheduled time">
+                      <i class="bi bi-clock me-1"></i> Scheduled: {{ app.get_aptitude_start_datetime|date:"M d, H:i" }}
+                    </button>
+                  {% endif %}
+                {% elif app.status == 'APTITUDE' and not app.aptitude_results.exists %}
+                  <a href="{% url 'candidates:take_aptitude_test' app.pk %}" class="btn btn-sm btn-warning text-dark fw-bold shadow-sm">
+                    <i class="bi bi-stopwatch me-1"></i> Resume Aptitude Test
+                  </a>
+                {% elif app.status == 'APTITUDE_REVIEW' or app.aptitude_results.exists and app.status not in 'INTERVIEW_SCHEDULING,INTERVIEW_SCHEDULED,INTERVIEW,INTERVIEW_REVIEW,SELECTED,FORWARDED_TO_ADMIN,HIRED,REJECTED' %}
+                  <a href="{% url 'candidates:aptitude_result' app.pk %}" class="btn btn-sm btn-outline-info fw-semibold">
+                    <i class="bi bi-journal-check me-1"></i> Test Submitted
                   </a>
                 {% endif %}
                 <a href="{% url 'candidates:job_detail' app.vacancy.vacancy_id %}" class="btn btn-sm btn-light border">
@@ -83,43 +112,131 @@
               </div>
               <!-- Step 2: Resume Review -->
               <div class="col-6 col-md-2">
-                <div class="p-2 rounded-3 {% if app.status in 'RESUME_REVIEW,SHORTLISTED,APTITUDE,INTERVIEW,SELECTED' %}bg-success text-white{% elif app.status == 'REJECTED' %}bg-secondary text-white{% else %}bg-light text-muted border{% endif %} fw-semibold">
-                  {% if app.status in 'RESUME_REVIEW,SHORTLISTED,APTITUDE,INTERVIEW,SELECTED' %}<i class="bi bi-check-circle-fill me-1"></i>{% endif %} 2. Review
+                <div class="p-2 rounded-3 {% if app.status in 'RESUME_REVIEW,SHORTLISTED,APTITUDE_TEST_SCHEDULED,APTITUDE,APTITUDE_REVIEW,INTERVIEW_SCHEDULING,INTERVIEW_SCHEDULED,INTERVIEW,INTERVIEW_REVIEW,SELECTED,FORWARDED_TO_ADMIN,HIRED' %}bg-success text-white{% elif app.status == 'REJECTED' %}bg-secondary text-white{% else %}bg-light text-muted border{% endif %} fw-semibold">
+                  {% if app.status in 'RESUME_REVIEW,SHORTLISTED,APTITUDE_TEST_SCHEDULED,APTITUDE,APTITUDE_REVIEW,INTERVIEW_SCHEDULING,INTERVIEW_SCHEDULED,INTERVIEW,INTERVIEW_REVIEW,SELECTED,FORWARDED_TO_ADMIN,HIRED' %}<i class="bi bi-check-circle-fill me-1"></i>{% endif %} 2. Review
                 </div>
               </div>
               <!-- Step 3: Shortlisted -->
               <div class="col-6 col-md-2">
-                <div class="p-2 rounded-3 {% if app.status in 'SHORTLISTED,APTITUDE,INTERVIEW,SELECTED' %}bg-success text-white{% elif app.status == 'REJECTED' %}bg-secondary text-white{% else %}bg-light text-muted border{% endif %} fw-semibold">
-                  {% if app.status in 'SHORTLISTED,APTITUDE,INTERVIEW,SELECTED' %}<i class="bi bi-check-circle-fill me-1"></i>{% endif %} 3. Shortlisted
+                <div class="p-2 rounded-3 {% if app.status in 'SHORTLISTED,APTITUDE_TEST_SCHEDULED,APTITUDE,APTITUDE_REVIEW,INTERVIEW_SCHEDULING,INTERVIEW_SCHEDULED,INTERVIEW,INTERVIEW_REVIEW,SELECTED,FORWARDED_TO_ADMIN,HIRED' %}bg-success text-white{% elif app.status == 'REJECTED' %}bg-secondary text-white{% else %}bg-light text-muted border{% endif %} fw-semibold">
+                  {% if app.status in 'SHORTLISTED,APTITUDE_TEST_SCHEDULED,APTITUDE,APTITUDE_REVIEW,INTERVIEW_SCHEDULING,INTERVIEW_SCHEDULED,INTERVIEW,INTERVIEW_REVIEW,SELECTED,FORWARDED_TO_ADMIN,HIRED' %}<i class="bi bi-check-circle-fill me-1"></i>{% endif %} 3. Shortlisted
                 </div>
               </div>
               <!-- Step 4: Aptitude -->
               <div class="col-6 col-md-2">
-                <div class="p-2 rounded-3 {% if app.status in 'APTITUDE,INTERVIEW,SELECTED' or app.aptitude_results.exists %}bg-success text-white{% elif app.status == 'REJECTED' %}bg-secondary text-white{% else %}bg-light text-muted border{% endif %} fw-semibold">
-                  {% if app.status in 'APTITUDE,INTERVIEW,SELECTED' or app.aptitude_results.exists %}<i class="bi bi-check-circle-fill me-1"></i>{% endif %} 4. Aptitude
+                <div class="p-2 rounded-3 {% if app.status in 'APTITUDE_TEST_SCHEDULED,APTITUDE,APTITUDE_REVIEW,INTERVIEW_SCHEDULING,INTERVIEW_SCHEDULED,INTERVIEW,INTERVIEW_REVIEW,SELECTED,FORWARDED_TO_ADMIN,HIRED' or app.aptitude_results.exists %}bg-success text-white{% elif app.status == 'REJECTED' %}bg-secondary text-white{% else %}bg-light text-muted border{% endif %} fw-semibold">
+                  {% if app.status in 'APTITUDE_TEST_SCHEDULED,APTITUDE,APTITUDE_REVIEW,INTERVIEW_SCHEDULING,INTERVIEW_SCHEDULED,INTERVIEW,INTERVIEW_REVIEW,SELECTED,FORWARDED_TO_ADMIN,HIRED' or app.aptitude_results.exists %}<i class="bi bi-check-circle-fill me-1"></i>{% endif %} 4. Aptitude
                 </div>
               </div>
               <!-- Step 5: Interview -->
               <div class="col-6 col-md-2">
-                <div class="p-2 rounded-3 {% if app.status in 'INTERVIEW,SELECTED' or app.interviews.exists %}bg-success text-white{% elif app.status == 'REJECTED' %}bg-secondary text-white{% else %}bg-light text-muted border{% endif %} fw-semibold">
-                  {% if app.status in 'INTERVIEW,SELECTED' or app.interviews.exists %}<i class="bi bi-check-circle-fill me-1"></i>{% endif %} 5. Interview
+                <div class="p-2 rounded-3 {% if app.status in 'INTERVIEW_SCHEDULING,INTERVIEW_SCHEDULED,INTERVIEW,INTERVIEW_REVIEW,SELECTED,FORWARDED_TO_ADMIN,HIRED' or app.interviews.exists %}bg-success text-white{% elif app.status == 'REJECTED' %}bg-secondary text-white{% else %}bg-light text-muted border{% endif %} fw-semibold">
+                  {% if app.status in 'INTERVIEW_SCHEDULING,INTERVIEW_SCHEDULED,INTERVIEW,INTERVIEW_REVIEW,SELECTED,FORWARDED_TO_ADMIN,HIRED' or app.interviews.exists %}<i class="bi bi-check-circle-fill me-1"></i>{% endif %} 5. Interview
                 </div>
               </div>
               <!-- Step 6: Final Decision -->
               <div class="col-6 col-md-2">
-                <div class="p-2 rounded-3 {% if app.status == 'SELECTED' %}bg-success text-white{% elif app.status == 'REJECTED' %}bg-danger text-white{% else %}bg-light text-muted border{% endif %} fw-semibold">
-                  {% if app.status == 'SELECTED' %}<i class="bi bi-trophy-fill me-1"></i> Selected{% elif app.status == 'REJECTED' %}<i class="bi bi-x-circle-fill me-1"></i> Rejected{% else %}6. Decision{% endif %}
+                <div class="p-2 rounded-3 {% if app.status in 'SELECTED,FORWARDED_TO_ADMIN,HIRED' %}bg-success text-white{% elif app.status == 'REJECTED' %}bg-danger text-white{% else %}bg-light text-muted border{% endif %} fw-semibold">
+                  {% if app.status in 'SELECTED,FORWARDED_TO_ADMIN,HIRED' %}<i class="bi bi-trophy-fill me-1"></i> Selected{% elif app.status == 'REJECTED' %}<i class="bi bi-x-circle-fill me-1"></i> Rejected{% else %}6. Decision{% endif %}
                 </div>
               </div>
             </div>
           </div>
 
-          <!-- Recruitment Details Callouts (Aptitude & Interview) -->
+          <!-- Recruitment Details Callouts (Shortlisted, Aptitude, Interview & Selection) -->
           <div class="d-flex flex-column gap-3 mt-2">
 
-            <!-- Aptitude Test Schedule Callout -->
-            {% if app.status == 'APTITUDE' or app.aptitude_date or app.aptitude_test %}
-              <div class="p-3 rounded-3 border {% if not app.aptitude_results.exists %}border-warning bg-warning bg-opacity-10{% else %}border-secondary-subtle bg-light{% endif %}">
+            <!-- Selected Celebration Announcement Banner -->
+            {% if app.status in 'SELECTED,FORWARDED_TO_ADMIN,HIRED' %}
+              <div class="p-4 rounded-3 border border-success bg-success bg-opacity-10 shadow-sm">
+                <div class="d-flex align-items-start gap-3">
+                  <div class="p-3 bg-success text-white rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 52px; height: 52px;">
+                    <i class="bi bi-trophy-fill fs-3"></i>
+                  </div>
+                  <div class="flex-grow-1">
+                    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-1">
+                      <h4 class="fw-bold text-success mb-0">🎉 Congratulations! You Have Been Selected!</h4>
+                      <span class="badge bg-success px-3 py-1.5 fw-bold fs-6">
+                        <i class="bi bi-check-all me-1"></i> Final Selection
+                      </span>
+                    </div>
+                    <p class="text-dark mb-2 fs-6">
+                      We are thrilled to inform you that you have successfully cleared all assessment and interview rounds for the position of <strong>{{ app.vacancy.title }}</strong>!
+                    </p>
+                    <div class="p-3 bg-white rounded-3 border border-success-subtle mb-3">
+                      <div class="d-flex align-items-center gap-2 text-dark fw-semibold mb-1">
+                        <i class="bi bi-info-circle-fill text-success"></i> Next Steps & Onboarding:
+                      </div>
+                      <p class="text-muted small mb-0">
+                        Your profile has been forwarded to the Executive Administration for formal onboarding and appointment processing. Our HR team will reach out to you shortly with official documentation and orientation details. Welcome aboard!
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            {% endif %}
+
+            <!-- Interview Slot Selection Needed Callout -->
+            {% if app.status == 'INTERVIEW_SCHEDULING' %}
+              <div class="p-4 rounded-3 border border-primary bg-primary bg-opacity-10 shadow-sm">
+                <div class="d-flex align-items-start gap-3">
+                  <div class="p-2.5 bg-primary text-white rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px;">
+                    <i class="bi bi-calendar-plus-fill fs-4"></i>
+                  </div>
+                  <div class="flex-grow-1">
+                    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-1">
+                      <h5 class="fw-bold text-primary mb-0">🎯 Action Required: Select Your Interview Slot</h5>
+                      <span class="badge bg-primary px-3 py-1.5 fw-bold">
+                        Aptitude Round Cleared
+                      </span>
+                    </div>
+                    <p class="text-dark mb-2">
+                      Congratulations! You have successfully passed the Aptitude assessment for <strong>{{ app.vacancy.title }}</strong> and advanced to the <strong>Offline Face-to-Face Interview Round</strong>.
+                    </p>
+                    <p class="text-muted small mb-3">
+                      Please pick your preferred date, time slot, and physical office location from the available slots scheduled by our HR recruitment team.
+                    </p>
+                    <a href="{% url 'candidates:interview_slots' app.pk %}" class="btn btn-primary fw-bold px-4 py-2 shadow-sm">
+                      <i class="bi bi-calendar-check me-2"></i> Choose Interview Slot Now
+                    </a>
+                  </div>
+                </div>
+              </div>
+            {% endif %}
+
+            <!-- Shortlisted Announcement Banner -->
+            {% if app.status in 'SHORTLISTED,APTITUDE_TEST_SCHEDULED,APTITUDE' or app.screening_result.status == 'SHORTLISTED' and app.status not in 'APPLIED,REJECTED,INTERVIEW_SCHEDULING,INTERVIEW_SCHEDULED,INTERVIEW,INTERVIEW_REVIEW,SELECTED,FORWARDED_TO_ADMIN,HIRED' %}
+              <div class="p-4 rounded-3 border border-success-subtle bg-success bg-opacity-10 shadow-sm">
+                <div class="d-flex align-items-start gap-3">
+                  <div class="p-2.5 bg-success text-white rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style="width: 44px; height: 44px;">
+                    <i class="bi bi-award-fill fs-4"></i>
+                  </div>
+                  <div class="flex-grow-1">
+                    <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-1">
+                      <h5 class="fw-bold text-success mb-0">🎉 Congratulations!</h5>
+                      {% if app.screening_result %}
+                        <span class="badge bg-success px-3 py-1.5 fw-bold">
+                          Screening Score: {{ app.screening_result.match_score }}%
+                        </span>
+                      {% endif %}
+                    </div>
+                    <p class="text-dark mb-1">
+                      Your resume has been shortlisted for: <strong>{{ app.vacancy.title }}</strong>
+                    </p>
+                    <p class="text-muted small mb-2">
+                      You have successfully moved to the next step of the recruitment process.
+                    </p>
+                    <div class="d-inline-flex align-items-center gap-2 px-3 py-1.5 rounded-pill bg-success text-white fw-bold small">
+                      <i class="bi bi-arrow-right-circle-fill"></i> Next Step: APTITUDE ROUND
+                    </div>
+                  </div>
+                </div>
+              </div>
+            {% endif %}
+
+            <!-- Aptitude Test Schedule Callout (Active or Upcoming) -->
+            {% if app.status == 'APTITUDE_TEST_SCHEDULED' or app.status == 'APTITUDE' %}
+              <div class="p-3 rounded-3 border border-warning bg-warning bg-opacity-10">
                 <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-2">
                   <div class="d-flex align-items-center gap-2">
                     <div class="p-2 bg-warning bg-opacity-25 text-dark rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
@@ -128,33 +245,31 @@
                     <div>
                       <h6 class="fw-bold text-dark mb-0">Aptitude Assessment Round</h6>
                       <small class="text-muted">
-                        {% if app.aptitude_test %}{{ app.aptitude_test.title }}{% else %}Standard Quantitative &amp; Logical Assessment{% endif %}
+                        {% if app.aptitude_test %}{{ app.aptitude_test.title }}{% else %}General Aptitude Assessment{% endif %}
                       </small>
                     </div>
                   </div>
-                  {% if not app.aptitude_results.exists %}
-                    <a href="{% url 'candidates:take_aptitude_test' app.pk %}" class="btn btn-sm btn-warning text-dark fw-bold px-3">
-                      <i class="bi bi-play-circle-fill me-1"></i> Take Aptitude Test Now
+                  {% if app.is_aptitude_window_open %}
+                    <a href="{% url 'candidates:take_aptitude_test' app.pk %}" class="btn btn-sm btn-warning text-dark fw-bold px-3 shadow-sm">
+                      <i class="bi bi-play-circle-fill me-1"></i> Start Aptitude Test Now
                     </a>
+                  {% else %}
+                    <span class="badge bg-warning text-dark px-3 py-2 fw-semibold">
+                      <i class="bi bi-clock me-1"></i> Scheduled: {{ app.get_aptitude_start_datetime|date:"M d, Y, h:i A" }}
+                    </span>
                   {% endif %}
                 </div>
 
                 <div class="row g-2 small text-secondary mt-1">
-                  {% if app.aptitude_date %}
-                    <div class="col-12 col-sm-6 col-md-4">
-                      <strong><i class="bi bi-calendar-event me-1 text-primary"></i> Assessment Date:</strong> {{ app.aptitude_date|date:"F d, Y" }}
-                    </div>
-                  {% endif %}
-                  {% if app.aptitude_time %}
-                    <div class="col-12 col-sm-6 col-md-4">
-                      <strong><i class="bi bi-clock me-1 text-primary"></i> Scheduled Time:</strong> {{ app.aptitude_time|time:"H:i" }}
-                    </div>
-                  {% endif %}
-                  {% if app.aptitude_test %}
-                    <div class="col-12 col-sm-6 col-md-4">
-                      <strong><i class="bi bi-hourglass-split me-1 text-primary"></i> Duration:</strong> {{ app.aptitude_test.duration_minutes|default:30 }} Minutes
-                    </div>
-                  {% endif %}
+                  <div class="col-12 col-sm-6 col-md-4">
+                    <strong><i class="bi bi-calendar-event me-1 text-primary"></i> Window Opens:</strong> {{ app.get_aptitude_start_datetime|date:"M d, Y, h:i A"|default:"TBD" }}
+                  </div>
+                  <div class="col-12 col-sm-6 col-md-4">
+                    <strong><i class="bi bi-calendar-check me-1 text-primary"></i> Window Closes:</strong> {{ app.get_aptitude_end_datetime|date:"M d, Y, h:i A"|default:"TBD" }}
+                  </div>
+                  <div class="col-12 col-sm-6 col-md-4">
+                    <strong><i class="bi bi-hourglass-split me-1 text-primary"></i> Duration:</strong> {{ app.aptitude_duration_minutes|default:30 }} Minutes
+                  </div>
                   {% if app.aptitude_remarks %}
                     <div class="col-12 mt-2">
                       <div class="p-2 bg-white rounded border small">
@@ -166,63 +281,94 @@
               </div>
             {% endif %}
 
-            <!-- Aptitude Test Completed Results Callout -->
-            {% if app.aptitude_results.all %}
-              <div class="p-3 rounded-3 border border-success-subtle bg-success bg-opacity-10">
+            <!-- Aptitude Test Completed / Under Review Callout (Score Protected) -->
+            {% if app.status == 'APTITUDE_REVIEW' %}
+              <div class="p-3 rounded-3 border border-info-subtle bg-info bg-opacity-10">
                 <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
                   <div class="d-flex align-items-center gap-2">
-                    <div class="p-2 bg-success bg-opacity-25 text-success rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
-                      <i class="bi bi-award fs-5"></i>
+                    <div class="p-2 bg-info bg-opacity-25 text-info rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                      <i class="bi bi-journal-check fs-5"></i>
                     </div>
                     <div>
-                      <h6 class="fw-bold text-dark mb-0">Aptitude Assessment Result</h6>
-                      {% for res in app.aptitude_results.all %}
-                        <small class="text-secondary">
-                          Score: <strong>{{ res.score }} / {{ res.total_marks }} ({{ res.percentage }}%)</strong>
-                          &bull; Completed on {{ res.completed_at|date:"M d, Y H:i" }}
-                        </small>
-                      {% endfor %}
+                      <h6 class="fw-bold text-dark mb-0">Aptitude Assessment Submitted</h6>
+                      <small class="text-secondary">
+                        Your test submission has been recorded and is currently under review by our HR team.
+                      </small>
                     </div>
                   </div>
-                  <a href="{% url 'candidates:aptitude_result' app.pk %}" class="btn btn-sm btn-outline-success fw-semibold">
-                    <i class="bi bi-file-earmark-bar-graph me-1"></i> Detailed Scorecard
+                  <a href="{% url 'candidates:aptitude_result' app.pk %}" class="btn btn-sm btn-outline-primary fw-semibold">
+                    <i class="bi bi-file-earmark-check me-1"></i> View Submission Status
                   </a>
                 </div>
               </div>
             {% endif %}
 
-            <!-- Interview Sessions Callout -->
+            <!-- Offline Interview Sessions Callout -->
             {% if app.interviews.all %}
               <div class="p-3 rounded-3 border border-info bg-info bg-opacity-10">
-                <div class="d-flex align-items-center gap-2 mb-2">
-                  <div class="p-2 bg-info bg-opacity-25 text-dark rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
-                    <i class="bi bi-calendar2-check fs-5"></i>
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-2">
+                  <div class="d-flex align-items-center gap-2">
+                    <div class="p-2 bg-info bg-opacity-25 text-dark rounded-circle d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
+                      <i class="bi bi-building fs-5"></i>
+                    </div>
+                    <div>
+                      <h6 class="fw-bold text-dark mb-0">Offline Face-to-Face Interview</h6>
+                      <small class="text-muted">Physical office interview venue and schedule details</small>
+                    </div>
                   </div>
-                  <div>
-                    <h6 class="fw-bold text-dark mb-0">Scheduled Interview Sessions</h6>
-                    <small class="text-muted">Interview meeting information and remarks</small>
-                  </div>
+                  <span class="badge bg-primary px-3 py-1.5 fw-semibold">
+                    <i class="bi bi-geo-alt-fill me-1"></i> In-Person Interview
+                  </span>
                 </div>
 
                 <div class="d-flex flex-column gap-2 mt-2">
                   {% for intr in app.interviews.all %}
-                    <div class="p-2.5 p-3 bg-white rounded border">
-                      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-1">
-                        <div class="fw-bold text-dark">
-                          <i class="bi bi-calendar-event text-primary me-1"></i> {{ intr.interview_date|date:"l, F d, Y" }} at {{ intr.interview_time|time:"H:i" }}
+                    <div class="p-3 bg-white rounded border shadow-sm">
+                      <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+                        <div class="fw-bold text-dark fs-6">
+                          <i class="bi bi-calendar-event text-primary me-1"></i> {{ intr.interview_date|date:"l, F d, Y" }} at {{ intr.interview_time|time:"h:i A" }}
                         </div>
-                        <span class="badge {% if intr.status == 'COMPLETED' %}bg-success{% elif intr.status == 'CANCELLED' %}bg-danger{% else %}bg-primary{% endif %}">
-                          {{ intr.get_status_display }}
-                        </span>
-                      </div>
-                      <div class="small text-secondary">
-                        <strong>Interviewer:</strong> {{ intr.interviewer.user.name|default:intr.interviewer.user.email|default:"HR Recruitment Lead" }}
-                      </div>
-                      {% if intr.remarks %}
-                        <div class="small text-secondary bg-light p-2 rounded border mt-2">
-                          <strong>Interview Remarks:</strong> {{ intr.remarks }}
+                        <div class="d-flex gap-2 align-items-center">
+                          {% if intr.attendance == 'ATTENDED' %}
+                            <span class="badge bg-success-subtle text-success border border-success-subtle fw-bold px-2.5 py-1">
+                              <i class="bi bi-check-circle-fill me-1"></i> Attended
+                            </span>
+                          {% elif intr.attendance == 'NO_SHOW' %}
+                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle fw-bold px-2.5 py-1">
+                              <i class="bi bi-x-circle-fill me-1"></i> No-Show
+                            </span>
+                          {% else %}
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle fw-bold px-2.5 py-1">
+                              <i class="bi bi-calendar-check me-1"></i> Confirmed
+                            </span>
+                          {% endif %}
                         </div>
-                      {% endif %}
+                      </div>
+
+                      <div class="row g-2 small text-secondary mt-1">
+                        <div class="col-12 col-md-6">
+                          <strong><i class="bi bi-building me-1 text-primary"></i> Office Venue:</strong>
+                          <span class="text-dark fw-semibold">{{ intr.location.name|default:"Corporate Regional Office" }}</span>
+                        </div>
+                        <div class="col-12 col-md-6">
+                          <strong><i class="bi bi-person-badge me-1 text-primary"></i> Interviewer:</strong>
+                          <span class="text-dark">{{ intr.interviewer.user.name|default:intr.interviewer.user.email|default:"HR Recruitment Lead" }}</span>
+                        </div>
+                        <div class="col-12">
+                          <strong><i class="bi bi-geo-alt-fill me-1 text-danger"></i> Office Address:</strong>
+                          <span class="text-dark">{{ intr.location.address|default:"Location details specified by HR" }}</span>
+                        </div>
+                      </div>
+
+                      <div class="alert alert-warning py-2 px-3 mt-3 mb-0 small d-flex align-items-center gap-2 border-0 bg-warning-subtle text-dark">
+                        <i class="bi bi-exclamation-triangle-fill text-warning flex-shrink-0 fs-5"></i>
+                        <div>
+                          <strong>Important Candidate Instructions:</strong> Please report to the reception at least <strong>10 minutes prior</strong> to your scheduled time with a printed copy of your updated resume and a valid government photo ID.
+                          {% if intr.instructions %}
+                            <div class="mt-1"><em>Special Notes: {{ intr.instructions }}</em></div>
+                          {% endif %}
+                        </div>
+                      </div>
                     </div>
                   {% endfor %}
                 </div>

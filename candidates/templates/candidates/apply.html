@@ -4,160 +4,1341 @@
 
 {% block content %}
 <div class="row justify-content-center">
-  <div class="col-12 col-lg-8">
-    <!-- Breadcrumb & Back -->
-    <a href="{% url 'candidates:job_detail' job.vacancy_id %}" class="btn btn-sm btn-outline-secondary rounded-pill px-3 mb-3">
-      <i class="bi bi-arrow-left me-1"></i> Back to Job Details
-    </a>
+  <div class="col-12 col-xl-10">
 
-    <!-- Application Form Card -->
-    <div class="portal-card bg-white p-4 p-md-5 shadow-sm border-0">
-      <div class="border-bottom pb-3 mb-4">
-        <span class="portal-badge-blue mb-2">{{ job.department.name }}</span>
-        <h3 class="fw-extrabold text-dark mb-1">Job Application</h3>
-        <p class="text-muted small mb-0">Applying for: <strong class="text-primary">{{ job.title }}</strong> ({{ job.location }})</p>
+    <!-- 1. JOB HEADER (Simple & Clean) -->
+    <div class="portal-card bg-white p-4 mb-4 shadow-sm border-0 rounded-4">
+      <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+        <div>
+          <a href="{% url 'candidates:job_detail' job.vacancy_id %}" class="text-decoration-none text-muted small fw-semibold mb-2 d-inline-block">
+            <i class="bi bi-arrow-left me-1"></i> Back to Job Details
+          </a>
+          <h3 class="fw-extrabold text-dark mb-1">{{ job.title }}</h3>
+          <div class="d-flex flex-wrap gap-2 align-items-center mt-2">
+            <span class="portal-badge-blue">{{ job.department.name }}</span>
+            <span class="badge bg-light text-secondary border"><i class="bi bi-geo-alt me-1 text-danger"></i>{{ job.location }}</span>
+            <span class="badge bg-light text-secondary border">Job ID: #VAC-{{ job.vacancy_id }}</span>
+          </div>
+        </div>
+        <div class="text-md-end">
+          <div class="badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill fw-bold" id="topSourceBadge">
+            <i class="bi bi-person-check-fill me-1"></i> Source: Candidate Profile
+          </div>
+        </div>
+      </div>
+    </div>
+
+    {% if profile_incomplete %}
+      <!-- Profile Incomplete Card -->
+      <div class="portal-card bg-white p-5 shadow-sm border-0 rounded-4 text-center">
+        <div class="mx-auto mb-3 bg-warning-subtle text-warning rounded-circle d-flex align-items-center justify-content-center" style="width: 64px; height: 64px; font-size: 28px;">
+          <i class="bi bi-exclamation-triangle-fill"></i>
+        </div>
+        <h4 class="fw-bold text-dark mb-2">Profile Completion Required</h4>
+        <p class="text-muted small mb-4">Please complete at least 50% of your Candidate Profile before applying for this position.</p>
+        <div class="d-flex justify-content-center gap-2">
+          <a href="{% url 'candidates:job_detail' job.vacancy_id %}" class="btn btn-light border px-4">Job Details</a>
+          <a href="{% url 'candidates:profile' %}" class="btn btn-blue-primary px-4">Complete Profile Now</a>
+        </div>
       </div>
 
-      <form method="post" enctype="multipart/form-data">
+    {% else %}
+
+      <!-- STEPPER NAVIGATION BAR -->
+      <div class="portal-card bg-white p-3 mb-4 shadow-sm border-0 rounded-4">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 text-center" id="stepperNav">
+          <div class="step-indicator active flex-grow-1 p-2 rounded-3" data-step="1">
+            <span class="step-num badge bg-primary text-white rounded-circle me-1">1</span>
+            <span class="step-title fw-bold small text-dark">Personal Info</span>
+          </div>
+          <div class="step-indicator flex-grow-1 p-2 rounded-3 text-muted" data-step="2">
+            <span class="step-num badge bg-light text-secondary border rounded-circle me-1">2</span>
+            <span class="step-title fw-semibold small">Education &amp; Experience</span>
+          </div>
+          <div class="step-indicator flex-grow-1 p-2 rounded-3 text-muted" data-step="3">
+            <span class="step-num badge bg-light text-secondary border rounded-circle me-1">3</span>
+            <span class="step-title fw-semibold small">Additional Details</span>
+          </div>
+          <div class="step-indicator flex-grow-1 p-2 rounded-3 text-muted" data-step="4">
+            <span class="step-num badge bg-light text-secondary border rounded-circle me-1">4</span>
+            <span class="step-title fw-semibold small">Eligibility</span>
+          </div>
+          <div class="step-indicator flex-grow-1 p-2 rounded-3 text-muted" data-step="5">
+            <span class="step-num badge bg-light text-secondary border rounded-circle me-1">5</span>
+            <span class="step-title fw-semibold small">Documents &amp; Submit</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- MAIN APPLICATION FORM CONTAINER -->
+      <form method="post" enctype="multipart/form-data" id="jobApplicationForm">
         {% csrf_token %}
+        <input type="hidden" name="information_source" id="id_information_source" value="PROFILE">
+        {{ form.higher_education_json }}
 
         {% if form.non_field_errors %}
           <div class="alert alert-danger mb-4 p-3 rounded-3 small">
             {% for error in form.non_field_errors %}
-              <div class="d-flex align-items-center gap-2">
-                <i class="bi bi-exclamation-triangle-fill"></i>
-                <span>{{ error }}</span>
-              </div>
+              <div class="d-flex align-items-center gap-2"><i class="bi bi-exclamation-triangle-fill"></i><span>{{ error }}</span></div>
             {% endfor %}
           </div>
         {% endif %}
 
-        <!-- Section 1: Basic Personal Information -->
-        <div class="mb-4">
-          <h6 class="fw-bold text-primary mb-3 d-flex align-items-center gap-2">
-            <i class="bi bi-person-fill"></i> Personal Information
-          </h6>
+        <!-- ================================================================= -->
+        <!-- STEP 1: INFORMATION SOURCE & PERSONAL INFORMATION -->
+        <!-- ================================================================= -->
+        <div class="step-pane" id="step1">
+          <!-- 2. CHOOSE INFORMATION SOURCE -->
+          <div class="portal-card bg-white p-4 p-md-5 shadow-sm border-0 rounded-4 mb-4">
+            <h5 class="fw-bold text-dark mb-1 d-flex align-items-center gap-2">
+              <i class="bi bi-sliders text-primary"></i> Choose Information Source
+            </h5>
+            <p class="text-muted small mb-4">Select how you would like to fill in your application details:</p>
 
-          <div class="row g-3">
-            <!-- First Name -->
-            <div class="col-12 col-md-6">
-              <label class="form-label">First Name <span class="text-danger">*</span></label>
-              {{ form.first_name }}
-              {% if form.first_name.errors %}
-                <div class="text-danger small mt-1">{{ form.first_name.errors.0 }}</div>
-              {% endif %}
-            </div>
-
-            <!-- Last Name -->
-            <div class="col-12 col-md-6">
-              <label class="form-label">Last Name <span class="text-danger">*</span></label>
-              {{ form.last_name }}
-              {% if form.last_name.errors %}
-                <div class="text-danger small mt-1">{{ form.last_name.errors.0 }}</div>
-              {% endif %}
-            </div>
-
-            <!-- Email Address -->
-            <div class="col-12 col-md-6">
-              <label class="form-label">Email Address <span class="text-danger">*</span></label>
-              {{ form.email }}
-              {% if form.email.errors %}
-                <div class="text-danger small mt-1">{{ form.email.errors.0 }}</div>
-              {% endif %}
-            </div>
-
-            <!-- Phone Number -->
-            <div class="col-12 col-md-6">
-              <label class="form-label">Phone Number</label>
-              {{ form.phone }}
-              {% if form.phone.errors %}
-                <div class="text-danger small mt-1">{{ form.phone.errors.0 }}</div>
-              {% endif %}
-            </div>
-
-            <!-- Date of Birth -->
-            <div class="col-12 col-md-6">
-              <label class="form-label">Date of Birth</label>
-              {{ form.date_of_birth }}
-              {% if form.date_of_birth.errors %}
-                <div class="text-danger small mt-1">{{ form.date_of_birth.errors.0 }}</div>
-              {% endif %}
-            </div>
-          </div>
-        </div>
-
-        <!-- Section 2: Education & Experience -->
-        <div class="mb-4 pt-3 border-top">
-          <h6 class="fw-bold text-primary mb-3 d-flex align-items-center gap-2">
-            <i class="bi bi-mortarboard-fill"></i> Education &amp; Work Background
-          </h6>
-
-          <div class="row g-3">
-            <!-- Highest Education -->
-            <div class="col-12 col-md-6">
-              <label class="form-label">Highest Qualification / Education</label>
-              {{ form.highest_education }}
-              {% if form.highest_education.errors %}
-                <div class="text-danger small mt-1">{{ form.highest_education.errors.0 }}</div>
-              {% endif %}
-            </div>
-
-            <!-- Experience (Optional) -->
-            <div class="col-12 col-md-6">
-              <label class="form-label">Total Experience <span class="text-muted fw-normal small">(Optional / Fresher)</span></label>
-              {{ form.experience }}
-              <div class="form-text text-muted small">Not mandatory — freshers are welcome to leave blank or enter 0.</div>
-              {% if form.experience.errors %}
-                <div class="text-danger small mt-1">{{ form.experience.errors.0 }}</div>
-              {% endif %}
-            </div>
-          </div>
-        </div>
-
-        <!-- Section 3: Resume / CV Upload -->
-        <div class="mb-4 pt-3 border-top">
-          <h6 class="fw-bold text-primary mb-3 d-flex align-items-center gap-2">
-            <i class="bi bi-file-earmark-arrow-up-fill"></i> Resume / Curriculum Vitae
-          </h6>
-
-          <div class="p-3 rounded-3 bg-light bg-opacity-50 border border-light-subtle mb-3">
-            {% if candidate.resume %}
-              <div class="d-flex align-items-center gap-2 mb-2 text-success small fw-semibold">
-                <i class="bi bi-check-circle-fill"></i> Saved profile resume available ({{ candidate.resume.name|truncatechars:30 }})
+            <div class="row g-3 mb-4">
+              <!-- A. USE MY PROFILE -->
+              <div class="col-12 col-md-4">
+                <div class="p-4 rounded-4 border border-2 h-100 bg-light d-flex flex-column justify-content-between source-card active-source" id="cardUseProfile">
+                  <div>
+                    <div class="d-flex align-items-center gap-2 text-primary mb-2">
+                      <i class="bi bi-person-check-fill fs-4"></i>
+                      <h6 class="fw-bold mb-0">Use My Profile</h6>
+                    </div>
+                    <p class="text-muted extra-small mb-3" style="font-size: 12px;">
+                      Fetch information saved in your Candidate Profile.
+                    </p>
+                  </div>
+                  <button type="button" class="btn btn-primary btn-sm w-100 fw-bold py-2" id="btnChooseProfile">
+                    <i class="bi bi-check-circle me-1"></i> Use My Profile
+                  </button>
+                </div>
               </div>
-            {% endif %}
-            <label class="form-label mb-1">Upload New / Updated Resume (PDF, DOC, DOCX)</label>
-            {{ form.resume }}
-            {% if form.resume.errors %}
-              <div class="text-danger small mt-1">{{ form.resume.errors.0 }}</div>
-            {% endif %}
+
+              <!-- B. AUTOFILL FROM RESUME -->
+              <div class="col-12 col-md-4">
+                <div class="p-4 rounded-4 border border-2 h-100 bg-white d-flex flex-column justify-content-between source-card" id="cardUploadResume">
+                  <div>
+                    <div class="d-flex align-items-center gap-2 text-primary mb-2">
+                      <i class="bi bi-file-earmark-arrow-up-fill fs-4"></i>
+                      <h6 class="fw-bold mb-0">Autofill From Resume</h6>
+                    </div>
+                    <p class="text-muted extra-small mb-3" style="font-size: 12px;">
+                      Upload your resume and automatically fill available information.
+                    </p>
+                  </div>
+                  <button type="button" class="btn btn-outline-primary btn-sm w-100 fw-bold py-2" id="btnChooseResume">
+                    <i class="bi bi-upload me-1"></i> Upload Resume
+                  </button>
+                </div>
+              </div>
+
+              <!-- C. ENTER MANUALLY -->
+              <div class="col-12 col-md-4">
+                <div class="p-4 rounded-4 border border-2 h-100 bg-white d-flex flex-column justify-content-between source-card" id="cardEnterManually">
+                  <div>
+                    <div class="d-flex align-items-center gap-2 text-primary mb-2">
+                      <i class="bi bi-pencil-square fs-4"></i>
+                      <h6 class="fw-bold mb-0">Enter Manually</h6>
+                    </div>
+                    <p class="text-muted extra-small mb-3" style="font-size: 12px;">
+                      Enter application information manually from scratch.
+                    </p>
+                  </div>
+                  <button type="button" class="btn btn-outline-primary btn-sm w-100 fw-bold py-2" id="btnChooseManual">
+                    <i class="bi bi-keyboard me-1"></i> Enter Manually
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Resume Upload Area (Dedicated, appears when Autofill is selected) -->
+            <div class="p-4 rounded-4 bg-light border d-none mb-4" id="resumeUploadArea">
+              <h6 class="fw-bold text-dark mb-1">
+                <i class="bi bi-file-earmark-pdf text-danger me-1"></i> Upload Resume Document
+              </h6>
+              <p class="text-muted extra-small mb-3" style="font-size: 12px;">
+                Supported formats: PDF, DOC, DOCX (Max 10MB).
+              </p>
+              <div class="input-group">
+                <input type="file" class="form-control" id="standaloneResumeInput" accept=".pdf,.doc,.docx">
+                <button type="button" class="btn btn-primary fw-bold px-4" id="btnTriggerParse">
+                  <i class="bi bi-magic me-1"></i> Extract Details
+                </button>
+              </div>
+              <div id="resumeParseLoading" class="text-primary small mt-2 d-none">
+                <span class="spinner-border spinner-border-sm me-1" role="status"></span> Extracting available information from resume...
+              </div>
+              <div id="resumeNoticeBox" class="alert alert-info py-2 px-3 small mt-3 d-none">
+                <i class="bi bi-info-circle-fill me-1"></i> Please review the extracted information before continuing.
+              </div>
+            </div>
+
+            <div id="profileSourceNotice" class="alert alert-success py-2 px-3 small mb-4">
+              <i class="bi bi-check-circle-fill me-1"></i> Information fetched from your Candidate Profile.
+            </div>
+
+            <!-- 6. PERSONAL INFORMATION SECTION -->
+            <div class="pt-3 border-top">
+              <h5 class="fw-bold text-dark mb-1 d-flex align-items-center gap-2">
+                <i class="bi bi-person-fill text-primary"></i> Personal Information
+              </h5>
+              <p class="text-muted small mb-3">Review or update your personal contact details:</p>
+
+              <div class="row g-3">
+                <div class="col-12 col-md-4">
+                  <label class="form-label fw-semibold small">First Name <span class="text-danger">*</span></label>
+                  {{ form.first_name }}
+                  {% if form.first_name.errors %}<div class="text-danger extra-small">{{ form.first_name.errors.0 }}</div>{% endif %}
+                </div>
+
+                <div class="col-12 col-md-4">
+                  <label class="form-label fw-semibold small">Middle Name</label>
+                  {{ form.middle_name }}
+                </div>
+
+                <div class="col-12 col-md-4">
+                  <label class="form-label fw-semibold small">Last Name <span class="text-danger">*</span></label>
+                  {{ form.last_name }}
+                  {% if form.last_name.errors %}<div class="text-danger extra-small">{{ form.last_name.errors.0 }}</div>{% endif %}
+                </div>
+
+                <div class="col-12 col-md-6">
+                  <label class="form-label fw-semibold small">Email Address <span class="text-danger">*</span></label>
+                  {{ form.email }}
+                  {% if form.email.errors %}<div class="text-danger extra-small">{{ form.email.errors.0 }}</div>{% endif %}
+                </div>
+
+                <div class="col-12 col-md-6">
+                  <label class="form-label fw-semibold small">Phone Number <span class="text-danger">*</span></label>
+                  {{ form.phone }}
+                  {% if form.phone.errors %}<div class="text-danger extra-small">{{ form.phone.errors.0 }}</div>{% endif %}
+                </div>
+
+                <div class="col-12 col-md-4">
+                  <label class="form-label fw-semibold small">Date of Birth</label>
+                  {{ form.date_of_birth }}
+                </div>
+
+                <div class="col-12 col-md-4">
+                  <label class="form-label fw-semibold small">State / Province <span class="text-danger">*</span></label>
+                  {{ form.current_state }}
+                  {% if form.current_state.errors %}<div class="text-danger extra-small">{{ form.current_state.errors.0 }}</div>{% endif %}
+                </div>
+
+                <div class="col-12 col-md-4">
+                  <label class="form-label fw-semibold small">Country <span class="text-danger">*</span></label>
+                  {{ form.current_country }}
+                  {% if form.current_country.errors %}<div class="text-danger extra-small">{{ form.current_country.errors.0 }}</div>{% endif %}
+                </div>
+
+                <div class="col-12">
+                  <label class="form-label fw-semibold small">Residential Address</label>
+                  {{ form.address }}
+                </div>
+              </div>
+            </div>
+
+            <!-- Step 1 Actions -->
+            <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top">
+              <button type="button" class="btn btn-blue-primary px-4 py-2 fw-bold next-step-btn" data-next="2">
+                Continue to Education &amp; Experience <i class="bi bi-arrow-right ms-1"></i>
+              </button>
+            </div>
           </div>
         </div>
 
-        <!-- Section 4: Terms and Conditions Agreement -->
-        <div class="mb-4 pt-3 border-top">
-          <div class="form-check p-3 rounded-3 bg-light bg-opacity-25 border">
-            {{ form.terms_agreement }}
-            <label class="form-check-label small fw-semibold text-dark ms-2" for="{{ form.terms_agreement.id_for_label }}">
-              {{ form.terms_agreement.label }}
-            </label>
-            {% if form.terms_agreement.errors %}
-              <div class="text-danger small mt-1">{{ form.terms_agreement.errors.0 }}</div>
-            {% endif %}
+        <!-- ================================================================= -->
+        <!-- STEP 2: EDUCATION & EXPERIENCE -->
+        <!-- ================================================================= -->
+        <div class="step-pane d-none" id="step2">
+          <div class="portal-card bg-white p-4 p-md-5 shadow-sm border-0 rounded-4 mb-4">
+            
+            <!-- 7. EDUCATION SECTION -->
+            <div class="mb-5">
+              <h5 class="fw-bold text-dark mb-1 d-flex align-items-center gap-2">
+                <i class="bi bi-mortarboard-fill text-primary"></i> Academic Education Records
+              </h5>
+              <p class="text-muted small mb-4">Enter and verify your secondary and higher educational qualifications:</p>
+
+              <!-- 10th Standard Editable Fields -->
+              <div class="p-4 bg-light rounded-4 border mb-4">
+                <h6 class="fw-bold text-dark mb-3">
+                  <i class="bi bi-award text-success me-1"></i> 10th Standard / Matriculation
+                </h6>
+                <div class="row g-3">
+                  <div class="col-12 col-md-4">
+                    <label class="form-label fw-semibold small">10th Board / Examination Body</label>
+                    {{ form.tenth_board }}
+                  </div>
+                  <div class="col-12 col-md-4">
+                    <label class="form-label fw-semibold small">10th School / Institute Name</label>
+                    {{ form.tenth_school }}
+                  </div>
+                  <div class="col-12 col-md-2">
+                    <label class="form-label fw-semibold small">Percentage / CGPA</label>
+                    {{ form.tenth_percentage }}
+                  </div>
+                  <div class="col-12 col-md-2">
+                    <label class="form-label fw-semibold small">Passing Year</label>
+                    {{ form.tenth_passing_year }}
+                  </div>
+                </div>
+              </div>
+
+              <!-- 12th Standard Editable Fields -->
+              <div class="p-4 bg-light rounded-4 border mb-4">
+                <h6 class="fw-bold text-dark mb-3">
+                  <i class="bi bi-award text-success me-1"></i> 12th Standard / Higher Secondary
+                </h6>
+                <div class="row g-3">
+                  <div class="col-12 col-md-3">
+                    <label class="form-label fw-semibold small">12th Board / Council</label>
+                    {{ form.twelfth_board }}
+                  </div>
+                  <div class="col-12 col-md-3">
+                    <label class="form-label fw-semibold small">Junior College / School Name</label>
+                    {{ form.twelfth_school }}
+                  </div>
+                  <div class="col-12 col-md-2">
+                    <label class="form-label fw-semibold small">Stream</label>
+                    {{ form.twelfth_stream }}
+                  </div>
+                  <div class="col-12 col-md-2">
+                    <label class="form-label fw-semibold small">Percentage / CGPA</label>
+                    {{ form.twelfth_percentage }}
+                  </div>
+                  <div class="col-12 col-md-2">
+                    <label class="form-label fw-semibold small">Passing Year</label>
+                    {{ form.twelfth_passing_year }}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Higher Education Records Section -->
+              <div class="p-4 bg-light rounded-4 border mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                  <h6 class="fw-bold text-dark mb-0">
+                    <i class="bi bi-mortarboard-fill text-primary me-1"></i> Higher Education Qualifications
+                  </h6>
+                  <button type="button" class="btn btn-outline-primary btn-sm fw-semibold" id="btnAddHigherEduRow">
+                    <i class="bi bi-plus-circle me-1"></i> Add Another Degree
+                  </button>
+                </div>
+
+                <!-- Primary Higher Education Record Fields -->
+                <div class="p-3 bg-white rounded-3 border mb-3" id="primaryHigherEduCard">
+                  <div class="d-flex justify-content-between align-items-center mb-2">
+                    <span class="badge bg-primary text-white fw-bold">Primary Higher Education</span>
+                  </div>
+                  <div class="row g-3">
+                    <div class="col-12 col-md-3">
+                      <label class="form-label fw-semibold small">Education Level</label>
+                      {{ form.education_level }}
+                    </div>
+                    <div class="col-12 col-md-3">
+                      <label class="form-label fw-semibold small">Degree Program</label>
+                      {{ form.degree_program }}
+                    </div>
+                    <div class="col-12 col-md-3">
+                      <label class="form-label fw-semibold small">Field of Study</label>
+                      {{ form.field_of_study }}
+                    </div>
+                    <div class="col-12 col-md-3">
+                      <label class="form-label fw-semibold small">Status</label>
+                      {{ form.education_status }}
+                    </div>
+                    <div class="col-12 col-md-4">
+                      <label class="form-label fw-semibold small">College / Institute Name</label>
+                      {{ form.institution }}
+                    </div>
+                    <div class="col-12 col-md-4">
+                      <label class="form-label fw-semibold small">University / Board</label>
+                      {{ form.university_board }}
+                    </div>
+                    <div class="col-12 col-md-2">
+                      <label class="form-label fw-semibold small">Graduation Year</label>
+                      {{ form.completion_year }}
+                    </div>
+                    <div class="col-12 col-md-2">
+                      <label class="form-label fw-semibold small">Percentage / CGPA</label>
+                      {{ form.percentage_or_cgpa }}
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Dynamic Additional Higher Education Rows Container -->
+                <div id="additionalHigherEduContainer" class="d-flex flex-column gap-3"></div>
+              </div>
+            </div>
+
+            <!-- 8. EXPERIENCE SECTION -->
+            <div class="pt-4 border-top">
+              <h5 class="fw-bold text-dark mb-1 d-flex align-items-center gap-2">
+                <i class="bi bi-briefcase-fill text-primary"></i> Work Experience
+              </h5>
+              <p class="text-muted small mb-3">Professional work history and current employment status:</p>
+
+              <div class="row g-3">
+                <div class="col-12 col-md-6">
+                  <label class="form-label fw-semibold small">Are you a fresher? <span class="text-danger">*</span></label>
+                  {{ form.is_fresher }}
+                </div>
+
+                <!-- Fresher Display Message -->
+                <div class="col-12 col-md-6 d-flex align-items-center" id="fresherStatusBadge">
+                  <div class="p-2.5 px-3 bg-success-subtle text-success rounded-3 border border-success-subtle fw-semibold small w-100">
+                    <i class="bi bi-person-badge me-1"></i> Status: Fresher (No prior professional experience)
+                  </div>
+                </div>
+
+                <!-- Conditional Experienced Fields -->
+                <div class="col-12 d-none" id="experiencedFields">
+                  <div class="p-3 bg-light rounded-3 border">
+                    <div class="row g-3">
+                      <div class="col-12 col-md-3">
+                        <label class="form-label fw-semibold small">Total Experience (Years)</label>
+                        {{ form.total_experience_years }}
+                      </div>
+                      <div class="col-12 col-md-3">
+                        <label class="form-label fw-semibold small">Total Experience (Months)</label>
+                        {{ form.total_experience_months }}
+                      </div>
+                      <div class="col-12 col-md-3">
+                        <label class="form-label fw-semibold small">Current Organization</label>
+                        {{ form.current_organization }}
+                      </div>
+                      <div class="col-12 col-md-3">
+                        <label class="form-label fw-semibold small">Current Designation</label>
+                        {{ form.current_designation }}
+                      </div>
+                      <div class="col-12 col-md-4">
+                        <label class="form-label fw-semibold small">Notice Period (in Days)</label>
+                        {{ form.notice_period_days }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Step 2 Actions -->
+            <div class="d-flex justify-content-between gap-2 mt-5 pt-3 border-top">
+              <button type="button" class="btn btn-light border px-4 py-2 prev-step-btn" data-prev="1">
+                <i class="bi bi-arrow-left me-1"></i> Back
+              </button>
+              <button type="button" class="btn btn-blue-primary px-4 py-2 fw-bold next-step-btn" data-next="3">
+                Continue to Additional Details <i class="bi bi-arrow-right ms-1"></i>
+              </button>
+            </div>
           </div>
         </div>
 
-        <!-- Form Actions -->
-        <div class="d-flex justify-content-end gap-2 pt-3 border-top">
-          <a class="btn btn-light border px-4 py-2" href="{% url 'candidates:job_detail' job.vacancy_id %}">
-            Cancel
-          </a>
-          <button type="submit" class="btn-blue-primary px-4 py-2">
-            <i class="bi bi-check2-circle me-1"></i> Submit Application
-          </button>
+        <!-- ================================================================= -->
+        <!-- STEP 3: ADDITIONAL APPLICATION DETAILS & SKILLS -->
+        <!-- ================================================================= -->
+        <div class="step-pane d-none" id="step3">
+          <div class="portal-card bg-white p-4 p-md-5 shadow-sm border-0 rounded-4 mb-4">
+            
+            <!-- 9. APPLICATION-SPECIFIC QUESTIONS -->
+            <div class="mb-5">
+              <h5 class="fw-bold text-dark mb-1 d-flex align-items-center gap-2">
+                <i class="bi bi-question-circle-fill text-primary"></i> Additional Application Details
+              </h5>
+              <p class="text-muted small mb-4">Please answer the following position-related questions:</p>
+
+              <div class="row g-3">
+                <!-- Question: Are you currently employed? -->
+                <div class="col-12 col-md-6">
+                  <div class="p-3 bg-light rounded-3 border h-100">
+                    <label class="form-label fw-semibold small">Are you currently employed?</label>
+                    {{ form.is_currently_employed }}
+                  </div>
+                </div>
+
+                <!-- Question: Are you willing to relocate? -->
+                <div class="col-12 col-md-6">
+                  <div class="p-3 bg-light rounded-3 border h-100">
+                    <label class="form-label fw-semibold small">Are you willing to relocate?</label>
+                    {{ form.willing_to_relocate }}
+                  </div>
+                </div>
+
+                <!-- Question: Have you previously worked for this organization? -->
+                <div class="col-12 col-md-6">
+                  <div class="p-3 bg-light rounded-3 border h-100">
+                    <label class="form-label fw-semibold small">Have you previously worked for this organization?</label>
+                    {{ form.is_past_employee }}
+                  </div>
+                </div>
+
+                <!-- Conditional Past Employee Info -->
+                <div class="col-12 d-none" id="pastEmployeeRow">
+                  <div class="p-3 bg-primary-subtle rounded-3 border border-primary-subtle">
+                    <h6 class="fw-bold text-primary small mb-2">Previous Employment Record:</h6>
+                    <div class="row g-2">
+                      <div class="col-12 col-md-4">
+                        <label class="form-label extra-small fw-semibold">Previous Employee ID</label>
+                        {{ form.past_employee_id }}
+                      </div>
+                      <div class="col-12 col-md-4">
+                        <label class="form-label extra-small fw-semibold">Previous Designation</label>
+                        {{ form.past_designation }}
+                      </div>
+                      <div class="col-12 col-md-4">
+                        <label class="form-label extra-small fw-semibold">Employment Period</label>
+                        {{ form.past_employment_period }}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Question: Work Authorization -->
+                <div class="col-12 col-md-6">
+                  <div class="p-3 bg-light rounded-3 border h-100">
+                    <label class="form-label fw-semibold small">Do you have valid work authorization for this job location?</label>
+                    {{ form.legally_authorized }}
+                  </div>
+                </div>
+
+                <!-- Question: Visa Sponsorship -->
+                <div class="col-12 col-md-6">
+                  <div class="p-3 bg-light rounded-3 border h-100">
+                    <label class="form-label fw-semibold small">Do you require visa sponsorship?</label>
+                    {{ form.requires_visa_sponsorship }}
+                    <div class="mt-2 d-none" id="visaStatusWrapper">
+                      <label class="form-label extra-small text-muted fw-semibold">Current Visa Status / Type:</label>
+                      {{ form.visa_status }}
+                    </div>
+                  </div>
+                </div>
+
+                <!-- 10. EXPECTED CTC -->
+                <div class="col-12 col-md-6">
+                  <div class="p-3 bg-light rounded-3 border h-100">
+                    <label class="form-label fw-semibold small">Expected CTC (Annual in ₹)</label>
+                    {{ form.expected_salary }}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- 11. SKILLS & STATEMENT -->
+            <div class="pt-4 border-top">
+              <h5 class="fw-bold text-dark mb-1 d-flex align-items-center gap-2">
+                <i class="bi bi-tools text-primary"></i> Skills &amp; Statement of Interest
+              </h5>
+              <p class="text-muted small mb-3">Key technical competencies and motivation for applying:</p>
+
+              <div class="row g-3">
+                <div class="col-12">
+                  <label class="form-label fw-semibold small">Candidate Skills (Comma-separated) <span class="text-danger">*</span></label>
+                  {{ form.applied_skills }}
+                  {% if form.applied_skills.errors %}<div class="text-danger extra-small">{{ form.applied_skills.errors.0 }}</div>{% endif %}
+                </div>
+                <div class="col-12">
+                  <label class="form-label fw-semibold small">Why are you interested in this role? (Optional)</label>
+                  {{ form.why_interested }}
+                </div>
+              </div>
+            </div>
+
+            <!-- Step 3 Actions -->
+            <div class="d-flex justify-content-between gap-2 mt-5 pt-3 border-top">
+              <button type="button" class="btn btn-light border px-4 py-2 prev-step-btn" data-prev="2">
+                <i class="bi bi-arrow-left me-1"></i> Back
+              </button>
+              <button type="button" class="btn btn-blue-primary px-4 py-2 fw-bold next-step-btn" data-next="4" id="btnCheckEligibility">
+                Check Eligibility &amp; Continue <i class="bi bi-arrow-right ms-1"></i>
+              </button>
+            </div>
+          </div>
         </div>
+
+        <!-- ================================================================= -->
+        <!-- STEP 4: ELIGIBILITY CHECK (SIMPLE & DIRECT) -->
+        <!-- ================================================================= -->
+        <div class="step-pane d-none" id="step4">
+          <div class="portal-card bg-white p-4 p-md-5 shadow-sm border-0 rounded-4 mb-4">
+            <h5 class="fw-bold text-dark mb-3 d-flex align-items-center gap-2">
+              <i class="bi bi-shield-check text-primary"></i> Eligibility Review
+            </h5>
+
+            <!-- 13. SIMPLE ELIGIBILITY RESULT DISPLAY -->
+            <div id="eligibilityResultCard" class="p-4 rounded-4 border mb-4 {% if eligibility_eval.is_eligible %}bg-success-subtle border-success{% else %}bg-danger-subtle border-danger{% endif %}">
+              <div class="d-flex align-items-start gap-3">
+                <div class="fs-2 {% if eligibility_eval.is_eligible %}text-success{% else %}text-danger{% endif %}" id="eligibilityIcon">
+                  {% if eligibility_eval.is_eligible %}
+                    <i class="bi bi-check-circle-fill"></i>
+                  {% else %}
+                    <i class="bi bi-x-circle-fill"></i>
+                  {% endif %}
+                </div>
+                <div>
+                  <h5 class="fw-bold text-dark mb-1" id="eligibilityHeading">
+                    {% if eligibility_eval.is_eligible %}
+                      ✓ You are eligible to apply for this position.
+                    {% else %}
+                      ✗ You are not eligible to apply.
+                    {% endif %}
+                  </h5>
+                  <div class="text-secondary small mt-2" id="eligibilityReasonsList">
+                    {% if not eligibility_eval.is_eligible %}
+                      <strong>Reason:</strong>
+                      <ul class="mb-0 ps-3 mt-1 text-danger">
+                        {% for r in eligibility_eval.reasons %}
+                          <li>{{ r }}</li>
+                        {% empty %}
+                          <li>Candidate qualifications or experience do not meet minimum position requirements.</li>
+                        {% endfor %}
+                      </ul>
+                    {% else %}
+                      <p class="mb-0 text-success fw-medium">Your qualification and experience meet the job vacancy requirements.</p>
+                    {% endif %}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Step 4 Actions -->
+            <div class="d-flex justify-content-between gap-2 mt-4 pt-3 border-top">
+              <button type="button" class="btn btn-light border px-4 py-2 prev-step-btn" data-prev="3">
+                <i class="bi bi-arrow-left me-1"></i> Back
+              </button>
+              <button type="button" class="btn btn-blue-primary px-4 py-2 fw-bold next-step-btn" data-next="5" id="btnContinueToDocs">
+                Proceed to Documents &amp; Declaration <i class="bi bi-arrow-right ms-1"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ================================================================= -->
+        <!-- STEP 5: DOCUMENTS & FINAL DECLARATION -->
+        <!-- ================================================================= -->
+        <div class="step-pane d-none" id="step5">
+          <div class="portal-card bg-white p-4 p-md-5 shadow-sm border-0 rounded-4 mb-4">
+            
+            <!-- 12. RESUME / DOCUMENTS -->
+            <div class="mb-5">
+              <h5 class="fw-bold text-dark mb-1 d-flex align-items-center gap-2">
+                <i class="bi bi-file-earmark-text-fill text-primary"></i> Resume / Documents
+              </h5>
+              <p class="text-muted small mb-3">Review your submitted application document:</p>
+
+              <div class="p-4 bg-light rounded-4 border">
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
+                  <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-file-earmark-pdf-fill text-danger fs-3"></i>
+                    <div>
+                      <strong class="text-dark d-block" id="activeResumeName">
+                        {% if candidate.resume %}{{ candidate.resume.name|cut:"candidates/resumes/" }}{% else %}Profile Resume{% endif %}
+                      </strong>
+                      <span class="text-muted extra-small" id="activeResumeBadge">Primary application document</span>
+                    </div>
+                  </div>
+                  {% if candidate.resume %}
+                    <a href="{{ candidate.resume.url }}" target="_blank" class="btn btn-sm btn-outline-primary px-3" id="btnViewSavedResume">
+                      <i class="bi bi-eye me-1"></i> View Saved Resume
+                    </a>
+                  {% endif %}
+                </div>
+
+                <div class="pt-3 border-top">
+                  <label class="form-label small fw-semibold text-muted mb-1">Upload Alternate Resume (Optional):</label>
+                  {{ form.resume }}
+                  {% if form.resume.errors %}<div class="text-danger extra-small mt-1">{{ form.resume.errors.0 }}</div>{% endif %}
+                </div>
+              </div>
+            </div>
+
+            <!-- 14. FINAL DECLARATION -->
+            <div class="mb-4 pt-3 border-top">
+              <div class="p-3 rounded-3 bg-light border">
+                <div class="form-check">
+                  {{ form.terms_agreement }}
+                  <label class="form-check-label small fw-semibold text-dark ms-2" for="id_terms_agreement">
+                    I confirm that all information provided in this application is accurate.
+                  </label>
+                </div>
+                {% if form.terms_agreement.errors %}
+                  <div class="text-danger small mt-1">{{ form.terms_agreement.errors.0 }}</div>
+                {% endif %}
+              </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="d-flex justify-content-between align-items-center pt-3 border-top flex-wrap gap-2">
+              <button type="button" class="btn btn-light border px-4 py-2 prev-step-btn" data-prev="4">
+                <i class="bi bi-arrow-left me-1"></i> Back
+              </button>
+              <button type="submit" class="btn btn-blue-primary px-5 py-2.5 fw-bold shadow-sm" id="btnFinalSubmit">
+                <i class="bi bi-send-fill me-1"></i> Submit Application
+              </button>
+            </div>
+          </div>
+        </div>
+
       </form>
-    </div>
+    {% endif %}
   </div>
 </div>
+
+<!-- Raw Candidate Profile Education Records JSON for JS Pre-fill -->
+<script id="profileEducationData" type="application/json">
+[
+  {% for edu in education_records %}
+  {
+    "education_level": "{{ edu.education_level|escapejs }}",
+    "degree_program": "{{ edu.degree_program|escapejs }}",
+    "field_of_study": "{{ edu.field_of_study|escapejs }}",
+    "institution": "{{ edu.institution|escapejs }}",
+    "university_board": "{{ edu.university_board|default:''|escapejs }}",
+    "education_status": "{{ edu.education_status|escapejs }}",
+    "completion_year": {{ edu.completion_year|default:'null' }},
+    "percentage_or_cgpa": "{{ edu.percentage_or_cgpa|default:''|escapejs }}"
+  }{% if not forloop.last %},{% endif %}
+  {% endfor %}
+]
+</script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  let currentStep = 1;
+
+  // Cached verified profile data
+  const profileData = {
+    first_name: "{{ candidate.first_name|escapejs }}",
+    middle_name: "{{ candidate.middle_name|default:''|escapejs }}",
+    last_name: "{{ candidate.last_name|escapejs }}",
+    email: "{{ candidate.user.email|escapejs }}",
+    phone: "{{ candidate.phone|escapejs }}",
+    date_of_birth: "{{ candidate.date_of_birth|date:'Y-m-d'|default:'' }}",
+    address: "{{ candidate.address|escapejs }}",
+    state: "{{ candidate.state|default:''|escapejs }}",
+    country: "{{ candidate.country|default:'India'|escapejs }}",
+    skills: "{{ candidate.skills|default:''|escapejs }}",
+    tenth_board: "{{ candidate.tenth_board|default:''|escapejs }}",
+    tenth_school: "{{ candidate.tenth_school|default:''|escapejs }}",
+    tenth_percentage: "{{ candidate.tenth_percentage|default:''|escapejs }}",
+    tenth_passing_year: "{{ candidate.tenth_passing_year|default:'' }}",
+    twelfth_board: "{{ candidate.twelfth_board|default:''|escapejs }}",
+    twelfth_school: "{{ candidate.twelfth_school|default:''|escapejs }}",
+    twelfth_stream: "{{ candidate.twelfth_stream|default:''|escapejs }}",
+    twelfth_percentage: "{{ candidate.twelfth_percentage|default:''|escapejs }}",
+    twelfth_passing_year: "{{ candidate.twelfth_passing_year|default:'' }}",
+    is_fresher: "{% if candidate.is_fresher %}Yes{% else %}No{% endif %}",
+    total_experience_years: "{{ candidate.total_experience_years|default:0 }}",
+    total_experience_months: "{{ candidate.total_experience_months|default:0 }}",
+    current_organization: "{{ candidate.current_organization|default:''|escapejs }}",
+    current_designation: "{{ candidate.current_designation|default:''|escapejs }}",
+    resume_name: "{% if candidate.resume %}{{ candidate.resume.name|cut:'candidates/resumes/'|escapejs }}{% else %}Profile Resume{% endif %}"
+  };
+
+  let profileEducations = [];
+  try {
+    profileEducations = JSON.parse(document.getElementById("profileEducationData").textContent || "[]");
+  } catch(e) {
+    profileEducations = [];
+  }
+
+  // Stepper pane switcher
+  function showStep(stepNum) {
+    document.querySelectorAll(".step-pane").forEach(pane => pane.classList.add("d-none"));
+    const target = document.getElementById("step" + stepNum);
+    if (target) {
+      target.classList.remove("d-none");
+      currentStep = stepNum;
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    // Update stepper nav bar
+    document.querySelectorAll("#stepperNav .step-indicator").forEach(ind => {
+      const s = parseInt(ind.getAttribute("data-step"));
+      const numBadge = ind.querySelector(".step-num");
+      const title = ind.querySelector(".step-title");
+
+      if (s === stepNum) {
+        ind.classList.add("active");
+        ind.classList.remove("text-muted");
+        numBadge.className = "step-num badge bg-primary text-white rounded-circle me-1";
+        title.className = "step-title fw-bold small text-dark";
+      } else if (s < stepNum) {
+        ind.classList.remove("active", "text-muted");
+        numBadge.className = "step-num badge bg-success text-white rounded-circle me-1";
+        title.className = "step-title fw-semibold small text-dark";
+      } else {
+        ind.classList.remove("active");
+        ind.classList.add("text-muted");
+        numBadge.className = "step-num badge bg-light text-secondary border rounded-circle me-1";
+        title.className = "step-title fw-semibold small text-muted";
+      }
+    });
+  }
+
+  document.querySelectorAll(".next-step-btn").forEach(btn => {
+    btn.addEventListener("click", function() {
+      const next = parseInt(this.getAttribute("data-next"));
+      showStep(next);
+    });
+  });
+
+  document.querySelectorAll(".prev-step-btn").forEach(btn => {
+    btn.addEventListener("click", function() {
+      const prev = parseInt(this.getAttribute("data-prev"));
+      showStep(prev);
+    });
+  });
+
+  // Source Selector Controls
+  const topSourceBadge = document.getElementById("topSourceBadge");
+  const cardProfile = document.getElementById("cardUseProfile");
+  const cardResume = document.getElementById("cardUploadResume");
+  const cardManual = document.getElementById("cardEnterManually");
+  const uploadArea = document.getElementById("resumeUploadArea");
+  const profileNotice = document.getElementById("profileSourceNotice");
+  const infoSourceInput = document.getElementById("id_information_source");
+  const activeResumeName = document.getElementById("activeResumeName");
+  const activeResumeBadge = document.getElementById("activeResumeBadge");
+
+  // Dynamic Higher Education Rows Manager
+  const additionalEduContainer = document.getElementById("additionalHigherEduContainer");
+  const btnAddHigherEduRow = document.getElementById("btnAddHigherEduRow");
+  const higherEduJsonInput = document.getElementById("id_higher_education_json");
+
+  let additionalEdus = [];
+
+  function renderAdditionalEduRows() {
+    if (!additionalEduContainer) return;
+    additionalEduContainer.innerHTML = "";
+
+    additionalEdus.forEach((edu, idx) => {
+      const card = document.createElement("div");
+      card.className = "p-3 bg-white rounded-3 border";
+      card.innerHTML = `
+        <div class="d-flex justify-content-between align-items-center mb-2">
+          <span class="badge bg-secondary text-white fw-bold">Degree Record #${idx + 2}</span>
+          <button type="button" class="btn btn-outline-danger btn-sm py-0 px-2" data-idx="${idx}">
+            <i class="bi bi-trash"></i> Remove
+          </button>
+        </div>
+        <div class="row g-3">
+          <div class="col-12 col-md-3">
+            <label class="form-label fw-semibold extra-small">Education Level</label>
+            <input type="text" class="form-control form-control-sm row-edu-level" value="${edu.education_level || ''}" placeholder="e.g. Master's / Diploma">
+          </div>
+          <div class="col-12 col-md-3">
+            <label class="form-label fw-semibold extra-small">Degree Program</label>
+            <input type="text" class="form-control form-control-sm row-edu-degree" value="${edu.degree_program || ''}" placeholder="e.g. MCA / M.Tech">
+          </div>
+          <div class="col-12 col-md-3">
+            <label class="form-label fw-semibold extra-small">Field of Study</label>
+            <input type="text" class="form-control form-control-sm row-edu-field" value="${edu.field_of_study || ''}" placeholder="e.g. Computer Science">
+          </div>
+          <div class="col-12 col-md-3">
+            <label class="form-label fw-semibold extra-small">Status</label>
+            <input type="text" class="form-control form-control-sm row-edu-status" value="${edu.education_status || 'Graduated'}">
+          </div>
+          <div class="col-12 col-md-4">
+            <label class="form-label fw-semibold extra-small">College / Institute</label>
+            <input type="text" class="form-control form-control-sm row-edu-inst" value="${edu.institution || ''}">
+          </div>
+          <div class="col-12 col-md-4">
+            <label class="form-label fw-semibold extra-small">University / Board</label>
+            <input type="text" class="form-control form-control-sm row-edu-univ" value="${edu.university_board || ''}">
+          </div>
+          <div class="col-12 col-md-2">
+            <label class="form-label fw-semibold extra-small">Passing Year</label>
+            <input type="number" class="form-control form-control-sm row-edu-year" value="${edu.completion_year || ''}">
+          </div>
+          <div class="col-12 col-md-2">
+            <label class="form-label fw-semibold extra-small">Score / CGPA</label>
+            <input type="text" class="form-control form-control-sm row-edu-score" value="${edu.percentage_or_cgpa || ''}">
+          </div>
+        </div>
+      `;
+
+      card.querySelector("button")?.addEventListener("click", function() {
+        additionalEdus.splice(idx, 1);
+        renderAdditionalEduRows();
+        syncHigherEduJson();
+      });
+
+      card.querySelectorAll("input").forEach(inp => {
+        inp.addEventListener("input", syncHigherEduJson);
+      });
+
+      additionalEduContainer.appendChild(card);
+    });
+
+    syncHigherEduJson();
+  }
+
+  function syncHigherEduJson() {
+    if (!additionalEduContainer || !higherEduJsonInput) return;
+    const cards = additionalEduContainer.querySelectorAll(".p-3");
+    const records = [];
+    cards.forEach(card => {
+      records.push({
+        education_level: card.querySelector(".row-edu-level")?.value || "",
+        degree_program: card.querySelector(".row-edu-degree")?.value || "",
+        field_of_study: card.querySelector(".row-edu-field")?.value || "",
+        education_status: card.querySelector(".row-edu-status")?.value || "Graduated",
+        institution: card.querySelector(".row-edu-inst")?.value || "",
+        university_board: card.querySelector(".row-edu-univ")?.value || "",
+        completion_year: parseInt(card.querySelector(".row-edu-year")?.value) || null,
+        percentage_or_cgpa: card.querySelector(".row-edu-score")?.value || ""
+      });
+    });
+    higherEduJsonInput.value = JSON.stringify(records);
+  }
+
+  if (btnAddHigherEduRow) {
+    btnAddHigherEduRow.addEventListener("click", function() {
+      additionalEdus.push({
+        education_level: "Master's",
+        degree_program: "",
+        field_of_study: "Computer Applications",
+        education_status: "Graduated",
+        institution: "",
+        university_board: "",
+        completion_year: null,
+        percentage_or_cgpa: ""
+      });
+      renderAdditionalEduRows();
+    });
+  }
+
+  // Source selection switcher
+  function selectSource(sourceKey) {
+    infoSourceInput.value = sourceKey;
+    [cardProfile, cardResume, cardManual].forEach(c => {
+      if (c) {
+        c.classList.remove("active-source", "bg-light");
+        c.classList.add("bg-white");
+      }
+    });
+
+    if (sourceKey === "PROFILE") {
+      if (cardProfile) {
+        cardProfile.classList.add("active-source", "bg-light");
+        cardProfile.classList.remove("bg-white");
+      }
+      if (uploadArea) uploadArea.classList.add("d-none");
+      if (profileNotice) {
+        profileNotice.classList.remove("d-none");
+        profileNotice.className = "alert alert-success py-2 px-3 small mb-4";
+        profileNotice.innerHTML = '<i class="bi bi-check-circle-fill me-1"></i> Information fetched from your Candidate Profile.';
+      }
+      if (topSourceBadge) {
+        topSourceBadge.className = "badge bg-primary-subtle text-primary border border-primary-subtle px-3 py-2 rounded-pill fw-bold";
+        topSourceBadge.innerHTML = '<i class="bi bi-person-check-fill me-1"></i> Source: Candidate Profile';
+      }
+
+      // Populate personal info
+      document.getElementById("id_first_name").value = profileData.first_name;
+      document.getElementById("id_middle_name").value = profileData.middle_name;
+      document.getElementById("id_last_name").value = profileData.last_name;
+      document.getElementById("id_email").value = profileData.email;
+      document.getElementById("id_phone").value = profileData.phone;
+      if (profileData.date_of_birth) document.getElementById("id_date_of_birth").value = profileData.date_of_birth;
+      document.getElementById("id_address").value = profileData.address;
+      document.getElementById("id_current_state").value = profileData.state;
+      document.getElementById("id_current_country").value = profileData.country;
+
+      // Populate 10th & 12th
+      document.getElementById("id_tenth_board").value = profileData.tenth_board;
+      document.getElementById("id_tenth_school").value = profileData.tenth_school;
+      document.getElementById("id_tenth_percentage").value = profileData.tenth_percentage;
+      document.getElementById("id_tenth_passing_year").value = profileData.tenth_passing_year;
+
+      document.getElementById("id_twelfth_board").value = profileData.twelfth_board;
+      document.getElementById("id_twelfth_school").value = profileData.twelfth_school;
+      document.getElementById("id_twelfth_stream").value = profileData.twelfth_stream;
+      document.getElementById("id_twelfth_percentage").value = profileData.twelfth_percentage;
+      document.getElementById("id_twelfth_passing_year").value = profileData.twelfth_passing_year;
+
+      // Populate primary higher education
+      if (profileEducations.length > 0) {
+        const prim = profileEducations[0];
+        document.getElementById("id_education_level").value = prim.education_level || "";
+        document.getElementById("id_degree_program").value = prim.degree_program || "";
+        document.getElementById("id_field_of_study").value = prim.field_of_study || "";
+        document.getElementById("id_education_status").value = prim.education_status || "Graduated";
+        document.getElementById("id_institution").value = prim.institution || "";
+        document.getElementById("id_university_board").value = prim.university_board || "";
+        document.getElementById("id_completion_year").value = prim.completion_year || "";
+        document.getElementById("id_percentage_or_cgpa").value = prim.percentage_or_cgpa || "";
+
+        // Additional education rows
+        additionalEdus = profileEducations.slice(1);
+        renderAdditionalEduRows();
+      } else {
+        additionalEdus = [];
+        renderAdditionalEduRows();
+      }
+
+      // Experience & Skills
+      document.getElementById("id_applied_skills").value = profileData.skills;
+      const fresherSelect = document.getElementById("id_is_fresher_select");
+      if (fresherSelect) {
+        fresherSelect.value = profileData.is_fresher;
+        toggleFresher();
+      }
+      document.getElementById("id_total_experience_years").value = profileData.total_experience_years;
+      document.getElementById("id_total_experience_months").value = profileData.total_experience_months;
+      document.getElementById("id_current_organization").value = profileData.current_organization;
+      document.getElementById("id_current_designation").value = profileData.current_designation;
+
+      if (activeResumeName) activeResumeName.innerText = profileData.resume_name;
+      if (activeResumeBadge) activeResumeBadge.innerText = "Candidate Profile Resume";
+
+    } else if (sourceKey === "RESUME") {
+      if (cardResume) {
+        cardResume.classList.add("active-source", "bg-light");
+        cardResume.classList.remove("bg-white");
+      }
+      if (uploadArea) uploadArea.classList.remove("d-none");
+      if (profileNotice) profileNotice.classList.add("d-none");
+      if (topSourceBadge) {
+        topSourceBadge.className = "badge bg-warning-subtle text-warning border border-warning-subtle px-3 py-2 rounded-pill fw-bold";
+        topSourceBadge.innerHTML = '<i class="bi bi-file-earmark-arrow-up-fill me-1"></i> Source: Autofill From Resume';
+      }
+
+    } else if (sourceKey === "MANUAL") {
+      if (cardManual) {
+        cardManual.classList.add("active-source", "bg-light");
+        cardManual.classList.remove("bg-white");
+      }
+      if (uploadArea) uploadArea.classList.add("d-none");
+      if (profileNotice) {
+        profileNotice.classList.remove("d-none");
+        profileNotice.className = "alert alert-secondary py-2 px-3 small mb-4";
+        profileNotice.innerHTML = '<i class="bi bi-pencil-square me-1"></i> Manual entry mode active. Fill in your information freely below.';
+      }
+      if (topSourceBadge) {
+        topSourceBadge.className = "badge bg-secondary-subtle text-secondary border border-secondary-subtle px-3 py-2 rounded-pill fw-bold";
+        topSourceBadge.innerHTML = '<i class="bi bi-keyboard me-1"></i> Source: Manual Entry';
+      }
+
+      // Clear fields for manual entry
+      document.getElementById("id_first_name").value = "";
+      document.getElementById("id_middle_name").value = "";
+      document.getElementById("id_last_name").value = "";
+      document.getElementById("id_phone").value = "";
+      document.getElementById("id_date_of_birth").value = "";
+      document.getElementById("id_address").value = "";
+      document.getElementById("id_current_state").value = "";
+      document.getElementById("id_current_country").value = "India";
+
+      document.getElementById("id_tenth_board").value = "";
+      document.getElementById("id_tenth_school").value = "";
+      document.getElementById("id_tenth_percentage").value = "";
+      document.getElementById("id_tenth_passing_year").value = "";
+
+      document.getElementById("id_twelfth_board").value = "";
+      document.getElementById("id_twelfth_school").value = "";
+      document.getElementById("id_twelfth_stream").value = "";
+      document.getElementById("id_twelfth_percentage").value = "";
+      document.getElementById("id_twelfth_passing_year").value = "";
+
+      document.getElementById("id_education_level").value = "";
+      document.getElementById("id_degree_program").value = "";
+      document.getElementById("id_field_of_study").value = "";
+      document.getElementById("id_education_status").value = "Graduated";
+      document.getElementById("id_institution").value = "";
+      document.getElementById("id_university_board").value = "";
+      document.getElementById("id_completion_year").value = "";
+      document.getElementById("id_percentage_or_cgpa").value = "";
+
+      additionalEdus = [];
+      renderAdditionalEduRows();
+
+      document.getElementById("id_applied_skills").value = "";
+      document.getElementById("id_total_experience_years").value = "0";
+      document.getElementById("id_total_experience_months").value = "0";
+      document.getElementById("id_current_organization").value = "";
+      document.getElementById("id_current_designation").value = "";
+      document.getElementById("id_expected_salary").value = "";
+      document.getElementById("id_why_interested").value = "";
+    }
+  }
+
+  document.getElementById("btnChooseProfile")?.addEventListener("click", () => selectSource("PROFILE"));
+  document.getElementById("btnChooseResume")?.addEventListener("click", () => selectSource("RESUME"));
+  document.getElementById("btnChooseManual")?.addEventListener("click", () => selectSource("MANUAL"));
+
+  // Resume Parsing Handler
+  const btnTriggerParse = document.getElementById("btnTriggerParse");
+  const standaloneResumeInput = document.getElementById("standaloneResumeInput");
+  const resumeParseLoading = document.getElementById("resumeParseLoading");
+  const resumeNoticeBox = document.getElementById("resumeNoticeBox");
+
+  if (btnTriggerParse && standaloneResumeInput) {
+    standaloneResumeInput.addEventListener("change", function() {
+      if (this.files && this.files.length > 0) {
+        btnTriggerParse.click();
+      }
+    });
+
+    btnTriggerParse.addEventListener("click", function() {
+      if (!standaloneResumeInput.files || standaloneResumeInput.files.length === 0) {
+        alert("Please select a resume file (.pdf, .doc, .docx) first.");
+        return;
+      }
+      const formData = new FormData();
+      formData.append("resume", standaloneResumeInput.files[0]);
+      formData.append("csrfmiddlewaretoken", document.querySelector("[name=csrfmiddlewaretoken]").value);
+
+      resumeParseLoading.classList.remove("d-none");
+      btnTriggerParse.disabled = true;
+
+      fetch("{% url 'candidates:parse_resume_ajax' %}", {
+        method: "POST",
+        body: formData
+      })
+      .then(r => r.json())
+      .then(res => {
+        resumeParseLoading.classList.add("d-none");
+        btnTriggerParse.disabled = false;
+        if (res.success && res.data) {
+          const d = res.data;
+          
+          // Populate personal details
+          if (d.first_name) document.getElementById("id_first_name").value = d.first_name;
+          if (d.middle_name) document.getElementById("id_middle_name").value = d.middle_name;
+          if (d.last_name) document.getElementById("id_last_name").value = d.last_name;
+          if (d.email) document.getElementById("id_email").value = d.email;
+          if (d.phone) document.getElementById("id_phone").value = d.phone;
+          if (d.address) document.getElementById("id_address").value = d.address;
+          if (d.state) document.getElementById("id_current_state").value = d.state;
+          if (d.country) document.getElementById("id_current_country").value = d.country;
+          
+          // Populate 10th
+          if (d.tenth_board) document.getElementById("id_tenth_board").value = d.tenth_board;
+          if (d.tenth_school) document.getElementById("id_tenth_school").value = d.tenth_school;
+          if (d.tenth_percentage) document.getElementById("id_tenth_percentage").value = d.tenth_percentage;
+          if (d.tenth_passing_year) document.getElementById("id_tenth_passing_year").value = d.tenth_passing_year;
+
+          // Populate 12th
+          if (d.twelfth_board) document.getElementById("id_twelfth_board").value = d.twelfth_board;
+          if (d.twelfth_school) document.getElementById("id_twelfth_school").value = d.twelfth_school;
+          if (d.twelfth_stream) document.getElementById("id_twelfth_stream").value = d.twelfth_stream;
+          if (d.twelfth_percentage) document.getElementById("id_twelfth_percentage").value = d.twelfth_percentage;
+          if (d.twelfth_passing_year) document.getElementById("id_twelfth_passing_year").value = d.twelfth_passing_year;
+
+          // Populate Higher Education
+          if (d.education_level) document.getElementById("id_education_level").value = d.education_level;
+          if (d.degree_program) document.getElementById("id_degree_program").value = d.degree_program;
+          if (d.field_of_study) document.getElementById("id_field_of_study").value = d.field_of_study;
+          if (d.institution) document.getElementById("id_institution").value = d.institution;
+          if (d.university_board) document.getElementById("id_university_board").value = d.university_board;
+          if (d.education_status) document.getElementById("id_education_status").value = d.education_status;
+          if (d.completion_year) document.getElementById("id_completion_year").value = d.completion_year;
+          if (d.percentage_or_cgpa) document.getElementById("id_percentage_or_cgpa").value = d.percentage_or_cgpa;
+
+          if (d.higher_educations && d.higher_educations.length > 1) {
+            additionalEdus = d.higher_educations.slice(1);
+            renderAdditionalEduRows();
+          } else {
+            additionalEdus = [];
+            renderAdditionalEduRows();
+          }
+
+          // Populate Skills
+          if (d.skills) {
+            document.getElementById("id_applied_skills").value = d.skills;
+          }
+
+          // Populate Experience
+          if (d.is_fresher) {
+            const fresherSelect = document.getElementById("id_is_fresher_select");
+            if (fresherSelect) {
+              fresherSelect.value = d.is_fresher;
+              toggleFresher();
+            }
+          }
+          if (d.total_experience_years !== undefined) {
+            document.getElementById("id_total_experience_years").value = d.total_experience_years;
+          }
+          if (d.total_experience_months !== undefined) {
+            document.getElementById("id_total_experience_months").value = d.total_experience_months;
+          }
+          if (d.current_organization) {
+            document.getElementById("id_current_organization").value = d.current_organization;
+          }
+          if (d.current_designation) {
+            document.getElementById("id_current_designation").value = d.current_designation;
+          }
+
+          // Update active resume display name in step 5
+          if (activeResumeName && standaloneResumeInput.files[0]) {
+            activeResumeName.innerText = standaloneResumeInput.files[0].name;
+          }
+          if (activeResumeBadge) {
+            activeResumeBadge.innerText = "Uploaded Application Resume";
+          }
+
+          // Transfer uploaded file to form's main file input
+          const mainResumeInput = document.getElementById("id_resume_file");
+          if (mainResumeInput && standaloneResumeInput.files.length > 0) {
+            try {
+              const dt = new DataTransfer();
+              dt.items.add(standaloneResumeInput.files[0]);
+              mainResumeInput.files = dt.files;
+            } catch (e) {}
+          }
+
+          if (resumeNoticeBox) resumeNoticeBox.classList.remove("d-none");
+          alert("Resume parsed successfully! Extracted personal details, education, experience, and skills have been populated.");
+        } else {
+          alert("Could not extract data from resume: " + (res.error || "Unknown error"));
+        }
+      })
+      .catch(err => {
+        resumeParseLoading.classList.add("d-none");
+        btnTriggerParse.disabled = false;
+        alert("Error parsing resume: " + err);
+      });
+    });
+  }
+
+  // 8. Experience Fresher Dropdown Toggle
+  const fresherSelect = document.getElementById("id_is_fresher_select");
+  const fresherBadge = document.getElementById("fresherStatusBadge");
+  const expFields = document.getElementById("experiencedFields");
+
+  function toggleFresher() {
+    if (!fresherSelect) return;
+    if (fresherSelect.value === "Yes") {
+      if (fresherBadge) fresherBadge.classList.remove("d-none");
+      if (expFields) expFields.classList.add("d-none");
+    } else if (fresherSelect.value === "No") {
+      if (fresherBadge) fresherBadge.classList.add("d-none");
+      if (expFields) expFields.classList.remove("d-none");
+    } else {
+      if (fresherBadge) fresherBadge.classList.add("d-none");
+      if (expFields) expFields.classList.add("d-none");
+    }
+  }
+  if (fresherSelect) {
+    fresherSelect.addEventListener("change", toggleFresher);
+    toggleFresher();
+  }
+
+  // 9. Additional Questions Conditional Toggles
+  const pastEmpSelect = document.getElementById("id_is_past_employee_select");
+  const pastEmpRow = document.getElementById("pastEmployeeRow");
+  function togglePastEmp() {
+    if (!pastEmpSelect || !pastEmpRow) return;
+    if (pastEmpSelect.value === "Yes") {
+      pastEmpRow.classList.remove("d-none");
+    } else {
+      pastEmpRow.classList.add("d-none");
+    }
+  }
+  if (pastEmpSelect) {
+    pastEmpSelect.addEventListener("change", togglePastEmp);
+    togglePastEmp();
+  }
+
+  const visaSelect = document.getElementById("id_requires_visa_select");
+  const visaWrapper = document.getElementById("visaStatusWrapper");
+  function toggleVisa() {
+    if (!visaSelect || !visaWrapper) return;
+    if (visaSelect.value === "Yes") {
+      visaWrapper.classList.remove("d-none");
+    } else {
+      visaWrapper.classList.add("d-none");
+    }
+  }
+  if (visaSelect) {
+    visaSelect.addEventListener("change", toggleVisa);
+    toggleVisa();
+  }
+
+  // Dynamic Eligibility Check on Step 4
+  const btnCheckEligibility = document.getElementById("btnCheckEligibility");
+  if (btnCheckEligibility) {
+    btnCheckEligibility.addEventListener("click", function() {
+      const payload = {
+        is_fresher: fresherSelect ? fresherSelect.value : "Yes",
+        total_experience_years: document.getElementById("id_total_experience_years")?.value || 0,
+        total_experience_months: document.getElementById("id_total_experience_months")?.value || 0,
+        applied_skills: document.getElementById("id_applied_skills")?.value || "",
+        degree_program: document.getElementById("id_degree_program")?.value || ""
+      };
+
+      fetch("{% url 'candidates:check_eligibility_ajax' job.vacancy_id %}", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": document.querySelector("[name=csrfmiddlewaretoken]").value
+        },
+        body: JSON.stringify(payload)
+      })
+      .then(r => r.json())
+      .then(res => {
+        if (res.success && res.evaluation) {
+          const ev = res.evaluation;
+          const resCard = document.getElementById("eligibilityResultCard");
+          const resIcon = document.getElementById("eligibilityIcon");
+          const resHeading = document.getElementById("eligibilityHeading");
+          const resReasons = document.getElementById("eligibilityReasonsList");
+
+          if (ev.is_eligible) {
+            resCard.className = "p-4 rounded-4 border mb-4 bg-success-subtle border-success";
+            resIcon.className = "fs-2 text-success";
+            resIcon.innerHTML = '<i class="bi bi-check-circle-fill"></i>';
+            resHeading.innerText = "✓ You are eligible to apply for this position.";
+            resReasons.innerHTML = '<p class="mb-0 text-success fw-medium">Your qualification and experience meet the job vacancy requirements.</p>';
+          } else {
+            resCard.className = "p-4 rounded-4 border mb-4 bg-danger-subtle border-danger";
+            resIcon.className = "fs-2 text-danger";
+            resIcon.innerHTML = '<i class="bi bi-x-circle-fill"></i>';
+            resHeading.innerText = "✗ You are not eligible to apply.";
+            let listHtml = "<strong>Reason:</strong><ul class='mb-0 ps-3 mt-1 text-danger'>";
+            if (ev.reasons && ev.reasons.length > 0) {
+              ev.reasons.forEach(r => { listHtml += `<li>${r}</li>`; });
+            } else {
+              listHtml += "<li>Experience or qualification does not meet minimum job criteria.</li>";
+            }
+            listHtml += "</ul>";
+            resReasons.innerHTML = listHtml;
+          }
+        }
+      })
+      .catch(err => console.error("Error evaluating eligibility:", err));
+    });
+  }
+
+  // Initialize profile educations on load if in PROFILE mode
+  if (profileEducations.length > 1) {
+    additionalEdus = profileEducations.slice(1);
+    renderAdditionalEduRows();
+  }
+});
+</script>
+
+<style>
+.source-card {
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+}
+.source-card:hover {
+  transform: translateY(-2px);
+  border-color: #0d6efd !important;
+}
+.active-source {
+  border-color: #0d6efd !important;
+  box-shadow: 0 4px 12px rgba(13, 110, 253, 0.08);
+}
+.step-indicator {
+  transition: all 0.2s ease-in-out;
+}
+.step-indicator.active {
+  background-color: #f1f5f9;
+}
+.extra-small {
+  font-size: 11px;
+}
+</style>
 {% endblock content %}

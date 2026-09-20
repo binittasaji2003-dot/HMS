@@ -9,9 +9,14 @@
         <div class="portal-card bg-white p-3 p-md-4 mb-4 sticky-top shadow-sm border-0" style="top: 75px; z-index: 100;">
             <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
                 <div>
-                    <span class="badge bg-primary-subtle text-primary fw-bold text-uppercase px-3 py-1 rounded-pill mb-1">
-                        Employment Assessment
-                    </span>
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <span class="badge bg-primary-subtle text-primary fw-bold text-uppercase px-3 py-1 rounded-pill">
+                            Live Assessment
+                        </span>
+                        <span id="save-status-indicator" class="badge bg-light text-muted border px-2 py-1" style="font-size: 0.75rem;">
+                            <i class="bi bi-cloud-check text-success me-1"></i> Autosave Active
+                        </span>
+                    </div>
                     <h4 class="fw-extrabold text-dark mb-0">{{ test.title }}</h4>
                     <p class="text-muted small mb-0">
                         Position: <strong>{{ application.vacancy.title }}</strong> &bull; Total Questions: <strong>{{ total_questions }}</strong>
@@ -44,6 +49,7 @@
         <!-- Aptitude Questions Form -->
         <form id="aptitude-form" method="POST" action="{% url 'candidates:submit_aptitude_test' application.pk %}">
             {% csrf_token %}
+            <input type="hidden" name="auto_submit" id="auto_submit_flag" value="false">
 
             <div class="d-flex flex-column gap-4 mb-4">
                 {% for q in questions %}
@@ -77,7 +83,7 @@
                     <div class="d-flex flex-column gap-2">
                         {% for opt in q.options %}
                         <label class="form-check p-3 rounded-3 border bg-light option-label d-flex align-items-center gap-3 cursor-pointer" for="opt_{{ q.question_id }}_{{ opt.key }}">
-                            <input class="form-check-input ms-0 mt-0 flex-shrink-0" type="radio" name="question_{{ q.question_id }}" id="opt_{{ q.question_id }}_{{ opt.key }}" value="{{ opt.key }}">
+                            <input class="form-check-input ms-0 mt-0 flex-shrink-0" type="radio" name="question_{{ q.question_id }}" id="opt_{{ q.question_id }}_{{ opt.key }}" value="{{ opt.key }}" data-qid="{{ q.question_id }}" data-key="{{ opt.key }}">
                             <span class="badge bg-white text-dark border fw-bold px-2 py-1">{{ opt.key }}</span>
                             <span class="text-dark fw-medium">{{ opt.text }}</span>
                         </label>
@@ -91,9 +97,9 @@
             <div class="portal-card bg-white p-4 text-center shadow-sm border mb-5">
                 <h5 class="fw-bold text-dark mb-2">Ready to Submit Your Assessment?</h5>
                 <p class="text-muted small mb-3">
-                    Please ensure you have reviewed all your answers before submitting. Once submitted, answers cannot be modified.
+                    Please ensure you have answered all questions. Once submitted, your answers will be reviewed by HR.
                 </p>
-                <button type="submit" id="submit-btn" class="btn-blue-primary px-5 py-2.5 fs-6" onclick="return confirm('Are you sure you want to submit your aptitude assessment?');">
+                <button type="submit" id="submit-btn" class="btn-blue-primary px-5 py-2.5 fs-6">
                     <i class="bi bi-send-check me-2"></i> Submit Assessment
                 </button>
             </div>
@@ -119,7 +125,26 @@
         let remainingSeconds = {{ time_remaining_seconds }};
         const timerEl = document.getElementById("countdown-timer");
         const formEl = document.getElementById("aptitude-form");
+        const autoSubmitFlag = document.getElementById("auto_submit_flag");
+        const saveIndicator = document.getElementById("save-status-indicator");
         let isSubmitted = false;
+
+        // Restore saved answers if any
+        const savedAnswers = {{ saved_answers|safe|default:"{}" }};
+        if (savedAnswers && typeof savedAnswers === 'object') {
+            Object.keys(savedAnswers).forEach(qid => {
+                const optVal = savedAnswers[qid];
+                const radio = document.getElementById(`opt_${qid}_${optVal}`);
+                if (radio) {
+                    radio.checked = true;
+                    const optLabel = radio.closest(".option-label");
+                    if (optLabel) {
+                        optLabel.classList.remove("bg-light");
+                        optLabel.classList.add("border-primary", "bg-primary-subtle");
+                    }
+                }
+            });
+        }
 
         function updateDisplay() {
             if (remainingSeconds <= 0) {
@@ -127,7 +152,12 @@
                 timerEl.classList.add("text-danger");
                 if (!isSubmitted) {
                     isSubmitted = true;
-                    alert("Assessment time is up! Your answers are being submitted automatically.");
+                    autoSubmitFlag.value = "true";
+                    const btn = document.getElementById("submit-btn");
+                    if (btn) {
+                        btn.disabled = true;
+                        btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Auto-submitting...';
+                    }
                     formEl.submit();
                 }
                 return;
@@ -151,7 +181,13 @@
         updateDisplay();
         const intervalId = setInterval(updateDisplay, 1000);
 
-        formEl.addEventListener("submit", function() {
+        formEl.addEventListener("submit", function(e) {
+            if (!isSubmitted && autoSubmitFlag.value !== "true") {
+                if (!confirm('Are you sure you want to submit your aptitude assessment? Once submitted, your answers cannot be changed.')) {
+                    e.preventDefault();
+                    return false;
+                }
+            }
             isSubmitted = true;
             clearInterval(intervalId);
             const btn = document.getElementById("submit-btn");
@@ -159,7 +195,7 @@
             btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Submitting...';
         });
 
-        // Highlight selected option labels
+        // AJAX incremental save and highlight selected option labels
         document.querySelectorAll(".option-label input[type='radio']").forEach(radio => {
             radio.addEventListener("change", function() {
                 const parentGroup = this.closest(".d-flex.flex-column");
@@ -171,6 +207,36 @@
                     this.closest(".option-label").classList.remove("bg-light");
                     this.closest(".option-label").classList.add("border-primary", "bg-primary-subtle");
                 }
+
+                // Send AJAX save
+                const qid = this.getAttribute("data-qid");
+                const key = this.getAttribute("data-key");
+                const csrfToken = document.querySelector('input[name="csrfmiddlewaretoken"]').value;
+
+                if (saveIndicator) {
+                    saveIndicator.innerHTML = '<span class="spinner-border spinner-border-sm text-primary me-1" style="width: 10px; height: 10px;"></span> Saving...';
+                }
+
+                fetch("{% url 'candidates:save_aptitude_answer_ajax' application.pk %}", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/x-www-form-urlencoded",
+                        "X-CSRFToken": csrfToken,
+                        "X-Requested-With": "XMLHttpRequest"
+                    },
+                    body: `question_id=${encodeURIComponent(qid)}&selected_option=${encodeURIComponent(key)}`
+                })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success && saveIndicator) {
+                        saveIndicator.innerHTML = '<i class="bi bi-cloud-check text-success me-1"></i> Saved';
+                    }
+                })
+                .catch(err => {
+                    if (saveIndicator) {
+                        saveIndicator.innerHTML = '<i class="bi bi-cloud-arrow-up text-warning me-1"></i> Pending sync';
+                    }
+                });
             });
         });
     })();

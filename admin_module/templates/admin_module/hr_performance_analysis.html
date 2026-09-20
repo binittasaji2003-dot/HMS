@@ -1,0 +1,269 @@
+{% extends "admin_module/base_admin.html" %}
+
+{% block title %}HR Performance Analysis Dashboard - Smart HRMS Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <!-- Header -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <div>
+            <h3 class="fw-bold text-dark mb-1">HR Managers Performance Analysis</h3>
+            <p class="text-muted small mb-0">Cross-manager performance evaluation matrix, weekly scoring trends, and historical matrix metrics.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'admin_module:hr_reports_list' %}" class="btn btn-outline-primary rounded-3 px-3 py-2 fw-semibold">
+                <i class="bi bi-file-earmark-text me-1"></i> View All Weekly Reports
+            </a>
+        </div>
+    </div>
+
+    <!-- Manager Performance Overview Table -->
+    <div class="card card-custom border-0 mb-4 shadow-sm">
+        <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+            <h5 class="fw-bold text-dark mb-1">HR Managers Evaluation Summary</h5>
+            <p class="text-muted small mb-0">Overall aggregated performance ratings and submission status across active HR staff.</p>
+        </div>
+        <div class="card-body p-0 pt-3">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4 py-3 text-muted text-uppercase" style="font-size: 0.75rem; font-weight: 700;">HR Manager</th>
+                            <th class="py-3 text-muted text-uppercase" style="font-size: 0.75rem; font-weight: 700;">Department</th>
+                            <th class="py-3 text-muted text-uppercase text-center" style="font-size: 0.75rem; font-weight: 700;">Reports Submitted</th>
+                            <th class="py-3 text-muted text-uppercase text-center" style="font-size: 0.75rem; font-weight: 700;">Evaluations Completed</th>
+                            <th class="py-3 text-muted text-uppercase text-center" style="font-size: 0.75rem; font-weight: 700;">Pending Review</th>
+                            <th class="py-3 text-muted text-uppercase" style="font-size: 0.75rem; font-weight: 700;">Average Performance</th>
+                            <th class="py-3 text-muted text-uppercase" style="font-size: 0.75rem; font-weight: 700;">Performance Tier</th>
+                            <th class="pe-4 py-3 text-end text-muted text-uppercase" style="font-size: 0.75rem; font-weight: 700;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for stat in manager_stats %}
+                            <tr {% if selected_hr and selected_hr.pk == stat.manager.pk %}class="table-active"{% endif %}>
+                                <td class="ps-4">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="rounded-circle bg-primary-subtle text-primary fw-bold d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+                                            {{ stat.manager.full_name|slice:":1"|upper }}
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold text-dark">{{ stat.manager.full_name }}</div>
+                                            <div class="text-muted small">{{ stat.manager.employee_code }} • {{ stat.manager.designation|default:"HR Manager" }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-light text-dark border">
+                                        {{ stat.manager.department.name|default:"General HR" }}
+                                    </span>
+                                </td>
+                                <td class="text-center fw-bold">{{ stat.total_submitted }}</td>
+                                <td class="text-center fw-bold text-success">{{ stat.total_reviewed }}</td>
+                                <td class="text-center">
+                                    {% if stat.pending_review > 0 %}
+                                        <span class="badge bg-warning-subtle text-warning-emphasis rounded-pill px-2">{{ stat.pending_review }} pending</span>
+                                    {% else %}
+                                        <span class="text-muted small">0</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if stat.total_reviewed > 0 %}
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="progress flex-grow-1" style="height: 6px; width: 70px;">
+                                                <div class="progress-bar {% if stat.avg_pct >= 85 %}bg-success{% elif stat.avg_pct >= 70 %}bg-primary{% elif stat.avg_pct >= 50 %}bg-warning{% else %}bg-danger{% endif %}" style="width: {{ stat.avg_pct }}%;"></div>
+                                            </div>
+                                            <span class="fw-bold text-dark small">{{ stat.avg_pct }}% ({{ stat.avg_score }}/5)</span>
+                                        </div>
+                                    {% else %}
+                                        <span class="text-muted small">No reviews yet</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if stat.tier == 'EXCELLENT' %}
+                                        <span class="badge bg-success-subtle text-success rounded-pill px-2 py-1">Excellent</span>
+                                    {% elif stat.tier == 'GOOD' %}
+                                        <span class="badge bg-primary-subtle text-primary rounded-pill px-2 py-1">Good</span>
+                                    {% elif stat.tier == 'NEEDS_IMPROVEMENT' %}
+                                        <span class="badge bg-warning-subtle text-warning-emphasis rounded-pill px-2 py-1">Needs Improvement</span>
+                                    {% elif stat.tier == 'UNSATISFACTORY' %}
+                                        <span class="badge bg-danger-subtle text-danger rounded-pill px-2 py-1">Unsatisfactory</span>
+                                    {% else %}
+                                        <span class="badge bg-light text-muted border px-2 py-1">No Data</span>
+                                    {% endif %}
+                                </td>
+                                <td class="pe-4 text-end">
+                                    <a href="{% url 'admin_module:hr_performance_analysis' %}?hr_id={{ stat.manager.pk }}" class="btn btn-sm btn-outline-primary rounded-2">
+                                        <i class="bi bi-bar-chart me-1"></i> Analysis Details
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- DETAILED HR ANALYSIS SECTION (WHEN HR IS SELECTED) -->
+    {% if selected_hr %}
+        <div class="row g-4 mb-4">
+            <!-- Selected HR Criteria Averages -->
+            <div class="col-lg-6">
+                <div class="card card-custom border-0 h-100 shadow-sm">
+                    <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-primary rounded-circle p-2"><i class="bi bi-pie-chart"></i></span>
+                            <div>
+                                <h5 class="fw-bold text-dark mb-0">Matrix Criteria Breakdown: {{ selected_hr.full_name }}</h5>
+                                <p class="text-muted small mb-0">Average rating across all historical performance reviews (Scale: 1-5).</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body p-4">
+                        {% if selected_hr_criteria_averages %}
+                            <div class="row g-3">
+                                <div class="col-12">
+                                    <div class="d-flex justify-content-between small fw-semibold mb-1">
+                                        <span>1. Task Completion</span>
+                                        <span class="text-primary">{{ selected_hr_criteria_averages.task_completion }} / 5.0</span>
+                                    </div>
+                                    <div class="progress" style="height: 6px;">
+                                        <div class="progress-bar bg-primary" style="width: {% widthratio selected_hr_criteria_averages.task_completion 5 100 %}%;"></div>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="d-flex justify-content-between small fw-semibold mb-1">
+                                        <span>2. Quality of Work</span>
+                                        <span class="text-primary">{{ selected_hr_criteria_averages.quality_of_work }} / 5.0</span>
+                                    </div>
+                                    <div class="progress" style="height: 6px;">
+                                        <div class="progress-bar bg-primary" style="width: {% widthratio selected_hr_criteria_averages.quality_of_work 5 100 %}%;"></div>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="d-flex justify-content-between small fw-semibold mb-1">
+                                        <span>3. Recruitment Coordination</span>
+                                        <span class="text-primary">{{ selected_hr_criteria_averages.recruitment_coordination }} / 5.0</span>
+                                    </div>
+                                    <div class="progress" style="height: 6px;">
+                                        <div class="progress-bar bg-primary" style="width: {% widthratio selected_hr_criteria_averages.recruitment_coordination 5 100 %}%;"></div>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="d-flex justify-content-between small fw-semibold mb-1">
+                                        <span>4. Timeliness</span>
+                                        <span class="text-primary">{{ selected_hr_criteria_averages.timeliness }} / 5.0</span>
+                                    </div>
+                                    <div class="progress" style="height: 6px;">
+                                        <div class="progress-bar bg-primary" style="width: {% widthratio selected_hr_criteria_averages.timeliness 5 100 %}%;"></div>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="d-flex justify-content-between small fw-semibold mb-1">
+                                        <span>5. Documentation & Record Management</span>
+                                        <span class="text-primary">{{ selected_hr_criteria_averages.documentation }} / 5.0</span>
+                                    </div>
+                                    <div class="progress" style="height: 6px;">
+                                        <div class="progress-bar bg-primary" style="width: {% widthratio selected_hr_criteria_averages.documentation 5 100 %}%;"></div>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="d-flex justify-content-between small fw-semibold mb-1">
+                                        <span>6. Communication & Coordination</span>
+                                        <span class="text-primary">{{ selected_hr_criteria_averages.communication }} / 5.0</span>
+                                    </div>
+                                    <div class="progress" style="height: 6px;">
+                                        <div class="progress-bar bg-primary" style="width: {% widthratio selected_hr_criteria_averages.communication 5 100 %}%;"></div>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="d-flex justify-content-between small fw-semibold mb-1">
+                                        <span>7. Problem Solving</span>
+                                        <span class="text-primary">{{ selected_hr_criteria_averages.problem_solving }} / 5.0</span>
+                                    </div>
+                                    <div class="progress" style="height: 6px;">
+                                        <div class="progress-bar bg-primary" style="width: {% widthratio selected_hr_criteria_averages.problem_solving 5 100 %}%;"></div>
+                                    </div>
+                                </div>
+                                <div class="col-12">
+                                    <div class="d-flex justify-content-between small fw-semibold mb-1">
+                                        <span>8. Achievement of Weekly Goals</span>
+                                        <span class="text-primary">{{ selected_hr_criteria_averages.weekly_goal_achievement }} / 5.0</span>
+                                    </div>
+                                    <div class="progress" style="height: 6px;">
+                                        <div class="progress-bar bg-primary" style="width: {% widthratio selected_hr_criteria_averages.weekly_goal_achievement 5 100 %}%;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="text-center py-4 text-muted">No reviewed performance matrix records available for this HR Manager.</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Historical Reviews for Selected HR -->
+            <div class="col-lg-6">
+                <div class="card card-custom border-0 h-100 shadow-sm">
+                    <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge bg-success rounded-circle p-2 text-white"><i class="bi bi-calendar3"></i></span>
+                            <div>
+                                <h5 class="fw-bold text-dark mb-0">Weekly Review Progression</h5>
+                                <p class="text-muted small mb-0">Historical weekly scores logged for {{ selected_hr.full_name }}.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body p-0 pt-3">
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle mb-0">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th class="ps-4">Week Period</th>
+                                        <th>Score</th>
+                                        <th>Avg Rating</th>
+                                        <th>Result</th>
+                                        <th class="pe-4 text-end">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% if selected_hr_history %}
+                                        {% for report in selected_hr_history %}
+                                            <tr>
+                                                <td class="ps-4 fw-semibold text-dark">{{ report.week_display }}</td>
+                                                <td><span class="fw-bold text-primary">{{ report.performance_review.performance_percentage }}%</span></td>
+                                                <td>{{ report.performance_review.average_score }} / 5</td>
+                                                <td>
+                                                    {% if report.performance_review.performance_percentage >= 85 %}
+                                                        <span class="badge bg-success-subtle text-success rounded-pill px-2">Excellent</span>
+                                                    {% elif report.performance_review.performance_percentage >= 70 %}
+                                                        <span class="badge bg-primary-subtle text-primary rounded-pill px-2">Good</span>
+                                                    {% elif report.performance_review.performance_percentage >= 50 %}
+                                                        <span class="badge bg-warning-subtle text-warning-emphasis rounded-pill px-2">Needs Improvement</span>
+                                                    {% else %}
+                                                        <span class="badge bg-danger-subtle text-danger rounded-pill px-2">Unsatisfactory</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td class="pe-4 text-end">
+                                                    <a href="{% url 'admin_module:hr_report_detail' report.pk %}" class="btn btn-sm btn-outline-secondary rounded-2">
+                                                        View
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    {% else %}
+                                        <tr>
+                                            <td colspan="5" class="text-center py-4 text-muted">No completed evaluations found.</td>
+                                        </tr>
+                                    {% endif %}
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
+

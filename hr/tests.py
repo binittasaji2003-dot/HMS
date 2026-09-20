@@ -4,10 +4,24 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, TestCase
 from django.urls import reverse
 
-from admin_module.models import Department
+from admin_module.models import AdminNotification, Department
 from candidates.models import Candidate, JobApplication, JobVacancy
 from employees.models import Employee, EmployeeDocument
-from hr.models import AptitudeResult, AptitudeTest, HRManager, Interview
+from admin_module.models import AdminNotification, Department, EmployeeApproval
+from candidates.models import Candidate, CandidateNotification, JobApplication, JobVacancy
+from employees.models import Employee, EmployeeDocument, Notification, Team
+from hr.models import (
+    AptitudeResult,
+    AptitudeTest,
+    HRDocument,
+    HREducation,
+    HRExperience,
+    HRManager,
+    HRNotification,
+    HRPerformanceReview,
+    HRWeeklyReport,
+    Interview,
+)
 
 User = get_user_model()
 
@@ -27,35 +41,57 @@ class HRModuleTests(TestCase):
         )
         self.hr_manager = HRManager.objects.create(
             user=self.hr_user,
-            department=self.dept,
-            employee_code="HRM-001",
-            joining_date=date(2024, 1, 1),
-            is_active=True,
-        )
-
-        # Linked employee & candidate
-        self.candidate = Candidate.objects.create(
-            user=self.hr_user,
             first_name="Alice",
             last_name="Walker",
             phone="+1-555-123-4567",
             date_of_birth=date(1990, 5, 20),
+            gender="FEMALE",
             address="123 Corporate Way, Cityville",
-        )
-        self.employee = Employee.objects.create(
-            user=self.hr_user,
-            candidate=self.candidate,
-            employee_code="HRM-001",
+            city="Cityville",
+            state="Kerala",
+            pincode="682001",
             department=self.dept,
+            employee_code="HRM-001",
             designation="HR Manager",
             joining_date=date(2024, 1, 1),
-            employment_status="ACTIVE",
+            is_active=True,
         )
-        self.doc = EmployeeDocument.objects.create(
-            employee=self.employee,
+
+        self.admin_user = User.objects.create_user(
+            email="admin@company.com",
+            password="AdminPassword123!",
+            name="Super Admin",
+            role=User.RoleChoices.ADMIN,
+            status=User.StatusChoices.ACTIVE,
+            is_staff=True,
+            is_superuser=True,
+            is_active=True,
+        )
+
+        # Linked education & experience
+        self.edu = HREducation.objects.create(
+            hr=self.hr_manager,
+            degree="MBA Human Resources",
+            institution="IIM Bangalore",
+            university_board="Autonomous",
+            year_of_passing=2018,
+            grade_percentage="8.5 CGPA",
+        )
+        self.exp = HRExperience.objects.create(
+            hr=self.hr_manager,
+            company_name="TechCorp India",
+            designation="HR Associate",
+            start_date=date(2019, 1, 1),
+            end_date=date(2023, 12, 31),
+            responsibilities="Managed end-to-end tech hiring and onboarding.",
+        )
+        self.doc = HRDocument.objects.create(
+            hr=self.hr_manager,
             document_type="ID_PROOF",
-            document=SimpleUploadedFile("id_proof.pdf", b"pdf content", content_type="application/pdf"),
+            title="Passport Document",
+            document_file=SimpleUploadedFile("id_proof.pdf", b"pdf content", content_type="application/pdf"),
         )
+        self.hr_manager.update_profile_completion_status()
 
     def test_hr_dashboard_view(self):
         self.client.login(username=self.hr_user.email, password="HRPassword123!")
@@ -64,160 +100,250 @@ class HRModuleTests(TestCase):
         self.assertContains(response, "Alice Walker")
 
     def test_hr_profile_view_displays_all_sections(self):
-        """HR Profile view displays Account, Personal, Professional, and Document information."""
+        """HR Profile view displays Account, Personal, Professional, Education, Experience, and Document info."""
         self.client.login(username=self.hr_user.email, password="HRPassword123!")
         response = self.client.get(reverse("hr:profile"))
 
         self.assertEqual(response.status_code, 200)
 
-        # Account Info
-        self.assertContains(response, "hr.manager@company.com")
-        self.assertContains(response, "Active Account")
-        self.assertContains(response, "HR Manager")
-
-        # Personal Info
+        # 1. Personal Info
         self.assertContains(response, "Alice Walker")
         self.assertContains(response, "+1-555-123-4567")
         self.assertContains(response, "123 Corporate Way, Cityville")
         self.assertContains(response, "May 20, 1990")
 
-        # Professional Info
+        # 2. Professional Info
         self.assertContains(response, "HRM-001")
         self.assertContains(response, "Human Resources")
-        self.assertContains(response, "Active HR Lead")
 
-        # Documents
+        # 3. Education
+        self.assertContains(response, "MBA Human Resources")
+        self.assertContains(response, "IIM Bangalore")
+        self.assertContains(response, "2018")
+
+        # 4. Experience
+        self.assertContains(response, "TechCorp India")
+        self.assertContains(response, "HR Associate")
+
+        # 5. Documents
         self.assertContains(response, "ID Proof")
+
+        # 6. Account Info
+        self.assertContains(response, "hr.manager@company.com")
 
         # Security check: Password hash must NEVER be present
         self.assertNotContains(response, self.hr_user.password)
 
-    def test_hr_profile_fallback_for_missing_values(self):
-        """HR profile handles missing optional data with proper fallback messages."""
-        # Create minimal HR user without candidate or documents
+    def test_hr_profile_completion_calculation(self):
+        """Test profile completion percentage and boolean flag calculation."""
+        self.assertTrue(self.hr_manager.profile_completed)
+        self.assertEqual(self.hr_manager.completion_percentage, 100)
+
+        # Incomplete HR profile
         user2 = User.objects.create_user(
-            email="minimal.hr@company.com",
+            email="incomplete.hr@company.com",
             password="HRPassword123!",
-            name="",
+            name="New HR",
             role=User.RoleChoices.HR,
             status=User.StatusChoices.ACTIVE,
             is_active=True,
         )
-        HRManager.objects.create(
+        hr2 = HRManager.objects.create(
             user=user2,
-            employee_code="HRM-999",
-            is_active=True,
+            employee_code="HRM-002",
         )
+        self.assertFalse(hr2.update_profile_completion_status())
+        self.assertLess(hr2.completion_percentage, 100)
 
+        # Verify dashboard banner appears for incomplete profile
         self.client.login(username=user2.email, password="HRPassword123!")
-        response = self.client.get(reverse("hr:profile"))
+        dash_response = self.client.get(reverse("hr:dashboard"))
+        self.assertEqual(dash_response.status_code, 200)
+        self.assertContains(dash_response, "Please complete your profile")
 
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "HRM-999")
-        self.assertContains(response, "Unassigned")
-        self.assertContains(response, "Not provided")
-        self.assertContains(response, "Not uploaded")
-        self.assertContains(response, "No documents uploaded yet.")
-
-    def test_hr_profile_edit_view_get_prefills_data(self):
-        """Edit profile form renders with prefilled database values."""
+    def test_hr_profile_edit_view_get_and_post(self):
+        """Edit profile form renders with data and updates HRManager."""
         self.client.login(username=self.hr_user.email, password="HRPassword123!")
-        response = self.client.get(reverse("hr:profile_edit"))
-
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Alice Walker")
-        self.assertContains(response, "hr.manager@company.com")
-        self.assertContains(response, "+1-555-123-4567")
-        self.assertContains(response, "123 Corporate Way, Cityville")
-
-    def test_hr_profile_edit_view_post_updates_database(self):
-        """Submitting updated values saves to User, HRManager, Employee, and Candidate."""
-        self.client.login(username=self.hr_user.email, password="HRPassword123!")
+        get_res = self.client.get(reverse("hr:profile_edit"))
+        self.assertEqual(get_res.status_code, 200)
+        self.assertContains(get_res, "Alice")
+        self.assertContains(get_res, "Walker")
 
         post_data = {
-            "full_name": "Alice M. Walker",
-            "email": "alice.walker.updated@company.com",
+            "first_name": "Alicia",
+            "middle_name": "Marie",
+            "last_name": "Walker",
+            "email": "alicia.walker@company.com",
             "phone": "+1-555-999-8888",
-            "date_of_birth": "1991-06-15",
-            "address": "456 Innovation Blvd, Tech Park",
-            "department": self.engineering.pk,
+            "date_of_birth": "1990-05-20",
+            "gender": "FEMALE",
+            "address": "456 Innovation Blvd",
+            "city": "Kochi",
+            "state": "Kerala",
+            "pincode": "682030",
+            "has_no_experience": False,
         }
-        response = self.client.post(reverse("hr:profile_edit"), data=post_data)
-        self.assertRedirects(response, reverse("hr:profile"))
-
-        # Verify DB updates
-        self.hr_user.refresh_from_db()
-        self.assertEqual(self.hr_user.name, "Alice M. Walker")
-        self.assertEqual(self.hr_user.email, "alice.walker.updated@company.com")
+        post_res = self.client.post(reverse("hr:profile_edit"), data=post_data)
+        self.assertRedirects(post_res, reverse("hr:profile"))
 
         self.hr_manager.refresh_from_db()
-        self.assertEqual(self.hr_manager.department, self.engineering)
+        self.assertEqual(self.hr_manager.first_name, "Alicia")
+        self.assertEqual(self.hr_manager.middle_name, "Marie")
+        self.assertEqual(self.hr_manager.city, "Kochi")
 
-        self.candidate.refresh_from_db()
-        self.assertEqual(self.candidate.first_name, "Alice")
-        self.assertEqual(self.candidate.last_name, "M. Walker")
-        self.assertEqual(self.candidate.phone, "+1-555-999-8888")
-        self.assertEqual(self.candidate.date_of_birth, date(1991, 6, 15))
-        self.assertEqual(self.candidate.address, "456 Innovation Blvd, Tech Park")
+        self.hr_user.refresh_from_db()
+        self.assertEqual(self.hr_user.email, "alicia.walker@company.com")
+        self.assertEqual(self.hr_user.name, "Alicia Marie Walker")
 
-        # Verify updated values appear on profile view
-        profile_response = self.client.get(reverse("hr:profile"))
-        self.assertContains(profile_response, "Alice M. Walker")
-        self.assertContains(profile_response, "alice.walker.updated@company.com")
-        self.assertContains(profile_response, "+1-555-999-8888")
-        self.assertContains(profile_response, "Engineering")
-
-    def test_hr_profile_document_upload_and_delete(self):
-        """HR can upload a document and delete their own document."""
+    def test_education_crud_actions(self):
+        """HR can add, edit, and delete education records."""
         self.client.login(username=self.hr_user.email, password="HRPassword123!")
 
-        # Upload document
+        # 1. Add Education
+        add_res = self.client.post(
+            reverse("hr:profile"),
+            data={
+                "action": "add_education",
+                "degree": "B.Tech Computer Science",
+                "institution": "NIT Calicut",
+                "university_board": "NIT",
+                "year_of_passing": 2016,
+                "grade_percentage": "8.8 CGPA",
+            },
+        )
+        self.assertRedirects(add_res, reverse("hr:profile"))
+        btech = HREducation.objects.filter(hr=self.hr_manager, degree="B.Tech Computer Science").first()
+        self.assertIsNotNone(btech)
+
+        # 2. Edit Education
+        edit_res = self.client.post(
+            reverse("hr:education_edit", kwargs={"pk": btech.pk}),
+            data={
+                "degree": "B.Tech CS Honours",
+                "institution": "NIT Calicut",
+                "university_board": "NIT",
+                "year_of_passing": 2016,
+                "grade_percentage": "9.0 CGPA",
+            },
+        )
+        self.assertRedirects(edit_res, reverse("hr:profile"))
+        btech.refresh_from_db()
+        self.assertEqual(btech.degree, "B.Tech CS Honours")
+
+        # 3. Delete Education
+        del_res = self.client.post(
+            reverse("hr:profile"),
+            data={
+                "action": "delete_education",
+                "education_id": btech.pk,
+            },
+        )
+        self.assertRedirects(del_res, reverse("hr:profile"))
+        self.assertFalse(HREducation.objects.filter(pk=btech.pk).exists())
+
+    def test_experience_crud_actions(self):
+        """HR can add, edit, and delete work experience records."""
+        self.client.login(username=self.hr_user.email, password="HRPassword123!")
+
+        # 1. Add Experience
+        add_res = self.client.post(
+            reverse("hr:profile"),
+            data={
+                "action": "add_experience",
+                "company_name": "Google",
+                "designation": "People Ops Lead",
+                "start_date": "2024-01-01",
+                "is_current": True,
+                "responsibilities": "Talent growth and people operations.",
+            },
+        )
+        self.assertRedirects(add_res, reverse("hr:profile"))
+        google_exp = HRExperience.objects.filter(hr=self.hr_manager, company_name="Google").first()
+        self.assertIsNotNone(google_exp)
+        self.assertTrue(google_exp.is_current)
+
+        # 2. Edit Experience
+        edit_res = self.client.post(
+            reverse("hr:experience_edit", kwargs={"pk": google_exp.pk}),
+            data={
+                "company_name": "Google India",
+                "designation": "Senior People Ops Lead",
+                "start_date": "2024-01-01",
+                "is_current": True,
+                "responsibilities": "Global talent growth and HR strategy.",
+            },
+        )
+        self.assertRedirects(edit_res, reverse("hr:profile"))
+        google_exp.refresh_from_db()
+        self.assertEqual(google_exp.company_name, "Google India")
+
+        # 3. Delete Experience
+        del_res = self.client.post(
+            reverse("hr:profile"),
+            data={
+                "action": "delete_experience",
+                "experience_id": google_exp.pk,
+            },
+        )
+        self.assertRedirects(del_res, reverse("hr:profile"))
+        self.assertFalse(HRExperience.objects.filter(pk=google_exp.pk).exists())
+
+    def test_document_upload_and_delete(self):
+        """HR can upload and delete HRDocument records."""
+        self.client.login(username=self.hr_user.email, password="HRPassword123!")
+
         file_data = SimpleUploadedFile("cert.pdf", b"Dummy Certificate Data", content_type="application/pdf")
-        upload_response = self.client.post(
+        upload_res = self.client.post(
             reverse("hr:profile"),
             data={
                 "action": "upload_document",
-                "document_type": "EXPERIENCE_CERTIFICATE",
-                "document": file_data,
+                "document_type": "EDUCATIONAL_CERTIFICATE",
+                "title": "MBA Certificate",
+                "document_file": file_data,
             },
         )
-        self.assertRedirects(upload_response, reverse("hr:profile"))
-
-        new_doc = EmployeeDocument.objects.filter(employee=self.employee, document_type="EXPERIENCE_CERTIFICATE").first()
+        self.assertRedirects(upload_res, reverse("hr:profile"))
+        new_doc = HRDocument.objects.filter(hr=self.hr_manager, title="MBA Certificate").first()
         self.assertIsNotNone(new_doc)
 
-        # Profile shows newly uploaded document
-        profile_response = self.client.get(reverse("hr:profile"))
-        self.assertContains(profile_response, "Experience Certificate")
-
-        # Delete document
-        delete_response = self.client.post(
+        # Delete
+        del_res = self.client.post(
             reverse("hr:profile"),
             data={
                 "action": "delete_document",
                 "document_id": new_doc.pk,
             },
         )
-        self.assertRedirects(delete_response, reverse("hr:profile"))
-        self.assertFalse(EmployeeDocument.objects.filter(pk=new_doc.pk).exists())
+        self.assertRedirects(del_res, reverse("hr:profile"))
+        self.assertFalse(HRDocument.objects.filter(pk=new_doc.pk).exists())
+
+    def test_admin_hr_manager_profile_view(self):
+        """Admin can view HR Manager details including education, experience, and documents."""
+        self.client.login(username=self.admin_user.email, password="AdminPassword123!")
+        url = reverse("admin_module:hr_manager_detail", kwargs={"manager_id": self.hr_manager.pk})
+        response = self.client.get(url)
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Alice Walker")
+        self.assertContains(response, "MBA Human Resources")
+        self.assertContains(response, "TechCorp India")
+        self.assertContains(response, "Passport Document")
+        self.assertContains(response, "Profile Complete")
 
     def test_unauthenticated_or_non_hr_cannot_access(self):
         """Unauthenticated or non-HR users cannot access HR profile or edit profile."""
-        # Anonymous
         self.client.logout()
         res1 = self.client.get(reverse("hr:profile"))
         self.assertEqual(res1.status_code, 302)
 
-        res2 = self.client.get(reverse("hr:profile_edit"))
-        self.assertEqual(res2.status_code, 302)
-
-        # Candidate user
         cand_user = User.objects.create_user(
             email="cand@test.com",
             password="CandPass123!",
             role=User.RoleChoices.CANDIDATE,
         )
         self.client.login(username="cand@test.com", password="CandPass123!")
+        res2 = self.client.get(reverse("hr:profile"))
+        self.assertEqual(res2.status_code, 302)
         res3 = self.client.get(reverse("hr:profile"))
         self.assertEqual(res3.status_code, 302)
 
@@ -845,6 +971,548 @@ class AptitudeQuestionAndTestSystemTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertNotContains(response, "correct_key")
         self.assertNotContains(response, "correct_answer")
+
+
+class HRWeeklyPerformanceReportTests(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.dept = Department.objects.create(name="Human Resources", is_active=True)
+
+        self.hr_user = User.objects.create_user(
+            email="hr.manager@company.com",
+            password="HRPassword123!",
+            name="Jaimon Tomy",
+            role=User.RoleChoices.HR,
+            status=User.StatusChoices.ACTIVE,
+            is_active=True,
+        )
+        self.hr_manager = HRManager.objects.create(
+            user=self.hr_user,
+            first_name="Jaimon",
+            last_name="Tomy",
+            employee_code="HR003",
+            designation="HR Manager",
+            department=self.dept,
+            is_active=True,
+        )
+
+        self.other_hr_user = User.objects.create_user(
+            email="other.hr@company.com",
+            password="OtherHRPass123!",
+            name="Bob Smith",
+            role=User.RoleChoices.HR,
+            status=User.StatusChoices.ACTIVE,
+            is_active=True,
+        )
+        self.other_hr = HRManager.objects.create(
+            user=self.other_hr_user,
+            first_name="Bob",
+            last_name="Smith",
+            employee_code="HR004",
+            department=self.dept,
+            is_active=True,
+        )
+
+        self.admin_user = User.objects.create_user(
+            email="admin@company.com",
+            password="AdminPassword123!",
+            name="System Admin",
+            role=User.RoleChoices.ADMIN,
+            status=User.StatusChoices.ACTIVE,
+            is_staff=True,
+            is_superuser=True,
+            is_active=True,
+        )
+
+    def test_performance_matrix_calculation_and_tier_thresholds(self):
+        """Test performance matrix mathematical calculation logic across all score tiers."""
+        report = HRWeeklyReport.objects.create(
+            hr_manager=self.hr_manager,
+            week_start_date=date(2026, 9, 14),
+            week_end_date=date(2026, 9, 20),
+            work_summary="Handled recruitment activities and coordinated aptitude tests.",
+            tasks_completed="Screened resumes, coordinated interviews.",
+            status="SUBMITTED",
+        )
+
+        # 1. Test Good Tier (Example in spec: ratings sum to 31 -> 3.88/5 -> 77.5%)
+        review = HRPerformanceReview.objects.create(
+            report=report,
+            reviewed_by=self.admin_user,
+            task_completion=4,
+            quality_of_work=4,
+            recruitment_coordination=5,
+            timeliness=3,
+            documentation=4,
+            communication=4,
+            problem_solving=3,
+            weekly_goal_achievement=4,
+            overall_feedback="Good progress this week. Recruitment coordination was handled effectively.",
+        )
+        self.assertEqual(review.total_score, 31)
+        self.assertEqual(float(review.average_score), 3.88)
+        self.assertEqual(float(review.performance_percentage), 77.50)
+        self.assertEqual(review.performance_status, "GOOD")
+
+        # 2. Test Excellent Tier (>= 85%)
+        review.task_completion = 5
+        review.quality_of_work = 5
+        review.recruitment_coordination = 5
+        review.timeliness = 5
+        review.documentation = 4
+        review.communication = 5
+        review.problem_solving = 5
+        review.weekly_goal_achievement = 5
+        review.save()
+        self.assertEqual(review.total_score, 39)
+        self.assertEqual(float(review.performance_percentage), 97.50)
+        self.assertEqual(review.performance_status, "EXCELLENT")
+
+        # 3. Test Needs Improvement Tier (50-69%)
+        review.task_completion = 3
+        review.quality_of_work = 3
+        review.recruitment_coordination = 3
+        review.timeliness = 2
+        review.documentation = 3
+        review.communication = 3
+        review.problem_solving = 2
+        review.weekly_goal_achievement = 3
+        review.save()
+        self.assertEqual(review.total_score, 22)
+        self.assertEqual(float(review.performance_percentage), 55.00)
+        self.assertEqual(review.performance_status, "NEEDS_IMPROVEMENT")
+
+        # 4. Test Unsatisfactory Tier (< 50%)
+        review.task_completion = 1
+        review.quality_of_work = 1
+        review.recruitment_coordination = 2
+        review.timeliness = 1
+        review.documentation = 1
+        review.communication = 2
+        review.problem_solving = 1
+        review.weekly_goal_achievement = 1
+        review.save()
+        self.assertEqual(review.total_score, 10)
+        self.assertEqual(float(review.performance_percentage), 25.00)
+        self.assertEqual(review.performance_status, "UNSATISFACTORY")
+
+    def test_hr_create_and_submit_weekly_report_flow(self):
+        """HR creates and submits weekly report, verifying Admin receives real database notification."""
+        self.client.login(username=self.hr_user.email, password="HRPassword123!")
+
+        create_url = reverse("hr:weekly_report_create")
+        post_data = {
+            "week_start_date": "2026-09-14",
+            "week_end_date": "2026-09-20",
+            "work_summary": "Handled recruitment activities for Software Development and coordinated interview schedules.",
+            "tasks_completed": "• Screened candidate resumes\n• Scheduled interviews\n• Coordinated aptitude tests",
+            "achievements": "Completed screening for assigned vacancies",
+            "challenges": "Delayed candidate responses",
+            "pending_tasks": "Follow up with remaining candidates",
+            "next_week_plan": "Schedule remaining interviews",
+            "vacancies_worked": 3,
+            "candidates_screened": 25,
+            "candidates_shortlisted": 10,
+            "aptitude_tests": 8,
+            "interviews": 5,
+            "candidates_selected": 2,
+            "action": "SUBMIT",
+        }
+
+        response = self.client.post(create_url, data=post_data, follow=True)
+        self.assertEqual(response.status_code, 200)
+
+        report = HRWeeklyReport.objects.get(hr_manager=self.hr_manager, week_start_date=date(2026, 9, 14))
+        self.assertEqual(report.status, "SUBMITTED")
+        self.assertIsNotNone(report.submitted_at)
+
+        # Check Admin Notification generated in DB
+        admin_notif = AdminNotification.objects.filter(
+            notification_type="HR_REPORT_SUBMITTED"
+        ).first()
+        self.assertIsNotNone(admin_notif)
+        self.assertIn("Jaimon Tomy", admin_notif.message)
+        self.assertIn(str(report.pk), admin_notif.link_url)
+
+    def test_admin_review_and_matrix_scoring_flow(self):
+        """Admin opens submitted report, enters matrix ratings/feedback, and triggers HR notification."""
+        report = HRWeeklyReport.objects.create(
+            hr_manager=self.hr_manager,
+            week_start_date=date(2026, 9, 14),
+            week_end_date=date(2026, 9, 20),
+            work_summary="Handled recruitment operations.",
+            tasks_completed="Screening & Interviews.",
+            status="SUBMITTED",
+        )
+
+        self.client.login(username=self.admin_user.email, password="AdminPassword123!")
+
+        # 1. Admin views report
+        review_url = reverse("admin_module:hr_report_detail", kwargs={"report_id": report.pk})
+        resp = self.client.get(review_url)
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "Jaimon Tomy")
+        self.assertContains(resp, "Handled recruitment operations.")
+
+        # Report transitions to UNDER_REVIEW
+        report.refresh_from_db()
+        self.assertEqual(report.status, "UNDER_REVIEW")
+
+        # 2. Admin saves performance review matrix
+        post_data = {
+            "task_completion": 4,
+            "task_completion_remarks": "Completed assigned tasks",
+            "quality_of_work": 4,
+            "quality_of_work_remarks": "Good quality",
+            "recruitment_coordination": 5,
+            "recruitment_coordination_remarks": "Very good coordination",
+            "timeliness": 3,
+            "timeliness_remarks": "Some delays",
+            "documentation": 4,
+            "documentation_remarks": "Records maintained",
+            "communication": 4,
+            "communication_remarks": "Good coordination",
+            "problem_solving": 3,
+            "problem_solving_remarks": "Needs improvement",
+            "weekly_goal_achievement": 4,
+            "weekly_goal_achievement_remarks": "Most goals achieved",
+            "overall_feedback": "Good progress this week. Recruitment coordination was handled effectively.",
+            "strengths": "Good candidate coordination and timely follow-up.",
+            "areas_for_improvement": "Improve response time for pending interview coordination.",
+            "recommendations": "Complete pending follow-ups within the next reporting period.",
+            "next_week_expectations": "Focus on closing pending recruitment activities.",
+            "status_decision": "REVIEWED",
+        }
+
+        save_resp = self.client.post(review_url, data=post_data, follow=True)
+        self.assertEqual(save_resp.status_code, 200)
+
+        report.refresh_from_db()
+        self.assertEqual(report.status, "REVIEWED")
+        self.assertIsNotNone(report.reviewed_at)
+
+        review = report.performance_review
+        self.assertEqual(review.total_score, 31)
+        self.assertEqual(float(review.average_score), 3.88)
+        self.assertEqual(float(review.performance_percentage), 77.50)
+        self.assertEqual(review.performance_status, "GOOD")
+
+        # 3. Verify HR Notification is created
+        hr_notif = HRNotification.objects.filter(
+            hr_manager=self.hr_manager,
+            notification_type="PERFORMANCE_REVIEWED"
+        ).first()
+        self.assertIsNotNone(hr_notif)
+        self.assertIn("77.5", hr_notif.message)
+
+        # 4. HR logs in and views their reviewed report with performance matrix
+        self.client.login(username=self.hr_user.email, password="HRPassword123!")
+        hr_detail_url = reverse("hr:weekly_report_detail", kwargs={"pk": report.pk})
+        hr_resp = self.client.get(hr_detail_url)
+        self.assertEqual(hr_resp.status_code, 200)
+        self.assertContains(hr_resp, "77.5%")
+        self.assertContains(hr_resp, "3.88 / 5")
+        self.assertContains(hr_resp, "Task Completion")
+        self.assertContains(hr_resp, "Good progress this week")
+
+    def test_hr_performance_analysis_and_history(self):
+        """Verify performance tracking and multi-week history on HR and Admin dashboards."""
+        # Create 3 reviewed weeks
+        w1 = HRWeeklyReport.objects.create(
+            hr_manager=self.hr_manager,
+            week_start_date=date(2026, 8, 31),
+            week_end_date=date(2026, 9, 6),
+            work_summary="Week 1 summary",
+            tasks_completed="Tasks 1",
+            status="REVIEWED",
+        )
+        HRPerformanceReview.objects.create(
+            report=w1,
+            task_completion=4, quality_of_work=4, recruitment_coordination=4, timeliness=4,
+            documentation=3, communication=4, problem_solving=3, weekly_goal_achievement=4,  # total=30 -> 75%
+        )
+
+        w2 = HRWeeklyReport.objects.create(
+            hr_manager=self.hr_manager,
+            week_start_date=date(2026, 9, 7),
+            week_end_date=date(2026, 9, 13),
+            work_summary="Week 2 summary",
+            tasks_completed="Tasks 2",
+            status="REVIEWED",
+        )
+        HRPerformanceReview.objects.create(
+            report=w2,
+            task_completion=4, quality_of_work=5, recruitment_coordination=5, timeliness=4,
+            documentation=4, communication=4, problem_solving=3, weekly_goal_achievement=4,  # total=33 -> 82.5%
+        )
+
+        # HR views performance analysis
+        self.client.login(username=self.hr_user.email, password="HRPassword123!")
+        hr_perf_url = reverse("hr:performance_analysis")
+        res = self.client.get(hr_perf_url)
+        self.assertContains(res, "75.00%")
+        self.assertContains(res, "82.50%")
+        self.assertContains(res, "78.8%")  # average of 75.0 and 82.5
+
+        # Admin views HR performance analysis dashboard
+        self.client.login(username=self.admin_user.email, password="AdminPassword123!")
+        admin_perf_url = reverse("admin_module:hr_performance_analysis")
+        admin_res = self.client.get(admin_perf_url)
+        self.assertEqual(admin_res.status_code, 200)
+        self.assertContains(admin_res, "Jaimon Tomy")
+        self.assertContains(admin_res, "78.8%")
+
+    def test_security_and_permission_isolation(self):
+        """HR cannot view/edit other HR reports; non-admin cannot access admin review pages."""
+        rep = HRWeeklyReport.objects.create(
+            hr_manager=self.hr_manager,
+            week_start_date=date(2026, 9, 14),
+            week_end_date=date(2026, 9, 20),
+            work_summary="Private HR summary",
+            tasks_completed="Tasks",
+            status="DRAFT",
+        )
+
+        # Other HR attempts to view report
+        self.client.login(username=self.other_hr_user.email, password="OtherHRPass123!")
+        res = self.client.get(reverse("hr:weekly_report_detail", kwargs={"pk": rep.pk}))
+        self.assertEqual(res.status_code, 404)
+
+        # Other HR attempts to access admin review page
+        admin_url = reverse("admin_module:hr_report_detail", kwargs={"report_id": rep.pk})
+        admin_res = self.client.get(admin_url)
+        self.assertNotEqual(admin_res.status_code, 200)  # Redirected or 403
+
+
+class CandidateOnboardingToEmployeeWorkflowTests(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.dept = Department.objects.create(name="Engineering", is_active=True)
+        self.team = Team.objects.create(department=self.dept, team_name="Backend Core", is_active=True)
+
+        # Admin user
+        self.admin_user = User.objects.create_user(
+            email="admin.system@hrms.com",
+            password="AdminPassword123!",
+            name="System Admin",
+            role=User.RoleChoices.ADMIN,
+            status=User.StatusChoices.ACTIVE,
+            is_staff=True,
+            is_superuser=True,
+            is_active=True,
+        )
+
+        # HR Manager
+        self.hr_user = User.objects.create_user(
+            email="hr.recruiter@hrms.com",
+            password="HRPassword123!",
+            name="HR Recruiter",
+            role=User.RoleChoices.HR,
+            status=User.StatusChoices.ACTIVE,
+            is_active=True,
+        )
+        self.hr_manager = HRManager.objects.create(
+            user=self.hr_user,
+            first_name="HR",
+            last_name="Recruiter",
+            employee_code="HRM-101",
+            department=self.dept,
+            is_active=True,
+        )
+
+        # Candidate user & application
+        self.cand_user = User.objects.create_user(
+            email="sarah.connor@test.com",
+            password="CandidatePass123!",
+            name="Sarah Connor",
+            role=User.RoleChoices.CANDIDATE,
+            status=User.StatusChoices.ACTIVE,
+            is_active=True,
+        )
+        self.candidate = Candidate.objects.create(
+            user=self.cand_user,
+            first_name="Sarah",
+            last_name="Connor",
+            phone="+1-555-888-9999",
+            date_of_birth=date(1995, 4, 12),
+            address="456 Future Ave, Tech City",
+        )
+        self.vacancy = JobVacancy.objects.create(
+            title="Senior Python Engineer",
+            department=self.dept,
+            status="OPEN",
+        )
+        self.application = JobApplication.objects.create(
+            candidate=self.candidate,
+            vacancy=self.vacancy,
+            status="SELECTED",
+        )
+
+    def test_complete_onboarding_and_approval_flow(self):
+        """HR submits onboarding proposal -> Admin approves -> Employee created with credentials & can log in."""
+        # 1. HR views candidate application page showing Recruitment Complete
+        self.client.login(username=self.hr_user.email, password="HRPassword123!")
+        detail_url = reverse("hr:application_detail", kwargs={"pk": self.application.pk})
+        res = self.client.get(detail_url)
+        self.assertEqual(res.status_code, 200)
+        self.assertContains(res, "Recruitment Complete — Candidate Selected")
+        self.assertContains(res, "Start Employee Onboarding")
+
+        # 2. HR submits Onboarding Proposal
+        forward_url = reverse("hr:forward_to_admin", kwargs={"pk": self.application.pk})
+        post_data = {
+            "department": self.dept.pk,
+            "designation": "Senior Python Developer",
+            "team": self.team.pk,
+            "team_lead": self.admin_user.pk,
+            "joining_date": "2026-10-01",
+            "employment_type": "FULL_TIME",
+            "work_location": "Office HQ",
+            "hr_justification": "Candidate passed all rounds with exceptional scores.",
+        }
+        res_submit = self.client.post(forward_url, post_data)
+        self.assertEqual(res_submit.status_code, 302)
+
+        # Verify DB state after HR proposal
+        self.application.refresh_from_db()
+        self.assertEqual(self.application.status, "FORWARDED_TO_ADMIN")
+
+        employee = Employee.objects.filter(user=self.cand_user).first()
+        self.assertIsNotNone(employee)
+        self.assertEqual(employee.employment_status, "INACTIVE")
+        self.assertEqual(employee.designation, "Senior Python Developer")
+        self.assertEqual(employee.department, self.dept)
+        self.assertEqual(employee.team, self.team)
+
+        approval = EmployeeApproval.objects.filter(employee=employee).first()
+        self.assertIsNotNone(approval)
+        self.assertEqual(approval.status, "PENDING")
+
+        admin_notif = AdminNotification.objects.filter(notification_type="EMPLOYEE_APPROVAL").first()
+        self.assertIsNotNone(admin_notif)
+        self.assertIn("Sarah Connor", admin_notif.message)
+
+        # Verify HR page now shows Pending Admin Approval and prevents duplicate proposals
+        res_pending = self.client.get(detail_url)
+        self.assertContains(res_pending, "Pending Admin Approval")
+
+        res_dup = self.client.post(forward_url, post_data)
+        self.assertEqual(res_dup.status_code, 302)
+        # Should not create duplicate Employee record
+        self.assertEqual(Employee.objects.filter(user=self.cand_user).count(), 1)
+
+        # 3. Admin logs in, checks Pending Onboarding list and Review page
+        self.client.login(username=self.admin_user.email, password="AdminPassword123!")
+        pending_list_resp = self.client.get(reverse("admin_module:employees_pending"))
+        self.assertEqual(pending_list_resp.status_code, 200)
+        self.assertContains(pending_list_resp, "Sarah Connor")
+
+        review_url = reverse("admin_module:recruitment_approval_review", kwargs={"employee_id": employee.pk})
+        review_resp = self.client.get(review_url)
+        self.assertEqual(review_resp.status_code, 200)
+        self.assertContains(review_resp, "Sarah Connor")
+        self.assertContains(review_resp, "Senior Python Developer")
+        self.assertContains(review_resp, "Candidate passed all rounds with exceptional scores.")
+
+        # 4. Admin approves onboarding and sets a temporary password
+        approve_url = reverse("admin_module:recruitment_approval_approve", kwargs={"employee_id": employee.pk})
+        approve_data = {
+            "department": self.dept.pk,
+            "designation": "Lead Python Developer",
+            "team": self.team.pk,
+            "temporary_password": "EmpSecretPass2026!",
+            "comments": "Approved with promotion to Lead Developer.",
+        }
+        approve_resp = self.client.post(approve_url, approve_data)
+        self.assertEqual(approve_resp.status_code, 302)
+
+        # 5. Verify database updates upon approval
+        employee.refresh_from_db()
+        self.cand_user.refresh_from_db()
+        approval.refresh_from_db()
+        self.application.refresh_from_db()
+
+        self.assertEqual(approval.status, "APPROVED")
+        self.assertEqual(employee.employment_status, "ACTIVE")
+        self.assertEqual(employee.designation, "Lead Python Developer")
+        self.assertTrue(employee.employee_code.startswith("EMP"))
+        self.assertEqual(self.cand_user.role, User.RoleChoices.EMPLOYEE)
+        self.assertTrue(self.cand_user.check_password("EmpSecretPass2026!"))
+        self.assertEqual(self.application.status, "HIRED")
+
+        # Check candidate notification with login credentials
+        cand_notif = CandidateNotification.objects.filter(
+            candidate=self.candidate,
+            notification_type="EMPLOYEE_CONVERTED",
+        ).first()
+        self.assertIsNotNone(cand_notif)
+        self.assertIn("EmpSecretPass2026!", cand_notif.message)
+        self.assertIn(employee.employee_code, cand_notif.message)
+
+        # Check HR notification
+        hr_notif = HRNotification.objects.filter(hr_manager=self.hr_manager).first()
+        self.assertIsNotNone(hr_notif)
+        self.assertIn("approved", hr_notif.message.lower())
+
+        # 6. Newly converted employee logs in with temporary password and accesses dashboard
+        self.client.logout()
+        login_ok = self.client.login(username="sarah.connor@test.com", password="EmpSecretPass2026!")
+        self.assertTrue(login_ok)
+
+        redirect_resp = self.client.get(reverse("users:redirect"))
+        self.assertEqual(redirect_resp.status_code, 302)
+        self.assertIn(reverse("employees:dashboard"), redirect_resp.url)
+
+        dash_resp = self.client.get(reverse("employees:dashboard"))
+        self.assertEqual(dash_resp.status_code, 200)
+        self.assertContains(dash_resp, "Sarah Connor")
+
+        # 7. HR views application detail and sees Onboarding Completed
+        self.client.login(username=self.hr_user.email, password="HRPassword123!")
+        res_completed = self.client.get(detail_url)
+        self.assertEqual(res_completed.status_code, 200)
+        self.assertContains(res_completed, "Employee Onboarding Completed")
+        self.assertContains(res_completed, employee.employee_code)
+        self.assertContains(res_completed, "View Employee Profile")
+
+    def test_admin_rejection_flow(self):
+        """Admin rejects onboarding proposal -> status becomes REJECTED and HR is notified."""
+        # 1. HR submits Onboarding Proposal
+        forward_url = reverse("hr:forward_to_admin", kwargs={"pk": self.application.pk})
+        self.client.login(username=self.hr_user.email, password="HRPassword123!")
+        self.client.post(forward_url, {
+            "department": self.dept.pk,
+            "designation": "Python Dev",
+            "joining_date": "2026-10-01",
+        })
+
+        employee = Employee.objects.get(user=self.cand_user)
+        approval = EmployeeApproval.objects.get(employee=employee)
+
+        # 2. Admin rejects with reason
+        self.client.login(username=self.admin_user.email, password="AdminPassword123!")
+        reject_url = reverse("admin_module:recruitment_approval_reject", kwargs={"employee_id": employee.pk})
+        reject_resp = self.client.post(reject_url, {
+            "rejection_reason": "Position headcount cancelled by management.",
+        })
+        self.assertEqual(reject_resp.status_code, 302)
+
+        # 3. Verify DB state after rejection
+        approval.refresh_from_db()
+        employee.refresh_from_db()
+        self.cand_user.refresh_from_db()
+
+        self.assertEqual(approval.status, "REJECTED")
+        self.assertEqual(approval.rejection_reason, "Position headcount cancelled by management.")
+        self.assertEqual(employee.employment_status, "INACTIVE")
+        self.assertEqual(self.cand_user.role, User.RoleChoices.CANDIDATE)
+
+        # 4. Check HR received notification with rejection reason
+        hr_notif = HRNotification.objects.filter(hr_manager=self.hr_manager).first()
+        self.assertIsNotNone(hr_notif)
+        self.assertIn("rejected", hr_notif.message.lower())
+        self.assertIn("Position headcount cancelled by management.", hr_notif.message)
+
 
 
 

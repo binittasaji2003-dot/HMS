@@ -42,8 +42,10 @@
             <div class="d-flex justify-content-between align-items-start gap-3">
               <div class="d-flex align-items-start gap-3 flex-grow-1">
                 <div class="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
-                     style="width: 44px; height: 44px; {% if notif.notification_type == 'INTERVIEW_SCHEDULED' or notif.notification_type == 'INTERVIEW_UPDATE' %}background: #e0f2fe; color: #0284c7;{% elif notif.notification_type == 'APTITUDE_SCHEDULED' %}background: #fef3c7; color: #d97706;{% elif notif.notification_type == 'APTITUDE_RESULT' %}background: #dcfce7; color: #16a34a;{% else %}background: #eff6ff; color: #2563eb;{% endif %}">
-                  {% if notif.notification_type == 'INTERVIEW_SCHEDULED' or notif.notification_type == 'INTERVIEW_UPDATE' %}
+                     style="width: 44px; height: 44px; {% if notif.notification_type == 'EMPLOYEE_CONVERTED' %}background: #dcfce7; color: #15803d;{% elif notif.notification_type == 'INTERVIEW_SCHEDULED' or notif.notification_type == 'INTERVIEW_UPDATE' %}background: #e0f2fe; color: #0284c7;{% elif notif.notification_type == 'APTITUDE_SCHEDULED' %}background: #fef3c7; color: #d97706;{% elif notif.notification_type == 'APTITUDE_RESULT' %}background: #dcfce7; color: #16a34a;{% else %}background: #eff6ff; color: #2563eb;{% endif %}">
+                  {% if notif.notification_type == 'EMPLOYEE_CONVERTED' %}
+                    <i class="bi bi-trophy-fill fs-5 text-success"></i>
+                  {% elif notif.notification_type == 'INTERVIEW_SCHEDULED' or notif.notification_type == 'INTERVIEW_UPDATE' %}
                     <i class="bi bi-calendar-event fs-5"></i>
                   {% elif notif.notification_type == 'APTITUDE_SCHEDULED' or notif.notification_type == 'APTITUDE_RESULT' %}
                     <i class="bi bi-patch-question fs-5"></i>
@@ -55,7 +57,7 @@
                 </div>
                 <div>
                   <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
-                    <span class="badge {% if notif.notification_type == 'INTERVIEW_SCHEDULED' or notif.notification_type == 'INTERVIEW_UPDATE' %}bg-info text-dark{% elif notif.notification_type == 'APTITUDE_SCHEDULED' %}bg-warning text-dark{% elif notif.notification_type == 'APTITUDE_RESULT' %}bg-success{% else %}bg-primary{% endif %} rounded-pill" style="font-size: 0.7rem;">
+                    <span class="badge {% if notif.notification_type == 'EMPLOYEE_CONVERTED' %}bg-success text-white{% elif notif.notification_type == 'INTERVIEW_SCHEDULED' or notif.notification_type == 'INTERVIEW_UPDATE' %}bg-info text-dark{% elif notif.notification_type == 'APTITUDE_SCHEDULED' %}bg-warning text-dark{% elif notif.notification_type == 'APTITUDE_RESULT' %}bg-success{% else %}bg-primary{% endif %} rounded-pill" style="font-size: 0.7rem;">
                       {{ notif.get_notification_type_display }}
                     </span>
                     <span class="text-muted small">•</span>
@@ -74,6 +76,11 @@
                   {% endif %}
 
                   <div class="d-flex align-items-center gap-2 flex-wrap mt-2">
+                    {% if notif.notification_type == 'EMPLOYEE_CONVERTED' %}
+                      <a href="{% url 'employees:login' %}" class="btn btn-sm btn-success fw-bold py-1 px-3" style="font-size: 0.8rem;">
+                        <i class="bi bi-box-arrow-in-right me-1"></i> Go to Employee Login
+                      </a>
+                    {% endif %}
                     {% if notif.link_url %}
                       <a href="{% url 'candidates:mark_notification_read' notif.pk %}?next={{ notif.link_url }}" class="btn btn-sm btn-blue-primary py-1 px-3" style="font-size: 0.8rem;">
                         View Details <i class="bi bi-arrow-right ms-1"></i>

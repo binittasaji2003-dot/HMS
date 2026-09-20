@@ -66,6 +66,25 @@
             <i class="bi bi-file-earmark-text text-base"></i>
             <span>Reports</span>
           </a>
+          <a href="{% url 'employees:leave_management' %}"
+             class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-600 hover:text-hrms-blue hover:bg-blue-50/60 rounded-xl transition-all">
+            <i class="bi bi-calendar2-check text-base"></i>
+            <span>Leave</span>
+          </a>
+          {% if is_team_lead %}
+          <a href="{% url 'employees:team_lead_leave_requests' %}"
+             class="flex items-center justify-between px-4 py-3 text-sm font-semibold text-amber-700 bg-amber-50/80 hover:bg-amber-100/70 rounded-xl transition-all border border-amber-200/60">
+            <div class="flex items-center gap-3">
+              <i class="bi bi-shield-check text-base text-amber-600"></i>
+              <span>Team Approvals</span>
+            </div>
+            {% if team_pending_leave_count > 0 %}
+            <span class="w-5 h-5 bg-amber-600 text-white text-[11px] font-bold rounded-full flex items-center justify-center">
+              {{ team_pending_leave_count }}
+            </span>
+            {% endif %}
+          </a>
+          {% endif %}
           <a href="{% url 'employees:performance' %}"
              class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-600 hover:text-hrms-blue hover:bg-blue-50/60 rounded-xl transition-all">
             <i class="bi bi-bar-chart-line text-base"></i>
@@ -231,7 +250,20 @@
         </div>
         <!-- 4 Stat Metric Cards Row -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <!-- Stat 1: Monthly Report -->
+          <!-- Stat 1: Leave Balance -->
+          <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex items-center justify-between">
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl shrink-0">
+                <i class="bi bi-calendar2-check"></i>
+              </div>
+              <div>
+                <div class="text-xs font-bold text-slate-400 uppercase tracking-wide">Leave Remaining</div>
+                <div class="text-base font-extrabold text-indigo-600 mt-0.5">{{ leave_balance.remaining_days }} / 15 <span class="text-xs font-semibold text-slate-400">Days</span></div>
+                <a href="{% url 'employees:leave_management' %}" class="text-[11px] font-semibold text-hrms-blue hover:underline mt-0.5 block">Apply & Manage</a>
+              </div>
+            </div>
+          </div>
+          <!-- Stat 2: Monthly Report -->
           <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex items-center gap-4">
             <div class="w-12 h-12 rounded-xl bg-blue-50 text-hrms-blue flex items-center justify-center text-xl shrink-0">
               <i class="bi bi-file-earmark-text"></i>
@@ -242,7 +274,7 @@
               <div class="text-[11px] font-medium text-slate-400 mt-0.5">April 2025</div>
             </div>
           </div>
-          <!-- Stat 2: Performance Rating -->
+          <!-- Stat 3: Performance Rating -->
           <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex items-center gap-4">
             <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center text-xl shrink-0">
               <i class="bi bi-star-fill"></i>
@@ -253,31 +285,38 @@
               <div class="text-[11px] font-medium text-slate-400 mt-0.5">{{ perf_rating }}</div>
             </div>
           </div>
-          <!-- Stat 3: Pending Tasks -->
+          <!-- Stat 4: Unread Notifications / Tasks -->
           <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex items-center gap-4">
-            <div class="w-12 h-12 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-xl shrink-0">
+            <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-xl shrink-0">
               <i class="bi bi-bell"></i>
             </div>
             <div>
               <div class="text-xs font-bold text-slate-400 uppercase tracking-wide">Pending Tasks</div>
               <div class="text-base font-extrabold text-slate-900 mt-0.5">{{ pending_tasks }}</div>
-              <a href="{% url 'employees:reports_list' %}"
-                 class="text-[11px] font-semibold text-hrms-blue hover:underline mt-0.5 block">View Details</a>
-            </div>
-          </div>
-          <!-- Stat 4: Unread Notifications -->
-          <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex items-center gap-4">
-            <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-xl shrink-0">
-              <i class="bi bi-bag"></i>
-            </div>
-            <div>
-              <div class="text-xs font-bold text-slate-400 uppercase tracking-wide">Unread Notifications</div>
-              <div class="text-base font-extrabold text-slate-900 mt-0.5">{{ unread_notifications_count }}</div>
               <a href="{% url 'employees:notifications' %}"
-                 class="text-[11px] font-semibold text-hrms-blue hover:underline mt-0.5 block">View All</a>
+                 class="text-[11px] font-semibold text-hrms-blue hover:underline mt-0.5 block">{{ unread_notifications_count }} Unread Notifs</a>
             </div>
           </div>
         </div>
+
+        {% if is_team_lead and team_pending_leave_count > 0 %}
+        <!-- Team Lead Notification Alert Banner -->
+        <div class="bg-amber-50 border border-amber-200 p-4 rounded-2xl flex items-center justify-between shadow-sm">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center text-lg font-bold">
+              <i class="bi bi-shield-check"></i>
+            </div>
+            <div>
+              <h4 class="text-xs font-extrabold text-amber-900 uppercase tracking-wide">Team Lead Action Required</h4>
+              <p class="text-xs text-amber-800 font-medium mt-0.5">You have <span class="font-bold">{{ team_pending_leave_count }}</span> pending subordinate leave request(s) awaiting your decision.</p>
+            </div>
+          </div>
+          <a href="{% url 'employees:team_lead_leave_requests' %}" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-xl shadow-sm transition-all flex items-center gap-1.5">
+            <span>Review Requests</span>
+            <i class="bi bi-arrow-right"></i>
+          </a>
+        </div>
+        {% endif %}
         <!-- Main Content Split Grid -->
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
           <!-- Left Column (8 Columns) -->
@@ -440,6 +479,13 @@
                     <i class="bi bi-file-earmark-text"></i>
                   </div>
                   <span class="text-xs font-bold text-slate-700">View Reports</span>
+                </a>
+                <a href="{% url 'employees:leave_management' %}"
+                   class="p-4 rounded-2xl bg-indigo-50/60 hover:bg-indigo-100/80 border border-indigo-100 flex flex-col items-center justify-center text-center transition-all group">
+                  <div class="w-10 h-10 rounded-xl bg-white text-indigo-600 flex items-center justify-center text-lg shadow-sm mb-2 group-hover:scale-110 transition-transform">
+                    <i class="bi bi-calendar2-check"></i>
+                  </div>
+                  <span class="text-xs font-bold text-slate-700">Apply Leave</span>
                 </a>
                 <a href="{% url 'employees:performance' %}"
                    class="p-4 rounded-2xl bg-blue-50/60 hover:bg-blue-100/80 border border-blue-100 flex flex-col items-center justify-center text-center transition-all group">

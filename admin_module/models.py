@@ -22,7 +22,16 @@ class Department(models.Model):
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
+        blank=True,
         related_name="created_departments",
+    )
+
+    department_leader = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="led_departments",
     )
 
     created_at = models.DateTimeField(
@@ -129,8 +138,21 @@ class EmployeeApproval(models.Model):
         related_name="employee_approvals",
     )
 
+    requested_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="submitted_employee_approvals",
+    )
+
     comments = models.TextField(
         blank=True,
+    )
+
+    rejection_reason = models.TextField(
+        blank=True,
+        default="",
     )
 
     approved_at = models.DateTimeField(
@@ -162,4 +184,38 @@ class Holiday(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.date})"
+
+
+class AdminNotification(models.Model):
+    NOTIFICATION_TYPES = [
+        ("HR_REPORT_SUBMITTED", "HR Weekly Report Submitted"),
+        ("EMPLOYEE_APPROVAL", "New Employee Approval Pending"),
+        ("HR_RECOMMENDATION", "HR Recommendation Submitted"),
+        ("GENERAL", "General Notification"),
+    ]
+
+    notification_id = models.AutoField(primary_key=True)
+    admin_user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="admin_notifications",
+    )
+    title = models.CharField(max_length=200)
+    message = models.TextField()
+    notification_type = models.CharField(
+        max_length=40,
+        choices=NOTIFICATION_TYPES,
+        default="GENERAL",
+    )
+    link_url = models.CharField(max_length=255, blank=True)
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+
+    def __str__(self):
+        return f"Admin Notification: {self.title}"
 

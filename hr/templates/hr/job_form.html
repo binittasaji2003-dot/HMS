@@ -1,71 +1,240 @@
 {% extends "hr/base.html" %}
 
-{% block title %}{% if object %}Edit Job{% else %}Post New Job{% endif %} | Smart HRMS{% endblock %}
+{% block title %}{% if object %}Edit Job Vacancy{% else %}Post New Job Vacancy{% endif %} | Smart HRMS{% endblock %}
 
 {% block content %}
 <div class="row justify-content-center">
-    <div class="col-12 col-md-8">
-        <div class="card card-custom p-4">
-            <div class="border-bottom pb-3 mb-4">
-                <h4 class="fw-bold text-primary mb-1">
-                    {% if object %}Edit Job Vacancy{% else %}Post a New Job Vacancy{% endif %}
+    <div class="col-12 col-lg-10">
+        <!-- Breadcrumb / Header -->
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div>
+                <a href="{% url 'hr:job_list' %}" class="text-decoration-none small text-muted">
+                    <i class="bi bi-arrow-left me-1"></i> Back to Job Vacancies
+                </a>
+                <h4 class="fw-bold text-primary mt-1 mb-0">
+                    {% if object %}<i class="bi bi-pencil-square me-2"></i>Edit Job Vacancy{% else %}<i class="bi bi-plus-circle-fill me-2"></i>Post New Job Vacancy{% endif %}
                 </h4>
-                <p class="text-muted small mb-0">Fill in the role details, requirements, and open positions</p>
             </div>
+            {% if object %}
+            <span class="badge {% if object.status == 'OPEN' %}bg-success{% else %}bg-secondary{% endif %} fs-6 px-3 py-2">
+                Status: {{ object.get_status_display }}
+            </span>
+            {% endif %}
+        </div>
 
-            <form method="POST">
-                {% csrf_token %}
-                <div class="row g-3 mb-3">
-                    <div class="col-md-8">
-                        <label class="form-label small fw-semibold">Job Title</label>
+        <form method="POST" class="needs-validation" novalidate>
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+            <div class="alert alert-danger shadow-sm mb-4">
+                <i class="bi bi-exclamation-triangle-fill me-2"></i>
+                {% for err in form.non_field_errors %}
+                    <div>{{ err }}</div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Section 1: Basic Position Information -->
+            <div class="card card-custom p-4 mb-4 shadow-sm">
+                <h5 class="fw-bold text-primary mb-3 pb-2 border-bottom">
+                    <i class="bi bi-info-circle me-2"></i>1. Position & Role Details
+                </h5>
+                <div class="row g-3">
+                    <div class="col-md-7">
+                        <label class="form-label fw-semibold">Job Title <span class="text-danger">*</span></label>
                         {{ form.title }}
+                        {% if form.title.errors %}<div class="text-danger small mt-1">{{ form.title.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-5">
+                        <label class="form-label fw-semibold">Job Role / Designation</label>
+                        {{ form.role_designation }}
+                        {% if form.role_designation.errors %}<div class="text-danger small mt-1">{{ form.role_designation.errors.0 }}</div>{% endif %}
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label small fw-semibold">Openings</label>
-                        {{ form.openings_count }}
+                        <label class="form-label fw-semibold">Department <span class="text-danger">*</span></label>
+                        {{ form.department }}
+                        {% if form.department.errors %}<div class="text-danger small mt-1">{{ form.department.errors.0 }}</div>{% endif %}
                     </div>
-                    <div class="col-md-6">
-                        <label class="form-label small fw-semibold">Department</label>
-                        {{ form.department_name }}
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Employment Type <span class="text-danger">*</span></label>
+                        {{ form.employment_type }}
+                        {% if form.employment_type.errors %}<div class="text-danger small mt-1">{{ form.employment_type.errors.0 }}</div>{% endif %}
                     </div>
-                    <div class="col-md-6">
-                        <label class="form-label small fw-semibold">Job Type</label>
-                        {{ form.job_type }}
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Work Mode <span class="text-danger">*</span></label>
+                        {{ form.work_mode }}
+                        {% if form.work_mode.errors %}<div class="text-danger small mt-1">{{ form.work_mode.errors.0 }}</div>{% endif %}
                     </div>
-                    <div class="col-md-6">
-                        <label class="form-label small fw-semibold">Experience Required</label>
-                        {{ form.experience_required }}
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Number of Openings <span class="text-danger">*</span></label>
+                        {{ form.number_of_openings }}
+                        {% if form.number_of_openings.errors %}<div class="text-danger small mt-1">{{ form.number_of_openings.errors.0 }}</div>{% endif %}
                     </div>
-                    {% if object %}
-                    <div class="col-md-6">
-                        <label class="form-label small fw-semibold">Status</label>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Last Date to Apply (Deadline)</label>
+                        {{ form.closing_date }}
+                        <div class="form-text small">Leave blank to keep open indefinitely until manually closed.</div>
+                        {% if form.closing_date.errors %}<div class="text-danger small mt-1">{{ form.closing_date.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Posting Status</label>
                         {{ form.status }}
-                    </div>
-                    {% endif %}
-                    <div class="col-12">
-                        <label class="form-label small fw-semibold">Job Description</label>
-                        {{ form.description }}
-                    </div>
-                    <div class="col-12">
-                        <label class="form-label small fw-semibold">Requirements / Skills</label>
-                        {{ form.requirements }}
+                        {% if form.status.errors %}<div class="text-danger small mt-1">{{ form.status.errors.0 }}</div>{% endif %}
                     </div>
                 </div>
+            </div>
 
-                <div class="d-flex justify-content-end gap-2 mt-4">
-                    <a href="{% url 'hr:job_list' %}" class="btn btn-light border">Cancel</a>
-                    <button type="submit" class="btn btn-blue">
-                        {% if object %}Update Vacancy{% else %}Publish Job{% endif %}
-                    </button>
+            <!-- Section 2: Educational Requirements -->
+            <div class="card card-custom p-4 mb-4 shadow-sm">
+                <h5 class="fw-bold text-primary mb-3 pb-2 border-bottom">
+                    <i class="bi bi-mortarboard me-2"></i>2. Educational & Qualification Requirements
+                </h5>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Minimum Qualification Level <span class="text-danger">*</span></label>
+                        {{ form.minimum_qualification }}
+                        {% if form.minimum_qualification.errors %}<div class="text-danger small mt-1">{{ form.minimum_qualification.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Required / Preferred Field of Study</label>
+                        {{ form.required_field_of_study }}
+                        {% if form.required_field_of_study.errors %}<div class="text-danger small mt-1">{{ form.required_field_of_study.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Minimum Graduation Year (Optional)</label>
+                        {{ form.graduation_year_min }}
+                        <div class="form-text small">e.g. 2020 (Graduated on or after this year)</div>
+                        {% if form.graduation_year_min.errors %}<div class="text-danger small mt-1">{{ form.graduation_year_min.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Maximum Graduation Year (Optional)</label>
+                        {{ form.graduation_year_max }}
+                        <div class="form-text small">e.g. 2025 (Graduated on or before this year)</div>
+                        {% if form.graduation_year_max.errors %}<div class="text-danger small mt-1">{{ form.graduation_year_max.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label fw-semibold">Educational Qualifications Summary</label>
+                        {{ form.qualifications }}
+                        <div class="form-text small">Detailed overview of degrees, certifications, and academic prerequisites.</div>
+                        {% if form.qualifications.errors %}<div class="text-danger small mt-1">{{ form.qualifications.errors.0 }}</div>{% endif %}
+                    </div>
                 </div>
-            </form>
-        </div>
+            </div>
+
+            <!-- Section 3: Experience & Location Requirements -->
+            <div class="card card-custom p-4 mb-4 shadow-sm">
+                <h5 class="fw-bold text-primary mb-3 pb-2 border-bottom">
+                    <i class="bi bi-clock-history me-2"></i>3. Experience & Location Specifications
+                </h5>
+                <div class="row g-3">
+                    <div class="col-12">
+                        <div class="form-check form-switch p-2 bg-light rounded border">
+                            {{ form.experience_required_bool }}
+                            <label class="form-check-label fw-bold ms-2" for="id_experience_required_bool">
+                                Prior Work Experience Required? <span class="text-muted fw-normal">(Turn off if freshers are eligible)</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="col-md-6 exp-input-group">
+                        <label class="form-label fw-semibold">Minimum Experience (in Years)</label>
+                        {{ form.minimum_experience }}
+                        {% if form.minimum_experience.errors %}<div class="text-danger small mt-1">{{ form.minimum_experience.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-6 exp-input-group">
+                        <label class="form-label fw-semibold">Maximum Experience (in Years, Optional)</label>
+                        {{ form.maximum_experience }}
+                        {% if form.maximum_experience.errors %}<div class="text-danger small mt-1">{{ form.maximum_experience.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Location / City <span class="text-danger">*</span></label>
+                        {{ form.location }}
+                        {% if form.location.errors %}<div class="text-danger small mt-1">{{ form.location.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">State / Province</label>
+                        {{ form.state }}
+                        {% if form.state.errors %}<div class="text-danger small mt-1">{{ form.state.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label fw-semibold">Country</label>
+                        {{ form.country }}
+                        {% if form.country.errors %}<div class="text-danger small mt-1">{{ form.country.errors.0 }}</div>{% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Section 4: Descriptions, Responsibilities & Skills -->
+            <div class="card card-custom p-4 mb-4 shadow-sm">
+                <h5 class="fw-bold text-primary mb-3 pb-2 border-bottom">
+                    <i class="bi bi-file-earmark-text me-2"></i>4. Description, Responsibilities & Skills
+                </h5>
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label class="form-label fw-semibold">Job Description <span class="text-danger">*</span></label>
+                        {{ form.description }}
+                        {% if form.description.errors %}<div class="text-danger small mt-1">{{ form.description.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label fw-semibold">Key Responsibilities</label>
+                        {{ form.responsibilities }}
+                        {% if form.responsibilities.errors %}<div class="text-danger small mt-1">{{ form.responsibilities.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Mandatory / Core Skills <span class="text-danger">*</span></label>
+                        {{ form.skills_required }}
+                        <div class="form-text small">Used for automated candidate screening & match scoring (comma-separated).</div>
+                        {% if form.skills_required.errors %}<div class="text-danger small mt-1">{{ form.skills_required.errors.0 }}</div>{% endif %}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label fw-semibold">Preferred / Nice-to-Have Skills</label>
+                        {{ form.preferred_skills }}
+                        <div class="form-text small">Additional skills evaluated as bonus criteria (comma-separated).</div>
+                        {% if form.preferred_skills.errors %}<div class="text-danger small mt-1">{{ form.preferred_skills.errors.0 }}</div>{% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submission Bar -->
+            <div class="d-flex justify-content-between align-items-center bg-white p-3 rounded card-custom shadow-sm mb-5">
+                <a href="{% url 'hr:job_list' %}" class="btn btn-light border px-4">
+                    <i class="bi bi-x-circle me-1"></i> Cancel
+                </a>
+                <button type="submit" class="btn btn-blue px-4 py-2 fw-semibold">
+                    {% if object %}<i class="bi bi-save me-1"></i> Update Vacancy{% else %}<i class="bi bi-send-check me-1"></i> Publish Job Vacancy{% endif %}
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 
 <script>
-    document.querySelectorAll("form input, form select, form textarea").forEach(el => {
-        el.classList.add("form-control");
+    document.addEventListener("DOMContentLoaded", function () {
+        const expCheckbox = document.getElementById("id_experience_required_bool");
+        const minExpInput = document.querySelector('input[name="minimum_experience"]');
+        const maxExpInput = document.querySelector('input[name="maximum_experience"]');
+
+        function toggleExpFields() {
+            if (!expCheckbox) return;
+            const isRequired = expCheckbox.checked;
+            if (!isRequired) {
+                if (minExpInput) {
+                    minExpInput.value = "0";
+                    minExpInput.closest(".exp-input-group").style.opacity = "0.5";
+                }
+                if (maxExpInput) {
+                    maxExpInput.value = "";
+                    maxExpInput.closest(".exp-input-group").style.opacity = "0.5";
+                }
+            } else {
+                if (minExpInput) minExpInput.closest(".exp-input-group").style.opacity = "1";
+                if (maxExpInput) maxExpInput.closest(".exp-input-group").style.opacity = "1";
+            }
+        }
+
+        if (expCheckbox) {
+            expCheckbox.addEventListener("change", toggleExpFields);
+            toggleExpFields();
+        }
     });
 </script>
 {% endblock %}

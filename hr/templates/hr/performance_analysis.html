@@ -1,0 +1,151 @@
+{% extends "hr/base.html" %}
+
+{% block title %}My Performance Analysis - HRMS Portal{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <!-- Header -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-1">
+                <a href="{% url 'hr:weekly_report_list' %}" class="text-decoration-none text-muted small">
+                    <i class="bi bi-arrow-left me-1"></i> Back to Reports
+                </a>
+            </div>
+            <h3 class="fw-bold text-dark mb-0">My Performance Analysis & History</h3>
+            <p class="text-muted small mb-0">Track your weekly performance scores, admin evaluations, and matrix progression over time.</p>
+        </div>
+        <div>
+            <a href="{% url 'hr:weekly_report_create' %}" class="btn btn-primary rounded-3 px-3 py-2 fw-semibold shadow-sm">
+                <i class="bi bi-plus-lg me-1"></i> Create Weekly Report
+            </a>
+        </div>
+    </div>
+
+    <!-- KPI Summary Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-lg-3">
+            <div class="card card-custom border-0 p-3 h-100">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="text-muted small fw-medium">Overall Performance</span>
+                    <span class="badge bg-primary-subtle text-primary rounded-pill px-2 py-1"><i class="bi bi-award"></i></span>
+                </div>
+                <h3 class="fw-bold text-primary mb-0">{{ overall_avg_pct }}%</h3>
+                <div class="text-muted small mt-1">Across all evaluated weeks</div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="card card-custom border-0 p-3 h-100">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="text-muted small fw-medium">Average Rating</span>
+                    <span class="badge bg-success-subtle text-success rounded-pill px-2 py-1"><i class="bi bi-star"></i></span>
+                </div>
+                <h3 class="fw-bold text-success mb-0">{{ overall_avg_score }} / 5</h3>
+                <div class="text-muted small mt-1">Matrix criterion average</div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="card card-custom border-0 p-3 h-100">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="text-muted small fw-medium">Total Submitted</span>
+                    <span class="badge bg-info-subtle text-info rounded-pill px-2 py-1"><i class="bi bi-file-earmark-check"></i></span>
+                </div>
+                <h3 class="fw-bold text-dark mb-0">{{ total_submitted }}</h3>
+                <div class="text-muted small mt-1">Weekly reports logged</div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="card card-custom border-0 p-3 h-100">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="text-muted small fw-medium">Evaluations Completed</span>
+                    <span class="badge bg-warning-subtle text-warning-emphasis rounded-pill px-2 py-1"><i class="bi bi-clipboard2-pulse"></i></span>
+                </div>
+                <h3 class="fw-bold text-dark mb-0">{{ total_reviewed }}</h3>
+                <div class="text-muted small mt-1">Reviewed by Admin</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Performance History Table -->
+    <div class="card card-custom border-0 mb-4">
+        <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+            <h5 class="fw-bold text-dark mb-1">Weekly Performance History</h5>
+            <p class="text-muted small mb-0">Comprehensive record of all weekly reports reviewed by System Administration.</p>
+        </div>
+        <div class="card-body p-0 pt-3">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4 py-3 text-muted text-uppercase" style="font-size: 0.75rem; font-weight: 700;">Report Week</th>
+                            <th class="py-3 text-muted text-uppercase" style="font-size: 0.75rem; font-weight: 700;">Total Score</th>
+                            <th class="py-3 text-muted text-uppercase" style="font-size: 0.75rem; font-weight: 700;">Average Rating</th>
+                            <th class="py-3 text-muted text-uppercase" style="font-size: 0.75rem; font-weight: 700;">Performance %</th>
+                            <th class="py-3 text-muted text-uppercase" style="font-size: 0.75rem; font-weight: 700;">Performance Tier</th>
+                            <th class="py-3 text-muted text-uppercase" style="font-size: 0.75rem; font-weight: 700;">Reviewed On</th>
+                            <th class="pe-4 py-3 text-end text-muted text-uppercase" style="font-size: 0.75rem; font-weight: 700;">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if reports %}
+                            {% for r in reports %}
+                                <tr>
+                                    <td class="ps-4">
+                                        <div class="fw-bold text-dark">{{ r.week_display }}</div>
+                                        <div class="text-muted small">Report #{{ r.report_id }}</div>
+                                    </td>
+                                    <td>
+                                        <span class="fw-bold text-dark">{{ r.performance_review.total_score }}</span> <span class="text-muted small">/ 40</span>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-light text-dark border px-2 py-1">
+                                            <i class="bi bi-star-fill text-warning me-1"></i>{{ r.performance_review.average_score }} / 5
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex align-items-center gap-2">
+                                            <div class="progress flex-grow-1" style="height: 6px; width: 80px;">
+                                                <div class="progress-bar {% if r.performance_review.performance_percentage >= 85 %}bg-success{% elif r.performance_review.performance_percentage >= 70 %}bg-primary{% elif r.performance_review.performance_percentage >= 50 %}bg-warning{% else %}bg-danger{% endif %}" style="width: {{ r.performance_review.performance_percentage }}%;"></div>
+                                            </div>
+                                            <span class="fw-bold text-dark small">{{ r.performance_review.performance_percentage }}%</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if r.performance_review.performance_percentage >= 85 %}
+                                            <span class="badge bg-success-subtle text-success px-2 py-1 rounded-pill">Excellent</span>
+                                        {% elif r.performance_review.performance_percentage >= 70 %}
+                                            <span class="badge bg-primary-subtle text-primary px-2 py-1 rounded-pill">Good</span>
+                                        {% elif r.performance_review.performance_percentage >= 50 %}
+                                            <span class="badge bg-warning-subtle text-warning-emphasis px-2 py-1 rounded-pill">Needs Improvement</span>
+                                        {% else %}
+                                            <span class="badge bg-danger-subtle text-danger px-2 py-1 rounded-pill">Unsatisfactory</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <div class="text-dark small">{{ r.reviewed_at|date:"M d, Y" }}</div>
+                                        <div class="text-muted" style="font-size: 0.75rem;">{{ r.reviewed_at|time:"h:i A" }}</div>
+                                    </td>
+                                    <td class="pe-4 text-end">
+                                        <a href="{% url 'hr:weekly_report_detail' r.pk %}" class="btn btn-sm btn-outline-primary rounded-2">
+                                            <i class="bi bi-journal-check me-1"></i> View Full Evaluation
+                                        </a>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="7" class="text-center py-5 text-muted">
+                                    <i class="bi bi-graph-down fs-1 d-block mb-2 text-secondary"></i>
+                                    <h5>No Performance Reviews Yet</h5>
+                                    <p class="small mb-0">Submit your weekly reports to receive Admin performance evaluations and matrix scores.</p>
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

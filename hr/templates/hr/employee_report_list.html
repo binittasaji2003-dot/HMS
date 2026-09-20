@@ -6,7 +6,12 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <div>
         <h4 class="fw-bold text-primary mb-1">Weekly Work Reports</h4>
-        <p class="text-muted small mb-0">Track and review weekly milestones, achievements, and challenges</p>
+        <p class="text-muted small mb-0">Track and review employee weekly milestones, achievements, and 8-criteria evaluations</p>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'hr:employee_performance_analysis' %}" class="btn btn-outline-primary btn-sm">
+            <i class="bi bi-graph-up me-1"></i> Performance Analytics Matrix
+        </a>
     </div>
 </div>
 
@@ -28,7 +33,7 @@
                     <th>Week Period</th>
                     <th>Summary & Tasks</th>
                     <th>Status</th>
-                    <th>Reviewed By</th>
+                    <th>Performance Score</th>
                     <th class="text-end">Action</th>
                 </tr>
             </thead>
@@ -36,7 +41,7 @@
                 {% for report in reports %}
                 <tr>
                     <td>
-                        <strong>{{ report.employee.user.name|default:report.employee.user.email }}</strong><br>
+                        <strong>{{ report.employee.full_name|default:report.employee.user.email }}</strong><br>
                         <span class="text-muted">{{ report.employee.employee_code }} &bull; {{ report.employee.department.name }}</span>
                     </td>
                     <td>
@@ -62,70 +67,19 @@
                         {% endif %}
                     </td>
                     <td>
-                        {% if report.reviewed_by %}
-                            {{ report.reviewed_by.user.name|default:report.reviewed_by.user.email }}<br>
-                            <small class="text-muted">{{ report.reviewed_at|date:"M d, Y" }}</small>
+                        {% if report.performance_review %}
+                            <strong class="text-primary">{{ report.performance_review.average_score }}/5.0</strong>
+                            <div class="text-muted small">({{ report.performance_review.performance_percentage }}%)</div>
                         {% else %}
-                            <span class="text-muted">Pending</span>
+                            <span class="text-muted small">Pending Review</span>
                         {% endif %}
                     </td>
                     <td class="text-end">
-                        <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#reportModal{{ report.pk }}">
-                            Review
-                        </button>
+                        <a href="{% url 'hr:employee_report_review' report.pk %}" class="btn btn-sm btn-primary">
+                            <i class="bi bi-star-fill text-warning me-1"></i> Review & Evaluate
+                        </a>
                     </td>
                 </tr>
-
-                <!-- Review Modal -->
-                <div class="modal fade text-start" id="reportModal{{ report.pk }}" tabindex="-1" aria-hidden="true">
-                    <div class="modal-dialog modal-dialog-centered modal-lg">
-                        <div class="modal-content border-0 shadow">
-                            <div class="modal-header border-bottom">
-                                <div>
-                                    <h5 class="modal-title fw-bold">{{ report.employee.user.name|default:report.employee.user.email }}</h5>
-                                    <span class="text-muted small">{{ report.week_start_date }} to {{ report.week_end_date }}</span>
-                                </div>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                            </div>
-                            <form method="POST" action="{% url 'hr:employee_report_review' report.pk %}">
-                                {% csrf_token %}
-                                <div class="modal-body">
-                                    <div class="mb-3">
-                                        <label class="small fw-bold text-muted text-uppercase">Work Summary</label>
-                                        <div class="p-2 bg-light rounded">{{ report.work_summary|linebreaks }}</div>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="small fw-bold text-muted text-uppercase">Tasks Completed</label>
-                                        <div class="p-2 bg-light rounded">{{ report.tasks_completed|linebreaks }}</div>
-                                    </div>
-                                    {% if report.achievements %}
-                                    <div class="mb-3">
-                                        <label class="small fw-bold text-success text-uppercase">Achievements</label>
-                                        <div class="p-2 bg-success-subtle text-success-emphasis rounded">{{ report.achievements|linebreaks }}</div>
-                                    </div>
-                                    {% endif %}
-                                    {% if report.challenges %}
-                                    <div class="mb-3">
-                                        <label class="small fw-bold text-danger text-uppercase">Challenges</label>
-                                        <div class="p-2 bg-danger-subtle text-danger-emphasis rounded">{{ report.challenges|linebreaks }}</div>
-                                    </div>
-                                    {% endif %}
-                                    <div class="mb-3">
-                                        <label class="form-label small fw-bold text-muted text-uppercase">HR Feedback Comments</label>
-                                        <textarea name="hr_comments" class="form-control" rows="3" placeholder="Provide feedback or instructions...">{{ report.hr_comments }}</textarea>
-                                    </div>
-                                </div>
-                                <div class="modal-footer border-top d-flex justify-content-between">
-                                    <button type="submit" name="action" value="UNDER_REVIEW" class="btn btn-outline-info btn-sm">Mark Under Review</button>
-                                    <div class="d-flex gap-2">
-                                        <button type="submit" name="action" value="NEEDS_CORRECTION" class="btn btn-outline-danger btn-sm">Request Correction</button>
-                                        <button type="submit" name="action" value="REVIEWED" class="btn btn-success btn-sm">Approve / Complete Review</button>
-                                    </div>
-                                </div>
-                            </form>
-                        </div>
-                    </div>
-                </div>
                 {% empty %}
                 <tr>
                     <td colspan="6" class="text-center text-muted py-4">No employee reports found.</td>

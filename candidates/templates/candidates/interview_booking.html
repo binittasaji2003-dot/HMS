@@ -1,0 +1,197 @@
+{% extends "candidates/base_candidate.html" %}
+
+{% block title %}Select Interview Slot - {{ job.title }} | Career Portal{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-1 small">
+                    <li class="breadcrumb-item"><a href="{% url 'candidates:applications' %}" class="text-decoration-none">My Applications</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Interview Slot Selection</li>
+                </ol>
+            </nav>
+            <h3 class="fw-bold text-dark mb-0">
+                <i class="bi bi-calendar-check text-primary me-2"></i>Select Interview Slot
+            </h3>
+            <p class="text-muted small mb-0">Choose an available physical interview slot for <strong>{{ job.title }}</strong></p>
+        </div>
+        <a href="{% url 'candidates:applications' %}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left me-1"></i> Back to Applications
+        </a>
+    </div>
+</div>
+
+{% if booked_interview and application.status == 'INTERVIEW_SCHEDULED' %}
+<!-- Currently Booked Slot Confirmation Card -->
+<div class="card card-custom border-0 shadow-sm p-4 mb-4" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-left: 5px solid #22c55e !important;">
+    <div class="d-flex align-items-start justify-content-between flex-wrap gap-3">
+        <div>
+            <div class="d-flex align-items-center gap-2 mb-2">
+                <span class="badge bg-success px-3 py-1"><i class="bi bi-check-circle-fill me-1"></i> Interview Confirmed</span>
+                <span class="badge bg-light text-dark border">Mode: Offline Physical Interview</span>
+            </div>
+            <h4 class="fw-bold text-dark mb-1">{{ job.title }}</h4>
+            <div class="text-secondary small mb-3">
+                <span><i class="bi bi-building me-1"></i>{{ job.department.name|default:"General Department" }}</span>
+            </div>
+
+            <div class="row g-3">
+                <div class="col-sm-6 col-md-3">
+                    <span class="text-muted small d-block">Interview Date:</span>
+                    <strong class="text-dark"><i class="bi bi-calendar-event me-1 text-primary"></i>{{ booked_interview.interview_date|date:"D, M d, Y" }}</strong>
+                </div>
+                <div class="col-sm-6 col-md-3">
+                    <span class="text-muted small d-block">Scheduled Time:</span>
+                    <strong class="text-dark"><i class="bi bi-clock me-1 text-primary"></i>{{ booked_interview.interview_time|time:"h:i A" }}</strong>
+                </div>
+                <div class="col-sm-6 col-md-3">
+                    <span class="text-muted small d-block">Physical Venue:</span>
+                    <strong class="text-dark"><i class="bi bi-geo-alt-fill me-1 text-danger"></i>{{ booked_interview.location.location_name|default:"Headquarters" }}</strong>
+                </div>
+                <div class="col-sm-6 col-md-3">
+                    <span class="text-muted small d-block">Interviewer:</span>
+                    <strong class="text-dark"><i class="bi bi-person me-1 text-primary"></i>{{ booked_interview.interviewer.user.get_full_name|default:booked_interview.interviewer.user.email }}</strong>
+                </div>
+            </div>
+
+            {% if booked_interview.location.address %}
+            <div class="mt-3 p-2 bg-white rounded-3 border small">
+                <span class="fw-bold text-dark"><i class="bi bi-pin-map me-1"></i>Venue Address:</span>
+                <span class="text-muted">{{ booked_interview.location.address }}, {{ booked_interview.location.city }}, {{ booked_interview.location.state }}</span>
+            </div>
+            {% endif %}
+
+            {% if booked_interview.instructions %}
+            <div class="mt-2 text-muted small">
+                <span class="fw-semibold text-dark"><i class="bi bi-info-circle me-1"></i>Instructions:</span>
+                {{ booked_interview.instructions }}
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- Available Interview Slots Grid -->
+<div class="card card-custom border-0 shadow-sm p-4">
+    <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+        <h5 class="fw-bold mb-0 text-dark">
+            <i class="bi bi-clock-history me-2 text-primary"></i>Available Physical Interview Slots
+        </h5>
+        <span class="badge bg-light text-muted border">{{ slots.count }} Slot{{ slots.count|pluralize }} Available</span>
+    </div>
+
+    <p class="text-muted small mb-4">
+        Please select a convenient time slot below for your offline interview. Once confirmed, your seat will be reserved and interview instructions will be dispatched.
+    </p>
+
+    <div class="row g-3">
+        {% for slot in slots %}
+        <div class="col-md-6 col-lg-4">
+            <div class="card h-100 border rounded-4 p-3 hover-shadow transition" style="border-color: #e2e8f0; background: #ffffff;">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2 py-1">
+                        <i class="bi bi-calendar2-event me-1"></i>{{ slot.interview_date|date:"D, M d, Y" }}
+                    </span>
+                    <span class="badge bg-success-subtle text-success fw-bold">Available</span>
+                </div>
+
+                <h5 class="fw-bold text-dark mb-1">
+                    <i class="bi bi-clock text-primary me-1"></i>{{ slot.formatted_time_range }}
+                </h5>
+                <span class="badge bg-light text-dark border mb-3 text-start w-auto align-self-start">{{ slot.get_interview_type_display }}</span>
+
+                <div class="small mb-3">
+                    <div class="mb-1">
+                        <span class="text-muted"><i class="bi bi-geo-alt-fill text-danger me-1"></i>Venue:</span>
+                        <strong class="text-dark">{{ slot.location.location_name }}</strong>
+                    </div>
+                    <div class="mb-1 text-muted">
+                        <i class="bi bi-pin-map me-1"></i>{{ slot.location.address }}, {{ slot.location.city }}
+                    </div>
+                    <div class="mb-1">
+                        <span class="text-muted"><i class="bi bi-person-badge me-1"></i>Interviewer:</span>
+                        <span class="fw-semibold text-dark">{{ slot.interviewer.user.get_full_name|default:slot.interviewer.user.email }}</span>
+                    </div>
+                    {% if slot.instructions %}
+                    <div class="text-muted mt-2 p-2 bg-light rounded-3" style="font-size: 11.5px;">
+                        <i class="bi bi-info-circle me-1"></i>{{ slot.instructions }}
+                    </div>
+                    {% endif %}
+                </div>
+
+                <div class="mt-auto pt-2 border-top">
+                    <button type="button" class="btn btn-blue w-100 btn-sm fw-bold" data-bs-toggle="modal" data-bs-target="#confirmSlotModal{{ slot.slot_id }}">
+                        <i class="bi bi-check2-circle me-1"></i> Select Slot
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Confirmation Modal for this slot -->
+        <div class="modal fade text-start" id="confirmSlotModal{{ slot.slot_id }}" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+                    <div class="modal-header bg-primary text-white py-3 px-4">
+                        <h5 class="modal-title fw-bold text-white mb-0">Confirm Interview Slot Selection</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body p-4 text-center">
+                        <div class="mx-auto mb-3 bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; font-size: 28px;">
+                            <i class="bi bi-calendar-check-fill"></i>
+                        </div>
+                        <h5 class="fw-bold text-dark mb-2">Are you sure you want to select this interview slot?</h5>
+                        
+                        <div class="p-3 bg-light rounded-3 text-start small mb-3 border">
+                            <div class="d-flex justify-content-between mb-2 pb-2 border-bottom">
+                                <span class="text-muted fw-semibold">Position:</span>
+                                <span class="text-dark fw-bold">{{ job.title }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2 pb-2 border-bottom">
+                                <span class="text-muted fw-semibold">Date &amp; Time:</span>
+                                <span class="text-dark fw-bold">{{ slot.interview_date|date:"D, M d, Y" }} ({{ slot.formatted_time_range }})</span>
+                            </div>
+                            <div class="d-flex justify-content-between mb-2 pb-2 border-bottom">
+                                <span class="text-muted fw-semibold">Venue:</span>
+                                <span class="text-dark fw-bold">{{ slot.location.location_name }}</span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span class="text-muted fw-semibold">Address:</span>
+                                <span class="text-dark text-end" style="max-width: 60%;">{{ slot.location.address }}, {{ slot.location.city }}</span>
+                            </div>
+                        </div>
+
+                        <p class="text-muted small mb-0">
+                            Please report to the interview venue at least <strong>10 minutes before</strong> the scheduled time.
+                        </p>
+                    </div>
+                    <div class="modal-footer border-0 p-3 bg-light d-flex justify-content-center gap-2">
+                        <button type="button" class="btn btn-light border px-4" data-bs-dismiss="modal">Cancel</button>
+                        <form method="POST" action="{% url 'candidates:book_interview_slot' application.pk slot.slot_id %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-blue px-4 fw-bold">
+                                Confirm Interview Slot
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12 text-center py-5">
+            <div class="avatar-lg bg-light text-muted rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 70px; height: 70px;">
+                <i class="bi bi-calendar-x fs-2"></i>
+            </div>
+            <h5 class="fw-bold text-dark mb-1">No Available Interview Slots Right Now</h5>
+            <p class="text-muted small mb-3">Our HR recruitment team is currently arranging new physical interview sessions. You will be notified as soon as new slots open.</p>
+            <a href="{% url 'candidates:applications' %}" class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-arrow-left me-1"></i> Return to My Applications
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}
+

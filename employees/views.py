@@ -1,26 +1,39 @@
+import datetime
 from django.contrib import messages
-from django.contrib.auth import authenticate
-from django.contrib.auth import login
-from django.contrib.auth import logout
-from django.contrib.auth import update_session_auth_hash
+from django.contrib.auth import authenticate, get_user_model, login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.forms import PasswordChangeForm
+from django.db import transaction
+from django.db.models import Q, Sum
 from django.http import JsonResponse
-from django.shortcuts import get_object_or_404
-from django.shortcuts import redirect
-from django.shortcuts import render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 
-from admin_module.models import Announcement
-from admin_module.models import Department
+from admin_module.models import Announcement, Department
 
-from .forms import EmployeeDocumentForm
-from .forms import EmployeeProfileForm
-from .forms import EmployeeReportForm
-from .forms import ForgotPasswordForm
-from .models import Employee
-from .models import EmployeeReport
-from .models import Notification
+from .forms import (
+    EmployeeDocumentForm,
+    EmployeeEducationForm,
+    EmployeeExperienceForm,
+    EmployeePersonalInfoForm,
+    EmployeeWeeklyReportForm,
+    ForgotPasswordForm,
+)
+from .models import (
+    Employee,
+    EmployeeDocument,
+    EmployeeEducation,
+    EmployeeExperience,
+    EmployeeReport,
+    LeaveBalance,
+    LeaveRequest,
+    LeaveType,
+    Notification,
+    PerformanceReview,
+    Team,
+)
+
+User = get_user_model()
 
 
 def homepage(request):
@@ -66,6 +79,13 @@ def employee_login(request):
             login(request, user)
             return redirect("admin:index")
 
+        # If user is a Candidate without active employee approval, redirect to Candidate Portal
+        if getattr(user, "role", "") == "Candidate" and not (hasattr(user, "employee_profile") and user.employee_profile.employment_status == "ACTIVE"):
+            user.backend = "django.contrib.auth.backends.ModelBackend"
+            login(request, user)
+            messages.info(request, "Signed in with Candidate access. Redirecting to Candidate Portal.")
+            return redirect("candidates:dashboard")
+
         if not hasattr(user, "employee_profile"):
             dept, _ = Department.objects.get_or_create(
                 name="Information Technology",
@@ -102,6 +122,10 @@ def forgot_password(request):
 
 @login_required
 def employee_dashboard(request):
+    if getattr(request.user, "role", "") == "Candidate" and not (hasattr(request.user, "employee_profile") and request.user.employee_profile.employment_status == "ACTIVE"):
+        messages.info(request, "Your account is currently registered as a Candidate. Please access the Candidate Portal.")
+        return redirect("candidates:dashboard")
+
     employee = getattr(request.user, "employee_profile", None)
     if not employee:
         dept, _ = Department.objects.get_or_create(
@@ -191,6 +215,31 @@ def employee_dashboard(request):
         if not request.session.get(session_key):
             show_report_popup = True
 
+    # Leave Balance & Team Lead Metrics
+    current_year = timezone.now().year
+    leave_balance = employee.get_or_create_leave_balance(current_year)
+    is_team_lead = employee.is_team_lead
+
+    team_pending_leave_count = 0
+    team_approved_this_month = 0
+    team_rejected_this_month = 0
+    recent_team_leave_requests = []
+
+    if is_team_lead:
+        team_requests = get_team_lead_leave_requests(request.user)
+        team_pending_leave_count = team_requests.filter(status="PENDING").count()
+        team_approved_this_month = team_requests.filter(
+            status="APPROVED",
+            approved_at__year=current_year,
+            approved_at__month=timezone.now().month,
+        ).count()
+        team_rejected_this_month = team_requests.filter(
+            status="REJECTED",
+            rejected_at__year=current_year,
+            rejected_at__month=timezone.now().month,
+        ).count()
+        recent_team_leave_requests = team_requests.order_by("-submitted_at")[:5]
+
     context = {
         "employee": employee,
         "reports": recent_reports,
@@ -206,6 +255,12 @@ def employee_dashboard(request):
         "unread_notifications_count": unread_notifications_count,
         "announcements": announcements,
         "notifications": recent_notifications,
+        "leave_balance": leave_balance,
+        "is_team_lead": is_team_lead,
+        "team_pending_leave_count": team_pending_leave_count,
+        "team_approved_this_month": team_approved_this_month,
+        "team_rejected_this_month": team_rejected_this_month,
+        "recent_team_leave_requests": recent_team_leave_requests,
     }
 
     return render(request, "employees/dashboard.html", context)
@@ -232,7 +287,12 @@ def profile_view(request):
         messages.error(request, "Employee profile not found.")
         return redirect("employees:login")
 
-    profile_form = EmployeeProfileForm(instance=employee)
+    # Sync fields from candidate profile if empty
+    employee.sync_from_candidate_if_empty()
+
+    profile_form = EmployeePersonalInfoForm(instance=employee, user=request.user)
+    education_form = EmployeeEducationForm()
+    experience_form = EmployeeExperienceForm()
     doc_form = EmployeeDocumentForm()
     pwd_form = PasswordChangeForm(user=request.user)
 
@@ -240,10 +300,11 @@ def profile_view(request):
         action = request.POST.get("action")
 
         if action == "update_profile":
-            profile_form = EmployeeProfileForm(
+            profile_form = EmployeePersonalInfoForm(
                 request.POST,
                 request.FILES,
                 instance=employee,
+                user=request.user,
             )
             if profile_form.is_valid():
                 profile_form.save()
@@ -252,6 +313,8 @@ def profile_view(request):
                     "Your profile information has been updated successfully!",
                 )
                 return redirect("employees:profile")
+            else:
+                messages.error(request, "Please correct the errors in the profile form.")
 
         elif action == "upload_document":
             doc_form = EmployeeDocumentForm(request.POST, request.FILES)
@@ -261,6 +324,8 @@ def profile_view(request):
                 doc.save()
                 messages.success(request, "Document uploaded successfully!")
                 return redirect("employees:profile")
+            else:
+                messages.error(request, "Failed to upload document. Please check the file and try again.")
 
         elif action == "change_password":
             pwd_form = PasswordChangeForm(user=request.user, data=request.POST)
@@ -271,16 +336,138 @@ def profile_view(request):
                 return redirect("employees:profile")
             messages.error(request, "Please correct the password errors below.")
 
+    educations = employee.educations.all().order_by("-year_of_passing")
+    experiences = employee.experiences.all().order_by("-start_date")
     documents = employee.documents.all().order_by("-uploaded_at")
 
     context = {
         "employee": employee,
         "profile_form": profile_form,
+        "education_form": education_form,
+        "experience_form": experience_form,
         "doc_form": doc_form,
         "pwd_form": pwd_form,
+        "educations": educations,
+        "experiences": experiences,
         "documents": documents,
     }
     return render(request, "employees/profile.html", context)
+
+
+@login_required
+def education_add_view(request):
+    if request.method != "POST":
+        return redirect("employees:profile")
+    employee = getattr(request.user, "employee_profile", None)
+    if not employee:
+        messages.error(request, "Employee profile not found.")
+        return redirect("employees:login")
+
+    form = EmployeeEducationForm(request.POST)
+    if form.is_valid():
+        edu = form.save(commit=False)
+        edu.employee = employee
+        edu.save()
+        messages.success(request, "Education record added successfully!")
+    else:
+        for error in form.errors.values():
+            messages.error(request, error)
+    return redirect("employees:profile")
+
+
+@login_required
+def education_delete_view(request, pk):
+    if request.method != "POST":
+        return redirect("employees:profile")
+    employee = getattr(request.user, "employee_profile", None)
+    if not employee:
+        return redirect("employees:login")
+    edu = get_object_or_404(EmployeeEducation, pk=pk, employee=employee)
+    edu.delete()
+    messages.success(request, "Education record removed successfully.")
+    return redirect("employees:profile")
+
+
+@login_required
+def experience_add_view(request):
+    if request.method != "POST":
+        return redirect("employees:profile")
+    employee = getattr(request.user, "employee_profile", None)
+    if not employee:
+        messages.error(request, "Employee profile not found.")
+        return redirect("employees:login")
+
+    form = EmployeeExperienceForm(request.POST)
+    if form.is_valid():
+        exp = form.save(commit=False)
+        exp.employee = employee
+        exp.save()
+        messages.success(request, "Experience record added successfully!")
+    else:
+        for error in form.errors.values():
+            messages.error(request, error)
+    return redirect("employees:profile")
+
+
+@login_required
+def experience_delete_view(request, pk):
+    if request.method != "POST":
+        return redirect("employees:profile")
+    employee = getattr(request.user, "employee_profile", None)
+    if not employee:
+        return redirect("employees:login")
+    exp = get_object_or_404(EmployeeExperience, pk=pk, employee=employee)
+    exp.delete()
+    messages.success(request, "Experience record removed successfully.")
+    return redirect("employees:profile")
+
+
+@login_required
+def document_delete_view(request, pk):
+    if request.method != "POST":
+        return redirect("employees:profile")
+    employee = getattr(request.user, "employee_profile", None)
+    if not employee:
+        return redirect("employees:login")
+    doc = get_object_or_404(EmployeeDocument, pk=pk, employee=employee)
+    doc.delete()
+    messages.success(request, "Document removed successfully.")
+    return redirect("employees:profile")
+
+
+@login_required
+def subordinate_profile_view(request, employee_id):
+    """Allows Team Leads, HR, or Admins to view an assigned subordinate's profile."""
+    target_employee = get_object_or_404(
+        Employee.objects.select_related("user", "department", "team_lead"),
+        pk=employee_id
+    )
+
+    subordinates = get_team_lead_subordinates(request.user)
+    is_authorized = (
+        request.user.is_superuser
+        or request.user.is_staff
+        or getattr(request.user, "role", "") == "HR"
+        or target_employee in subordinates
+        or target_employee.team_lead == request.user
+    )
+    if not is_authorized:
+        messages.error(request, "You do not have permission to view this subordinate profile.")
+        return redirect("employees:dashboard")
+
+    educations = target_employee.educations.all().order_by("-year_of_passing")
+    experiences = target_employee.experiences.all().order_by("-start_date")
+    documents = target_employee.documents.all().order_by("-uploaded_at")
+    recent_reports = target_employee.reports.all().order_by("-week_start_date")[:5]
+
+    context = {
+        "target_employee": target_employee,
+        "educations": educations,
+        "experiences": experiences,
+        "documents": documents,
+        "recent_reports": recent_reports,
+    }
+    return render(request, "employees/subordinate_profile.html", context)
 
 
 @login_required
@@ -291,7 +478,7 @@ def reports_list(request):
         messages.error(request, "Employee profile not found.")
         return redirect("employees:login")
 
-    reports = employee.reports.all().order_by("-submitted_at")
+    reports = employee.reports.all().select_related("performance_review").order_by("-week_start_date", "-submitted_at")
 
     context = {
         "employee": employee,
@@ -309,25 +496,52 @@ def submit_report(request):
         return redirect("employees:login")
 
     if request.method == "POST":
-        form = EmployeeReportForm(request.POST)
+        action = request.POST.get("action", "submit_report")
+        form = EmployeeWeeklyReportForm(request.POST, employee=employee)
         if form.is_valid():
             report = form.save(commit=False)
             report.employee = employee
-            report.status = "SUBMITTED"
-            report.save()
 
-            msg = f"Your work report '{report.title}' has been submitted for HR review."
-            Notification.objects.create(
-                employee=employee,
-                title="Work Report Submitted",
-                message=msg,
-                notification_type="REPORT_REMINDER",
-            )
+            if action == "save_draft":
+                report.status = "DRAFT"
+                report.save()
+                messages.success(request, "Weekly report saved as Draft. You can edit and submit it anytime.")
+                return redirect("employees:reports_list")
+            else:
+                if not form.cleaned_data.get("declaration_accepted"):
+                    messages.error(request, "You must accept the truthfulness declaration before submitting the report.")
+                    return render(request, "employees/report_form.html", {"form": form, "action": "Submit", "employee": employee})
 
-            messages.success(request, "Work report submitted successfully!")
-            return redirect("employees:reports_list")
+                report.status = "SUBMITTED"
+                report.submitted_at = timezone.now()
+                report.save()
+
+                # Notify HR Managers
+                from hr.models import HRManager
+                hr_managers = HRManager.objects.filter(is_active=True).select_related("user")
+                for hr_m in hr_managers:
+                    if hasattr(hr_m.user, "employee_profile"):
+                        Notification.objects.create(
+                            employee=hr_m.user.employee_profile,
+                            title="New Weekly Report Submitted",
+                            message=f"{employee.full_name or employee.user.username} has submitted a weekly report for period {report.week_start_date} to {report.week_end_date}.",
+                            notification_type="REPORT_REMINDER",
+                        )
+
+                # Notify employee
+                Notification.objects.create(
+                    employee=employee,
+                    title="Weekly Report Submitted",
+                    message=f"Your weekly report '{report.title}' ({report.week_start_date} to {report.week_end_date}) has been submitted for HR review.",
+                    notification_type="REPORT_REMINDER",
+                )
+
+                messages.success(request, "Weekly report submitted successfully to HR!")
+                return redirect("employees:reports_list")
+        else:
+            messages.error(request, "Please fix the validation errors in your report submission.")
     else:
-        form = EmployeeReportForm()
+        form = EmployeeWeeklyReportForm(employee=employee)
 
     return render(
         request,
@@ -349,24 +563,93 @@ def edit_report(request, report_id):
     if report.status in ["REVIEWED", "UNDER_REVIEW"]:
         messages.error(
             request,
-            "You cannot edit a report after HR has reviewed or put it under review.",
+            "You cannot edit a report that is currently Under Review or has already been Reviewed by HR.",
         )
         return redirect("employees:reports_list")
 
     if request.method == "POST":
-        form = EmployeeReportForm(request.POST, instance=report)
+        action = request.POST.get("action", "submit_report")
+        form = EmployeeWeeklyReportForm(request.POST, instance=report, employee=employee)
         if form.is_valid():
-            form.save()
-            messages.success(request, "Report updated successfully!")
-            return redirect("employees:reports_list")
+            report = form.save(commit=False)
+            if action == "save_draft":
+                report.status = "DRAFT"
+                report.save()
+                messages.success(request, "Weekly report draft updated successfully.")
+                return redirect("employees:reports_list")
+            else:
+                if not form.cleaned_data.get("declaration_accepted"):
+                    messages.error(request, "You must accept the truthfulness declaration before submitting the report.")
+                    return render(request, "employees/report_form.html", {"form": form, "action": "Edit", "report": report, "employee": employee})
+
+                report.status = "SUBMITTED"
+                report.submitted_at = timezone.now()
+                report.save()
+
+                # Notify HR Managers
+                from hr.models import HRManager
+                hr_managers = HRManager.objects.filter(is_active=True).select_related("user")
+                for hr_m in hr_managers:
+                    if hasattr(hr_m.user, "employee_profile"):
+                        Notification.objects.create(
+                            employee=hr_m.user.employee_profile,
+                            title="Weekly Report Resubmitted",
+                            message=f"{employee.full_name or employee.user.username} resubmitted their weekly report ({report.week_start_date} to {report.week_end_date}).",
+                            notification_type="REPORT_REMINDER",
+                        )
+
+                # Notify employee
+                Notification.objects.create(
+                    employee=employee,
+                    title="Weekly Report Submitted",
+                    message=f"Your weekly report '{report.title}' ({report.week_start_date} to {report.week_end_date}) has been submitted for HR review.",
+                    notification_type="REPORT_REMINDER",
+                )
+
+                messages.success(request, "Weekly report submitted successfully to HR!")
+                return redirect("employees:reports_list")
+        else:
+            messages.error(request, "Please fix the validation errors in your report.")
     else:
-        form = EmployeeReportForm(instance=report)
+        form = EmployeeWeeklyReportForm(instance=report, employee=employee)
 
     return render(
         request,
         "employees/report_form.html",
         {"form": form, "action": "Edit", "report": report, "employee": employee},
     )
+
+
+@login_required
+def report_detail_view(request, report_id):
+    employee = getattr(request.user, "employee_profile", None)
+    report = get_object_or_404(
+        EmployeeReport.objects.select_related("employee__user", "employee__department"),
+        report_id=report_id,
+    )
+
+    is_owner = (employee and report.employee == employee)
+    subordinates = get_team_lead_subordinates(request.user)
+    is_authorized = (
+        is_owner
+        or request.user.is_superuser
+        or request.user.is_staff
+        or getattr(request.user, "role", "") == "HR"
+        or (employee and report.employee in subordinates)
+    )
+    if not is_authorized:
+        messages.error(request, "You do not have permission to view this report.")
+        return redirect("employees:reports_list")
+
+    evaluation = getattr(report, "performance_review", None)
+
+    context = {
+        "employee": employee,
+        "report": report,
+        "evaluation": evaluation,
+        "is_owner": is_owner,
+    }
+    return render(request, "employees/report_detail.html", context)
 
 
 @login_required
@@ -377,20 +660,50 @@ def performance_view(request):
         messages.error(request, "Employee profile not found.")
         return redirect("employees:login")
 
-    reviews = employee.performance_reviews.all().order_by("-review_date")
-    warnings = employee.performance_warnings.all().order_by("-warning_date")
+    reports = employee.reports.all().select_related("performance_review__reviewed_by__user").order_by("-week_start_date")
+    reviewed_reports = [r for r in reports if hasattr(r, "performance_review") and r.performance_review is not None]
 
-    latest_review = reviews.first()
-    score = float(latest_review.score) if latest_review else 4.3
+    total_submitted = reports.filter(status__in=["SUBMITTED", "UNDER_REVIEW", "REVIEWED", "NEEDS_CORRECTION"]).count()
+    total_reviewed = len(reviewed_reports)
+
+    if total_reviewed > 0:
+        avg_score = sum(float(r.performance_review.average_score) for r in reviewed_reports) / total_reviewed
+        avg_percentage = sum(float(r.performance_review.performance_percentage) for r in reviewed_reports) / total_reviewed
+    else:
+        avg_score = 4.2
+        avg_percentage = 84.0
+
+    if avg_score >= 4.5:
+        performance_badge = "Excellent"
+        badge_color = "success"
+    elif avg_score >= 3.5:
+        performance_badge = "Good Performer"
+        badge_color = "primary"
+    elif avg_score >= 2.5:
+        performance_badge = "Average"
+        badge_color = "warning"
+    else:
+        performance_badge = "Needs Improvement"
+        badge_color = "danger"
+
+    legacy_reviews = employee.performance_reviews.all().order_by("-review_date")
+    warnings = employee.performance_warnings.all().order_by("-warning_date")
 
     context = {
         "employee": employee,
-        "reviews": reviews,
+        "reports": reports,
+        "reviewed_reports": reviewed_reports,
+        "total_submitted": total_submitted,
+        "total_reviewed": total_reviewed,
+        "avg_score": round(avg_score, 2),
+        "avg_percentage": round(avg_percentage, 1),
+        "performance_badge": performance_badge,
+        "badge_color": badge_color,
+        "legacy_reviews": legacy_reviews,
         "warnings": warnings,
-        "latest_review": latest_review,
-        "score": score,
     }
     return render(request, "employees/performance.html", context)
+
 
 
 @login_required
@@ -487,3 +800,464 @@ def mark_notification_read(request, notification_id):
 def employee_logout(request):
     logout(request)
     return redirect("employees:login")
+
+
+# ========================================================
+# LEAVE MANAGEMENT & TEAM LEAD APPROVAL VIEWS
+# ========================================================
+
+def ensure_default_leave_types():
+    """Ensure standard leave types exist in database."""
+    default_types = [
+        ("General / Casual Leave", "GENERAL", "Standard annual / casual leave allowance"),
+        ("Sick Leave", "SICK", "Leave for medical issues, illness, or medical appointments"),
+        ("Earned Leave", "EARNED", "Privilege or earned leave from tenure"),
+        ("Maternity Leave", "MATERNITY", "Leave for expectant mothers"),
+        ("Paternity Leave", "PATERNITY", "Leave for new fathers"),
+        ("Emergency Leave", "EMERGENCY", "Unforeseen family or urgent personal emergencies"),
+        ("Other", "OTHER", "Other approved leave category"),
+    ]
+    for name, code, desc in default_types:
+        LeaveType.objects.get_or_create(
+            code=code,
+            defaults={"name": name, "description": desc, "is_active": True},
+        )
+
+
+def get_team_lead_subordinates(user):
+    """Return queryset of active subordinates assigned to this user as Team Lead."""
+    return Employee.objects.filter(
+        Q(team_lead=user) | Q(team__team_lead=user)
+    ).exclude(user=user).distinct()
+
+
+def get_team_lead_leave_requests(user):
+    """Return queryset of leave requests that this team lead is responsible for approving."""
+    subordinate_emps = get_team_lead_subordinates(user)
+    return LeaveRequest.objects.filter(
+        Q(approver=user) | Q(employee__in=subordinate_emps)
+    ).exclude(employee__user=user).distinct()
+
+
+@login_required
+def leave_management_view(request):
+    """
+    Main Leave Management dashboard for employees:
+    - Balance overview (Total 15, Taken, Pending, Remaining)
+    - Apply for leave form
+    - My leave request history
+    - Team approvals preview (if user is a Team Lead)
+    """
+    employee = getattr(request.user, "employee_profile", None)
+    if not employee:
+        messages.error(request, "Employee profile not found.")
+        return redirect("employees:dashboard")
+
+    ensure_default_leave_types()
+    current_year = timezone.now().year
+    leave_balance = employee.get_or_create_leave_balance(current_year)
+    leave_types = LeaveType.objects.filter(is_active=True).order_by("name")
+
+    if request.method == "POST":
+        leave_type_id = request.POST.get("leave_type")
+        start_date_str = (request.POST.get("start_date") or "").strip()
+        end_date_str = (request.POST.get("end_date") or "").strip()
+        reason = (request.POST.get("reason") or "").strip()
+        declaration = request.POST.get("declaration_accepted")
+
+        # 1. Validate declaration
+        if not declaration:
+            messages.error(request, "You must accept the declaration to submit a leave request.")
+            return redirect("employees:leave_management")
+
+        # 2. Validate reason
+        if not reason:
+            messages.error(request, "Please provide a valid reason for your leave request.")
+            return redirect("employees:leave_management")
+
+        # 3. Validate leave type
+        leave_type = get_object_or_404(LeaveType, id=leave_type_id, is_active=True)
+
+        # 4. Validate dates
+        try:
+            start_date = datetime.datetime.strptime(start_date_str, "%Y-%m-%d").date()
+            end_date = datetime.datetime.strptime(end_date_str, "%Y-%m-%d").date()
+        except (ValueError, TypeError):
+            messages.error(request, "Please select valid start and end dates in YYYY-MM-DD format.")
+            return redirect("employees:leave_management")
+
+        if end_date < start_date:
+            messages.error(request, "End date cannot be earlier than start date.")
+            return redirect("employees:leave_management")
+
+        # Calculate inclusive days (e.g. Sep 23 to Sep 25 = 3 days)
+        number_of_days = (end_date - start_date).days + 1
+        request_year = start_date.year
+        target_balance = employee.get_or_create_leave_balance(request_year)
+
+        # 5. Validate leave balance
+        if number_of_days > target_balance.remaining_days:
+            messages.error(
+                request,
+                f"Insufficient leave balance. You requested {number_of_days} day(s), but only have {target_balance.remaining_days} day(s) remaining for {request_year}."
+            )
+            return redirect("employees:leave_management")
+
+        # 6. Validate overlapping leaves
+        overlap = LeaveRequest.objects.filter(
+            employee=employee,
+            status__in=["PENDING", "APPROVED"],
+            start_date__lte=end_date,
+            end_date__gte=start_date,
+        ).exists()
+        if overlap:
+            messages.error(request, "You already have an active or pending leave request covering these dates.")
+            return redirect("employees:leave_management")
+
+        # 7. Determine approver
+        approver = employee.team_lead
+        if not approver and employee.team and employee.team.team_lead:
+            approver = employee.team.team_lead
+
+        # Ensure no self-approver assignment
+        if approver == request.user:
+            approver = None
+
+        if not approver:
+            # Fallback to HR Manager or Staff / Superuser
+            approver = User.objects.filter(
+                Q(is_superuser=True) | Q(is_staff=True) | Q(role="HR")
+            ).exclude(id=request.user.id).first()
+
+        # 8. Create LeaveRequest atomically
+        with transaction.atomic():
+            leave_req = LeaveRequest.objects.create(
+                employee=employee,
+                leave_type=leave_type,
+                start_date=start_date,
+                end_date=end_date,
+                number_of_days=number_of_days,
+                reason=reason,
+                declaration_accepted=True,
+                status="PENDING",
+                approver=approver,
+            )
+
+            # Notification to employee
+            Notification.objects.create(
+                employee=employee,
+                notification_type="LEAVE_REQUEST",
+                title="Leave Request Submitted",
+                message=f"Your {leave_type.name} request for {number_of_days} day(s) ({start_date.strftime('%b %d, %Y')} to {end_date.strftime('%b %d, %Y')}) has been submitted for review.",
+                is_read=False,
+            )
+
+            # Notification to approver if applicable
+            if approver and hasattr(approver, "employee_profile"):
+                Notification.objects.create(
+                    employee=approver.employee_profile,
+                    notification_type="LEAVE_REQUEST",
+                    title="Subordinate Leave Request",
+                    message=f"{employee.user.get_full_name() or employee.user.username} submitted a {leave_type.name} request for {number_of_days} day(s) ({start_date.strftime('%b %d, %Y')} to {end_date.strftime('%b %d, %Y')}).",
+                    is_read=False,
+                )
+
+        messages.success(request, f"Leave request for {number_of_days} day(s) submitted successfully.")
+        return redirect("employees:leave_management")
+
+    # GET Request Handling
+    status_filter = request.GET.get("status", "ALL").upper()
+    my_requests = employee.leave_requests.all().select_related(
+        "leave_type", "approver", "approved_by", "rejected_by"
+    ).order_by("-submitted_at")
+
+    if status_filter in ["PENDING", "APPROVED", "REJECTED", "CANCELLED"]:
+        my_requests = my_requests.filter(status=status_filter)
+
+    # Team Lead Metrics if user leads subordinates
+    is_team_lead = employee.is_team_lead
+    team_requests = []
+    team_pending_count = 0
+    team_approved_count = 0
+    team_rejected_count = 0
+
+    if is_team_lead:
+        all_team_reqs = get_team_lead_leave_requests(request.user).select_related(
+            "employee__user", "employee__department", "leave_type"
+        )
+        team_pending_count = all_team_reqs.filter(status="PENDING").count()
+        team_approved_count = all_team_reqs.filter(status="APPROVED").count()
+        team_rejected_count = all_team_reqs.filter(status="REJECTED").count()
+        team_requests = all_team_reqs.order_by("-submitted_at")[:10]
+
+    context = {
+        "employee": employee,
+        "leave_balance": leave_balance,
+        "leave_types": leave_types,
+        "my_requests": my_requests,
+        "current_year": current_year,
+        "status_filter": status_filter,
+        "is_team_lead": is_team_lead,
+        "team_requests": team_requests,
+        "team_pending_count": team_pending_count,
+        "team_approved_count": team_approved_count,
+        "team_rejected_count": team_rejected_count,
+    }
+    return render(request, "employees/leave_management.html", context)
+
+
+@login_required
+def leave_cancel_view(request, request_id):
+    """Allows an employee to cancel their pending or approved leave request."""
+    if request.method != "POST":
+        return redirect("employees:leave_management")
+
+    employee = getattr(request.user, "employee_profile", None)
+    if not employee:
+        messages.error(request, "Employee profile not found.")
+        return redirect("employees:leave_management")
+
+    leave_req = get_object_or_404(LeaveRequest, id=request_id, employee=employee)
+
+    if leave_req.status not in ["PENDING", "APPROVED"]:
+        messages.error(request, f"Cannot cancel a request that is already {leave_req.get_status_display()}.")
+        return redirect("employees:leave_management")
+
+    was_approved = (leave_req.status == "APPROVED")
+    leave_req.status = "CANCELLED"
+    leave_req.cancelled_at = timezone.now()
+    leave_req.save()
+
+    # Create notification for employee
+    Notification.objects.create(
+        employee=employee,
+        notification_type="LEAVE_CANCELLED",
+        title="Leave Request Cancelled",
+        message=f"Your {leave_req.leave_type.name} request for {leave_req.number_of_days} day(s) ({leave_req.start_date.strftime('%b %d, %Y')} to {leave_req.end_date.strftime('%b %d, %Y')}) has been cancelled." + (" Your leave balance has been restored." if was_approved else ""),
+        is_read=False,
+    )
+
+    # Notify approver if exists
+    if leave_req.approver and hasattr(leave_req.approver, "employee_profile"):
+        Notification.objects.create(
+            employee=leave_req.approver.employee_profile,
+            notification_type="LEAVE_CANCELLED",
+            title="Subordinate Cancelled Leave",
+            message=f"{employee.user.get_full_name() or employee.user.username} cancelled their {leave_req.leave_type.name} request for {leave_req.number_of_days} day(s) ({leave_req.start_date.strftime('%b %d, %Y')} to {leave_req.end_date.strftime('%b %d, %Y')}).",
+            is_read=False,
+        )
+
+    restore_msg = " Leave balance has been restored." if was_approved else ""
+    messages.success(request, f"Leave request #{leave_req.id} cancelled successfully.{restore_msg}")
+    return redirect("employees:leave_management")
+
+
+@login_required
+def team_lead_leave_requests_view(request):
+    """Dedicated subordinate leave approval list for Team Leads."""
+    employee = getattr(request.user, "employee_profile", None)
+    is_team_lead = employee and employee.is_team_lead
+    if not (request.user.is_superuser or request.user.is_staff or is_team_lead):
+        messages.error(request, "Access restricted to Team Leads.")
+        return redirect("employees:leave_management")
+
+    all_team_reqs = get_team_lead_leave_requests(request.user).select_related(
+        "employee__user", "employee__department", "leave_type", "approved_by", "rejected_by"
+    )
+
+    status_filter = request.GET.get("status", "ALL").upper()
+    search_q = (request.GET.get("q") or "").strip()
+
+    filtered_reqs = all_team_reqs
+    if status_filter in ["PENDING", "APPROVED", "REJECTED", "CANCELLED"]:
+        filtered_reqs = filtered_reqs.filter(status=status_filter)
+
+    if search_q:
+        filtered_reqs = filtered_reqs.filter(
+            Q(employee__user__first_name__icontains=search_q) |
+            Q(employee__user__last_name__icontains=search_q) |
+            Q(employee__user__username__icontains=search_q) |
+            Q(employee__employee_code__icontains=search_q) |
+            Q(reason__icontains=search_q) |
+            Q(leave_type__name__icontains=search_q)
+        )
+
+    total_count = all_team_reqs.count()
+    pending_count = all_team_reqs.filter(status="PENDING").count()
+    approved_count = all_team_reqs.filter(status="APPROVED").count()
+    rejected_count = all_team_reqs.filter(status="REJECTED").count()
+
+    context = {
+        "employee": employee,
+        "requests": filtered_reqs.order_by("-submitted_at"),
+        "status_filter": status_filter,
+        "search_q": search_q,
+        "total_count": total_count,
+        "pending_count": pending_count,
+        "approved_count": approved_count,
+        "rejected_count": rejected_count,
+    }
+    return render(request, "employees/team_lead_leave_requests.html", context)
+
+
+@login_required
+def team_lead_leave_detail_view(request, request_id):
+    """Detailed review dossier of a subordinate leave request."""
+    employee = getattr(request.user, "employee_profile", None)
+    is_team_lead = employee and employee.is_team_lead
+    if not (request.user.is_superuser or request.user.is_staff or is_team_lead):
+        messages.error(request, "Access restricted to Team Leads.")
+        return redirect("employees:leave_management")
+
+    leave_req = get_object_or_404(
+        LeaveRequest.objects.select_related(
+            "employee__user", "employee__department", "leave_type", "approver", "approved_by", "rejected_by"
+        ),
+        id=request_id,
+    )
+
+    # Permission check: must be approver or subordinate's team lead or staff/admin
+    subordinates = get_team_lead_subordinates(request.user)
+    if not (request.user.is_superuser or request.user.is_staff or leave_req.approver == request.user or leave_req.employee in subordinates):
+        messages.error(request, "You do not have permission to view or review this leave request.")
+        return redirect("employees:team_lead_leave_requests")
+
+    # Subordinate leave balance
+    sub_balance = leave_req.employee.get_or_create_leave_balance(leave_req.start_date.year)
+
+    # Check for other approved leaves in the same period within the team
+    overlapping_team_leaves = LeaveRequest.objects.filter(
+        employee__in=subordinates,
+        status="APPROVED",
+        start_date__lte=leave_req.end_date,
+        end_date__gte=leave_req.start_date,
+    ).exclude(id=leave_req.id).select_related("employee__user", "leave_type")
+
+    context = {
+        "employee": employee,
+        "leave_req": leave_req,
+        "sub_balance": sub_balance,
+        "overlapping_team_leaves": overlapping_team_leaves,
+    }
+    return render(request, "employees/team_lead_leave_detail.html", context)
+
+
+@login_required
+def team_lead_leave_approve_view(request, request_id):
+    """POST-only view for Team Lead to approve a subordinate leave request."""
+    if request.method != "POST":
+        return redirect("employees:team_lead_leave_requests")
+
+    leave_req = get_object_or_404(
+        LeaveRequest.objects.select_related("employee__user", "leave_type"),
+        id=request_id,
+    )
+
+    # 1. Authority Check
+    subordinates = get_team_lead_subordinates(request.user)
+    if not (request.user.is_superuser or request.user.is_staff or leave_req.approver == request.user or leave_req.employee in subordinates):
+        messages.error(request, "You do not have permission to approve this leave request.")
+        return redirect("employees:team_lead_leave_requests")
+
+    # 2. Strict Self-Approval Check
+    if leave_req.employee.user == request.user:
+        messages.error(request, "Self-approval is strictly prohibited. You cannot approve your own leave request.")
+        return redirect("employees:team_lead_leave_requests")
+
+    # 3. Status Check
+    if leave_req.status != "PENDING":
+        messages.warning(request, f"This request cannot be approved because its current status is {leave_req.get_status_display()}.")
+        return redirect("employees:team_lead_leave_requests")
+
+    # 4. Atomic balance check & approval
+    with transaction.atomic():
+        locked_req = LeaveRequest.objects.select_for_update().get(id=request_id)
+        balance = locked_req.employee.get_or_create_leave_balance(locked_req.start_date.year)
+
+        if locked_req.number_of_days > balance.remaining_days:
+            messages.error(
+                request,
+                f"Cannot approve: Employee only has {balance.remaining_days} remaining day(s) for {locked_req.start_date.year}."
+            )
+            return redirect("employees:team_lead_leave_requests")
+
+        locked_req.status = "APPROVED"
+        locked_req.approved_by = request.user
+        locked_req.approved_at = timezone.now()
+        locked_req.save()
+
+        # Create notification for subordinate
+        Notification.objects.create(
+            employee=locked_req.employee,
+            notification_type="LEAVE_APPROVED",
+            title="Leave Request Approved",
+            message=f"Your {locked_req.leave_type.name} request for {locked_req.number_of_days} day(s) ({locked_req.start_date.strftime('%b %d, %Y')} to {locked_req.end_date.strftime('%b %d, %Y')}) has been APPROVED by {request.user.get_full_name() or request.user.username}.",
+            is_read=False,
+        )
+
+    emp_name = leave_req.employee.user.get_full_name() or leave_req.employee.user.username
+    messages.success(request, f"Leave request #{leave_req.id} for {emp_name} ({leave_req.number_of_days} days) has been APPROVED.")
+    next_url = request.POST.get("next")
+    if next_url:
+        return redirect(next_url)
+    return redirect("employees:team_lead_leave_requests")
+
+
+@login_required
+def team_lead_leave_reject_view(request, request_id):
+    """POST-only view for Team Lead to reject a subordinate leave request with mandatory reason."""
+    if request.method != "POST":
+        return redirect("employees:team_lead_leave_requests")
+
+    leave_req = get_object_or_404(
+        LeaveRequest.objects.select_related("employee__user", "leave_type"),
+        id=request_id,
+    )
+
+    # 1. Authority Check
+    subordinates = get_team_lead_subordinates(request.user)
+    if not (request.user.is_superuser or request.user.is_staff or leave_req.approver == request.user or leave_req.employee in subordinates):
+        messages.error(request, "You do not have permission to reject this leave request.")
+        return redirect("employees:team_lead_leave_requests")
+
+    # 2. Strict Self-Review Check
+    if leave_req.employee.user == request.user:
+        messages.error(request, "Self-review is strictly prohibited.")
+        return redirect("employees:team_lead_leave_requests")
+
+    # 3. Status Check
+    if leave_req.status != "PENDING":
+        messages.warning(request, f"This request cannot be rejected because its current status is {leave_req.get_status_display()}.")
+        return redirect("employees:team_lead_leave_requests")
+
+    # 4. Mandatory Rejection Reason
+    rejection_reason = (request.POST.get("rejection_reason") or "").strip()
+    if not rejection_reason:
+        messages.error(request, "Please provide a valid reason for rejecting this leave request.")
+        return redirect(request.POST.get("next") or "employees:team_lead_leave_requests")
+
+    # 5. Atomic Rejection
+    with transaction.atomic():
+        locked_req = LeaveRequest.objects.select_for_update().get(id=request_id)
+        locked_req.status = "REJECTED"
+        locked_req.rejected_by = request.user
+        locked_req.rejected_at = timezone.now()
+        locked_req.rejection_reason = rejection_reason
+        locked_req.save()
+
+        # Notification for subordinate
+        Notification.objects.create(
+            employee=locked_req.employee,
+            notification_type="LEAVE_REJECTED",
+            title="Leave Request Rejected",
+            message=f"Your {locked_req.leave_type.name} request for {locked_req.number_of_days} day(s) was REJECTED by {request.user.get_full_name() or request.user.username}. Reason: {rejection_reason}",
+            is_read=False,
+        )
+
+    emp_name = leave_req.employee.user.get_full_name() or leave_req.employee.user.username
+    messages.warning(request, f"Leave request #{leave_req.id} for {emp_name} has been REJECTED.")
+    next_url = request.POST.get("next")
+    if next_url:
+        return redirect(next_url)
+    return redirect("employees:team_lead_leave_requests")
+

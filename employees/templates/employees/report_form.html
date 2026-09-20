@@ -1,114 +1,253 @@
 {% load static %}
-
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{{ action }} Work Report - HRMS</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet"
-          href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
-    <script>
-      tailwind.config = {
-        theme: {
-          extend: {
-            colors: {
-              hrms: {
-                blue: '#1677ff',
-                hover: '#0958d9'
-              }
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{ action }} Weekly Performance Report - Smart HRMS</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            hrms: {
+              blue: '#2563eb',
+              hover: '#1d4ed8',
+              navy: '#0f172a',
+              indigo: '#4f46e5'
             }
           }
         }
       }
-    </script>
-  </head>
-  <body class="bg-slate-50 font-sans antialiased text-slate-800 min-h-screen flex">
-    <!-- Left Sidebar -->
-    <aside class="w-64 bg-white border-r border-slate-200/80 flex flex-col justify-between hidden md:flex shrink-0 min-h-screen">
-      <div>
-        <div class="h-20 flex items-center px-6 border-b border-slate-100">
-          <a href="{% url 'employees:dashboard' %}"
-             class="flex items-center gap-3 text-hrms-blue">
-            <div class="w-9 h-9 bg-hrms-blue text-white rounded-xl flex items-center justify-center text-lg shadow-sm">
-              <i class="bi bi-people-fill"></i>
-            </div>
-            <span class="text-xl font-extrabold tracking-tight text-slate-900">HRMS</span>
-          </a>
-        </div>
-        <nav class="p-4 space-y-1.5">
-          <a href="{% url 'employees:dashboard' %}"
-             class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-600 hover:text-hrms-blue hover:bg-blue-50/60 rounded-xl">
-            <i class="bi bi-grid text-base"></i><span>Dashboard</span>
-          </a>
-          <a href="{% url 'employees:reports_list' %}"
-             class="flex items-center gap-3 px-4 py-3 text-sm font-bold text-white bg-hrms-blue rounded-xl shadow-md shadow-blue-500/20">
-            <i class="bi bi-file-earmark-text-fill text-base"></i><span>Reports</span>
-          </a>
-        </nav>
-      </div>
-      <div class="p-4 border-t border-slate-100">
-        <a href="{% url 'employees:logout' %}"
-           class="flex items-center gap-3 px-4 py-3 text-sm font-bold text-slate-700 hover:text-red-600 hover:bg-red-50 rounded-xl">
-          <i class="bi bi-box-arrow-right text-base"></i><span>Logout</span>
+    }
+  </script>
+  <style>
+    .custom-input {
+      width: 100%;
+      padding: 0.6rem 0.85rem;
+      font-size: 0.85rem;
+      border-radius: 0.75rem;
+      border: 1px solid #cbd5e1;
+      background-color: #f8fafc;
+      color: #1e293b;
+      outline: none;
+      transition: all 0.15s ease-in-out;
+    }
+    .custom-input:focus {
+      border-color: #2563eb;
+      background-color: #ffffff;
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+    }
+  </style>
+</head>
+<body class="bg-slate-50 font-sans antialiased text-slate-800 min-h-screen flex flex-col md:flex-row">
+  <!-- Left Sidebar -->
+  <aside class="w-64 bg-slate-900 text-white flex flex-col justify-between hidden md:flex shrink-0 min-h-screen border-r border-slate-800 shadow-xl">
+    <div>
+      <div class="h-20 flex items-center px-6 border-b border-slate-800">
+        <a href="{% url 'employees:dashboard' %}" class="flex items-center gap-3">
+          <div class="w-10 h-10 bg-gradient-to-tr from-blue-600 to-indigo-500 text-white rounded-xl flex items-center justify-center text-xl shadow-lg shadow-blue-500/30 font-bold">
+            <i class="bi bi-person-badge"></i>
+          </div>
+          <div>
+            <span class="text-lg font-black tracking-tight text-white block">Smart HRMS</span>
+            <span class="text-[10px] font-semibold text-blue-400 uppercase tracking-widest block">Employee Portal</span>
+          </div>
         </a>
       </div>
-    </aside>
-    <!-- Main Content -->
-    <div class="flex-1 flex flex-col min-w-0">
-      <header class="h-20 bg-white border-b border-slate-200/80 px-6 lg:px-10 flex items-center justify-between">
-        <h1 class="text-xl font-extrabold text-slate-900">{{ action }} Work Report</h1>
-        <a href="{% url 'employees:reports_list' %}"
-           class="text-xs font-bold text-hrms-blue hover:underline">← Cancel & Return</a>
-      </header>
-      <main class="p-6 lg:p-10 max-w-3xl mx-auto w-full">
-        <div class="bg-white rounded-2xl p-6 lg:p-8 border border-slate-200/80 shadow-sm space-y-6">
-          <form method="POST" class="space-y-5">
-            {% csrf_token %}
-            <div>
-              <label class="block text-xs font-bold text-slate-700 mb-1">Report Title</label>
-              {{ form.title }}
+      <nav class="p-4 space-y-1.5">
+        <a href="{% url 'employees:dashboard' %}" class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition">
+          <i class="bi bi-grid-fill text-base"></i><span>Dashboard</span>
+        </a>
+        <a href="{% url 'employees:profile' %}" class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition">
+          <i class="bi bi-person-circle text-base"></i><span>My Profile</span>
+        </a>
+        <a href="{% url 'employees:reports_list' %}" class="flex items-center gap-3 px-4 py-3 text-sm font-bold text-white bg-blue-600 rounded-xl shadow-md shadow-blue-600/30">
+          <i class="bi bi-file-earmark-bar-graph text-base"></i><span>Weekly Reports</span>
+        </a>
+        <a href="{% url 'employees:leave_management' %}" class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition">
+          <i class="bi bi-calendar2-check text-base"></i><span>Leave Management</span>
+        </a>
+        <a href="{% url 'employees:performance' %}" class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition">
+          <i class="bi bi-award text-base"></i><span>Performance & Scores</span>
+        </a>
+        <a href="{% url 'employees:announcements' %}" class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition">
+          <i class="bi bi-megaphone text-base"></i><span>Announcements</span>
+        </a>
+        <a href="{% url 'employees:notifications' %}" class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-400 hover:text-white hover:bg-slate-800 rounded-xl transition">
+          <i class="bi bi-bell text-base"></i><span>Notifications</span>
+        </a>
+      </nav>
+    </div>
+    <div class="p-4 border-t border-slate-800">
+      <a href="{% url 'employees:logout' %}" class="flex items-center gap-3 px-4 py-3 text-sm font-bold text-rose-400 hover:text-white hover:bg-rose-600/20 rounded-xl transition">
+        <i class="bi bi-box-arrow-right text-base"></i><span>Sign Out</span>
+      </a>
+    </div>
+  </aside>
+
+  <!-- Main Workspace -->
+  <div class="flex-1 flex flex-col min-w-0">
+    <header class="h-20 bg-white border-b border-slate-200/80 px-6 lg:px-10 flex items-center justify-between sticky top-0 z-30 shadow-sm">
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
+          <i class="bi bi-journal-plus text-lg"></i>
+        </div>
+        <div>
+          <h1 class="text-xl font-black text-slate-900 leading-tight">{{ action }} Weekly Performance Report</h1>
+          <p class="text-xs text-slate-500 font-medium">Record work deliverables, tasks completed, achievements, challenges and next week plan</p>
+        </div>
+      </div>
+      <a href="{% url 'employees:reports_list' %}" class="inline-flex items-center gap-2 px-4 py-2 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition">
+        <i class="bi bi-arrow-left"></i><span>Cancel & Return</span>
+      </a>
+    </header>
+
+    <main class="p-6 lg:p-10 max-w-4xl mx-auto w-full space-y-6">
+      {% if messages %}
+        <div class="space-y-2">
+          {% for message in messages %}
+            <div class="p-4 text-xs font-semibold rounded-2xl flex items-center gap-3 {% if message.tags == 'error' %}bg-rose-50 text-rose-800 border border-rose-200{% elif message.tags == 'warning' %}bg-amber-50 text-amber-800 border border-amber-200{% else %}bg-emerald-50 text-emerald-800 border border-emerald-200{% endif %}">
+              <i class="bi bi-info-circle-fill"></i>
+              <span>{{ message }}</span>
             </div>
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label class="block text-xs font-bold text-slate-700 mb-1">Week Start Date</label>
-                {{ form.week_start_date }}
-              </div>
-              <div>
-                <label class="block text-xs font-bold text-slate-700 mb-1">Week End Date</label>
-                {{ form.week_end_date }}
-              </div>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <form method="POST" class="space-y-6">
+        {% csrf_token %}
+
+        <!-- Card 1: Report Metadata & Period -->
+        <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-sm space-y-5">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+            <h3 class="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+              <i class="bi bi-calendar-range text-blue-600"></i><span>1. Report Period & Progress Status</span>
+            </h3>
+            <span class="px-2.5 py-1 bg-blue-50 text-blue-700 font-bold text-[10px] rounded-lg">Required</span>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Report Title *</label>
+            {{ form.title }}
+            {% if form.title.errors %}<div class="text-[11px] text-rose-600 mt-1 font-semibold">{{ form.title.errors.0 }}</div>{% endif %}
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Week Start Date *</label>
+              {{ form.week_start_date }}
+              {% if form.week_start_date.errors %}<div class="text-[11px] text-rose-600 mt-1 font-semibold">{{ form.week_start_date.errors.0 }}</div>{% endif %}
             </div>
             <div>
-              <label class="block text-xs font-bold text-slate-700 mb-1">Work Summary</label>
-              {{ form.work_summary }}
+              <label class="block text-xs font-bold text-slate-700 mb-1">Week End Date *</label>
+              {{ form.week_end_date }}
+              {% if form.week_end_date.errors %}<div class="text-[11px] text-rose-600 mt-1 font-semibold">{{ form.week_end_date.errors.0 }}</div>{% endif %}
             </div>
             <div>
-              <label class="block text-xs font-bold text-slate-700 mb-1">Tasks Completed</label>
-              {{ form.tasks_completed }}
+              <label class="block text-xs font-bold text-slate-700 mb-1">Progress Status *</label>
+              {{ form.progress_status }}
+              {% if form.progress_status.errors %}<div class="text-[11px] text-rose-600 mt-1 font-semibold">{{ form.progress_status.errors.0 }}</div>{% endif %}
             </div>
+          </div>
+        </div>
+
+        <!-- Card 2: Work Summary & Tasks Completed -->
+        <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-sm space-y-5">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+            <h3 class="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+              <i class="bi bi-list-task text-blue-600"></i><span>2. Weekly Deliverables & Task Details</span>
+            </h3>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Work Summary (Overview of weekly contributions) *</label>
+            {{ form.work_summary }}
+            {% if form.work_summary.errors %}<div class="text-[11px] text-rose-600 mt-1 font-semibold">{{ form.work_summary.errors.0 }}</div>{% endif %}
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Tasks Completed (List itemized deliverables) *</label>
+            {{ form.tasks_completed }}
+            {% if form.tasks_completed.errors %}<div class="text-[11px] text-rose-600 mt-1 font-semibold">{{ form.tasks_completed.errors.0 }}</div>{% endif %}
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Major Achievements / Highlights (Optional)</label>
+            {{ form.achievements }}
+          </div>
+        </div>
+
+        <!-- Card 3: Blockers, Challenges & Next Week Plan -->
+        <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-sm space-y-5">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+            <h3 class="text-sm font-extrabold text-slate-900 flex items-center gap-2">
+              <i class="bi bi-shield-exclamation text-amber-600"></i><span>3. Challenges, Solutions & Forward Planning</span>
+            </h3>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label class="block text-xs font-bold text-slate-700 mb-1">Achievements (Optional)</label>
-              {{ form.achievements }}
-            </div>
-            <div>
-              <label class="block text-xs font-bold text-slate-700 mb-1">Blockers / Challenges (Optional)</label>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Challenges & Blockers Encountered</label>
               {{ form.challenges }}
             </div>
-            <div class="pt-3 flex gap-3">
-              <button type="submit"
-                      class="px-6 py-2.5 bg-hrms-blue text-white text-xs font-bold rounded-xl hover:bg-hrms-hover shadow-sm">
-                {{ action }} Report
-              </button>
-              <a href="{% url 'employees:reports_list' %}"
-                 class="px-5 py-2.5 bg-slate-100 text-slate-700 text-xs font-bold rounded-xl hover:bg-slate-200">
-                Cancel
-              </a>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">How Challenges Were Handled / Resolved</label>
+              {{ form.challenges_handling }}
             </div>
-          </form>
+          </div>
+
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Pending / In-Progress Tasks</label>
+              {{ form.pending_tasks }}
+            </div>
+            <div>
+              <label class="block text-xs font-bold text-slate-700 mb-1">Next Week's Action Plan *</label>
+              {{ form.next_week_plan }}
+              {% if form.next_week_plan.errors %}<div class="text-[11px] text-rose-600 mt-1 font-semibold">{{ form.next_week_plan.errors.0 }}</div>{% endif %}
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Skills & Technologies Used</label>
+            {{ form.skills_technologies_used }}
+          </div>
+
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Additional Comments / Assistance Required (Optional)</label>
+            {{ form.additional_comments }}
+          </div>
         </div>
-      </main>
-    </div>
-  </body>
+
+        <!-- Card 4: Declaration & Actions -->
+        <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-sm space-y-6">
+          <div class="p-4 rounded-2xl bg-blue-50/70 border border-blue-200/60 flex items-start gap-3">
+            <div class="pt-0.5">{{ form.declaration_accepted }}</div>
+            <label for="id_declaration_accepted" class="text-xs text-slate-700 font-medium leading-relaxed select-none cursor-pointer">
+              <strong class="font-bold text-blue-900 block mb-0.5">Confirmation & Truthfulness Declaration</strong>
+              I hereby certify that all task descriptions, work summaries, achievements, and deliverables reported above represent my genuine work performed during the stated period.
+            </label>
+          </div>
+
+          <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
+            <a href="{% url 'employees:reports_list' %}" class="w-full sm:w-auto px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold rounded-xl text-center transition">
+              Cancel
+            </a>
+            <div class="flex items-center gap-3 w-full sm:w-auto justify-end">
+              <button type="submit" name="action" value="save_draft" class="w-full sm:w-auto px-5 py-2.5 bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-bold rounded-xl transition flex items-center justify-center gap-2">
+                <i class="bi bi-save2"></i><span>Save as Draft</span>
+              </button>
+              <button type="submit" name="action" value="submit_report" class="w-full sm:w-auto px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded-xl shadow-lg shadow-blue-600/30 transition flex items-center justify-center gap-2">
+                <i class="bi bi-send-fill"></i><span>Submit Weekly Report</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </form>
+    </main>
+  </div>
+</body>
 </html>

@@ -1,0 +1,301 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{ report.title }} - Report Dossier - Smart HRMS</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" />
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            hrms: {
+              blue: '#2563eb',
+              hover: '#1d4ed8',
+              navy: '#0f172a',
+              indigo: '#4f46e5'
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-slate-50 font-sans antialiased text-slate-800 min-h-screen">
+  <header class="h-20 bg-white border-b border-slate-200/80 px-6 lg:px-10 flex items-center justify-between sticky top-0 z-30 shadow-sm">
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold">
+        <i class="bi bi-file-earmark-medical text-xl"></i>
+      </div>
+      <div>
+        <h1 class="text-xl font-black text-slate-900 leading-tight">{{ report.title }}</h1>
+        <p class="text-xs text-slate-500 font-medium">Period: {{ report.week_start_date|date:"M d, Y" }} &mdash; {{ report.week_end_date|date:"M d, Y" }}</p>
+      </div>
+    </div>
+    <div class="flex items-center gap-3">
+      {% if report.status == 'DRAFT' or report.status == 'NEEDS_CORRECTION' %}
+        <a href="{% url 'employees:edit_report' report.report_id %}" class="inline-flex items-center gap-2 px-4 py-2 text-xs font-bold text-blue-700 bg-blue-50 hover:bg-blue-100 rounded-xl transition">
+          <i class="bi bi-pencil"></i><span>Edit Report</span>
+        </a>
+      {% endif %}
+      <a href="{% url 'employees:reports_list' %}" class="inline-flex items-center gap-2 px-4 py-2 text-xs font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition">
+        <i class="bi bi-arrow-left"></i><span>Back to Reports</span>
+      </a>
+    </div>
+  </header>
+
+  <main class="p-6 lg:p-10 space-y-8 max-w-5xl mx-auto w-full">
+    <!-- Top Summary Banner -->
+    <div class="bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-950 rounded-3xl p-6 sm:p-8 text-white shadow-xl flex flex-col sm:flex-row items-center justify-between gap-6 border border-slate-700">
+      <div class="space-y-2 text-center sm:text-left">
+        <div class="flex flex-wrap items-center justify-center sm:justify-start gap-2">
+          <h2 class="text-2xl font-black text-white">{{ report.employee.full_name|default:report.employee.user.email }}</h2>
+          <span class="px-3 py-1 bg-blue-500/20 text-blue-300 text-xs font-bold rounded-full font-mono">{{ report.employee.employee_code }}</span>
+          <span class="px-3 py-1 bg-white/10 text-slate-300 text-xs font-bold rounded-full">{{ report.employee.department.name|default:"Department" }}</span>
+        </div>
+        <p class="text-xs text-slate-300">
+          Designation: <strong class="text-white">{{ report.employee.designation }}</strong> | Submitted: <strong class="text-white">{{ report.submitted_at|date:"M d, Y H:i"|default:"Draft" }}</strong>
+        </p>
+      </div>
+
+      <div class="flex items-center gap-4 shrink-0">
+        <div class="text-center sm:text-right">
+          <div class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Report Status</div>
+          <div class="mt-1">
+            {% if report.status == 'DRAFT' %}
+              <span class="px-3 py-1 bg-slate-700 text-slate-200 font-bold text-xs rounded-full">Draft</span>
+            {% elif report.status == 'SUBMITTED' %}
+              <span class="px-3 py-1 bg-blue-500/30 text-blue-300 border border-blue-400/40 font-bold text-xs rounded-full">Submitted</span>
+            {% elif report.status == 'UNDER_REVIEW' %}
+              <span class="px-3 py-1 bg-amber-500/30 text-amber-300 border border-amber-400/40 font-bold text-xs rounded-full">Under HR Review</span>
+            {% elif report.status == 'REVIEWED' %}
+              <span class="px-3 py-1 bg-emerald-500/30 text-emerald-300 border border-emerald-400/40 font-bold text-xs rounded-full">Reviewed & Graded</span>
+            {% elif report.status == 'NEEDS_CORRECTION' %}
+              <span class="px-3 py-1 bg-rose-500/30 text-rose-300 border border-rose-400/40 font-bold text-xs rounded-full">Needs Correction</span>
+            {% endif %}
+          </div>
+        </div>
+
+        {% if evaluation %}
+          <div class="bg-white/10 backdrop-blur-md px-4 py-2.5 rounded-2xl border border-white/10 text-center">
+            <div class="text-[10px] uppercase font-bold text-blue-300">Overall Rating</div>
+            <div class="text-2xl font-black text-white leading-none mt-1">{{ evaluation.average_score }}<span class="text-sm text-blue-200">/5.0</span></div>
+            <div class="text-[10px] font-bold text-emerald-400 mt-0.5">{{ evaluation.performance_percentage }}% Score</div>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Section 1: Employee Submission Details -->
+    <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-sm space-y-6">
+      <div class="border-b border-slate-100 pb-3 flex items-center justify-between">
+        <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+          <i class="bi bi-card-checklist text-blue-600"></i><span>Submitted Deliverables & Tasks</span>
+        </h3>
+        <span class="px-2.5 py-1 bg-slate-100 text-slate-700 font-bold text-xs rounded-lg">
+          Progress: {{ report.get_progress_status_display }}
+        </span>
+      </div>
+
+      <div class="space-y-4 text-xs">
+        <div>
+          <h4 class="font-bold text-slate-700 uppercase tracking-wider text-[11px] mb-1">Work Summary</h4>
+          <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100 text-slate-800 leading-relaxed whitespace-pre-line text-sm">{{ report.work_summary }}</div>
+        </div>
+
+        <div>
+          <h4 class="font-bold text-slate-700 uppercase tracking-wider text-[11px] mb-1">Tasks Completed</h4>
+          <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100 text-slate-800 leading-relaxed whitespace-pre-line text-sm">{{ report.tasks_completed }}</div>
+        </div>
+
+        {% if report.achievements %}
+          <div>
+            <h4 class="font-bold text-emerald-800 uppercase tracking-wider text-[11px] mb-1">Major Achievements</h4>
+            <div class="p-4 bg-emerald-50/50 rounded-2xl border border-emerald-100 text-slate-800 leading-relaxed whitespace-pre-line text-sm">{{ report.achievements }}</div>
+          </div>
+        {% endif %}
+
+        {% if report.challenges %}
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <h4 class="font-bold text-amber-800 uppercase tracking-wider text-[11px] mb-1">Challenges Faced</h4>
+              <div class="p-4 bg-amber-50/50 rounded-2xl border border-amber-100 text-slate-800 leading-relaxed whitespace-pre-line text-sm">{{ report.challenges }}</div>
+            </div>
+            <div>
+              <h4 class="font-bold text-blue-800 uppercase tracking-wider text-[11px] mb-1">Handling / Solutions</h4>
+              <div class="p-4 bg-blue-50/50 rounded-2xl border border-blue-100 text-slate-800 leading-relaxed whitespace-pre-line text-sm">{{ report.challenges_handling|default:"Standard procedures followed." }}</div>
+            </div>
+          </div>
+        {% endif %}
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {% if report.pending_tasks %}
+            <div>
+              <h4 class="font-bold text-slate-700 uppercase tracking-wider text-[11px] mb-1">Pending / Ongoing Tasks</h4>
+              <div class="p-4 bg-slate-50 rounded-2xl border border-slate-100 text-slate-800 leading-relaxed whitespace-pre-line text-sm">{{ report.pending_tasks }}</div>
+            </div>
+          {% endif %}
+          <div>
+            <h4 class="font-bold text-indigo-800 uppercase tracking-wider text-[11px] mb-1">Next Week's Action Plan</h4>
+            <div class="p-4 bg-indigo-50/50 rounded-2xl border border-indigo-100 text-slate-800 leading-relaxed whitespace-pre-line text-sm">{{ report.next_week_plan }}</div>
+          </div>
+        </div>
+
+        {% if report.skills_technologies_used %}
+          <div>
+            <h4 class="font-bold text-slate-700 uppercase tracking-wider text-[11px] mb-1">Skills & Technologies Used</h4>
+            <div class="p-3 bg-slate-50 rounded-xl border border-slate-100 text-slate-800 font-semibold">{{ report.skills_technologies_used }}</div>
+          </div>
+        {% endif %}
+
+        {% if report.additional_comments %}
+          <div>
+            <h4 class="font-bold text-slate-700 uppercase tracking-wider text-[11px] mb-1">Additional Comments</h4>
+            <div class="p-3 bg-slate-50 rounded-xl border border-slate-100 text-slate-800 whitespace-pre-line">{{ report.additional_comments }}</div>
+          </div>
+        {% endif %}
+      </div>
+    </div>
+
+    <!-- Section 2: HR Performance Evaluation Matrix (If Evaluated) -->
+    {% if evaluation %}
+      <div class="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-sm space-y-6">
+        <div class="border-b border-slate-100 pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+          <div>
+            <h3 class="text-base font-extrabold text-slate-900 flex items-center gap-2">
+              <i class="bi bi-star-fill text-amber-500"></i><span>HR Performance Evaluation Matrix</span>
+            </h3>
+            <p class="text-xs text-slate-500 mt-0.5">Reviewed by: <strong class="text-slate-800">{{ evaluation.reviewed_by.full_name|default:"HR Department" }}</strong> on {{ evaluation.reviewed_at|date:"M d, Y" }}</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="px-3 py-1 bg-blue-50 text-blue-700 font-black text-xs rounded-full">
+              Total Score: {{ evaluation.total_score }}/40
+            </span>
+            <span class="px-3 py-1 bg-emerald-50 text-emerald-700 font-black text-xs rounded-full">
+              {{ evaluation.performance_percentage }}% Rating
+            </span>
+          </div>
+        </div>
+
+        <!-- 8-Criteria Ratings Table -->
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-xs">
+            <thead>
+              <tr class="border-b border-slate-200 text-slate-400 font-bold uppercase tracking-wider">
+                <th class="pb-3 w-1/3">Evaluation Criterion</th>
+                <th class="pb-3 text-center w-28">Score (1-5)</th>
+                <th class="pb-3">HR Reviewer Remarks</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 text-slate-700">
+              <tr class="hover:bg-slate-50/60">
+                <td class="py-3 font-bold text-slate-900">1. Task Completion</td>
+                <td class="py-3 text-center font-black text-blue-600 text-sm">
+                  <span class="inline-flex items-center gap-1">★ {{ evaluation.task_completion }}/5</span>
+                </td>
+                <td class="py-3 text-slate-600">{{ evaluation.task_completion_remarks|default:"Completed as planned" }}</td>
+              </tr>
+              <tr class="hover:bg-slate-50/60">
+                <td class="py-3 font-bold text-slate-900">2. Quality of Work</td>
+                <td class="py-3 text-center font-black text-blue-600 text-sm">
+                  <span class="inline-flex items-center gap-1">★ {{ evaluation.quality_of_work }}/5</span>
+                </td>
+                <td class="py-3 text-slate-600">{{ evaluation.quality_of_work_remarks|default:"Good accuracy and quality" }}</td>
+              </tr>
+              <tr class="hover:bg-slate-50/60">
+                <td class="py-3 font-bold text-slate-900">3. Technical Skills</td>
+                <td class="py-3 text-center font-black text-blue-600 text-sm">
+                  <span class="inline-flex items-center gap-1">★ {{ evaluation.technical_skills }}/5</span>
+                </td>
+                <td class="py-3 text-slate-600">{{ evaluation.technical_skills_remarks|default:"Solid technical execution" }}</td>
+              </tr>
+              <tr class="hover:bg-slate-50/60">
+                <td class="py-3 font-bold text-slate-900">4. Problem Solving</td>
+                <td class="py-3 text-center font-black text-blue-600 text-sm">
+                  <span class="inline-flex items-center gap-1">★ {{ evaluation.problem_solving }}/5</span>
+                </td>
+                <td class="py-3 text-slate-600">{{ evaluation.problem_solving_remarks|default:"Constructive approach to blockers" }}</td>
+              </tr>
+              <tr class="hover:bg-slate-50/60">
+                <td class="py-3 font-bold text-slate-900">5. Timeliness</td>
+                <td class="py-3 text-center font-black text-blue-600 text-sm">
+                  <span class="inline-flex items-center gap-1">★ {{ evaluation.timeliness }}/5</span>
+                </td>
+                <td class="py-3 text-slate-600">{{ evaluation.timeliness_remarks|default:"Punctual delivery" }}</td>
+              </tr>
+              <tr class="hover:bg-slate-50/60">
+                <td class="py-3 font-bold text-slate-900">6. Team Collaboration</td>
+                <td class="py-3 text-center font-black text-blue-600 text-sm">
+                  <span class="inline-flex items-center gap-1">★ {{ evaluation.team_collaboration }}/5</span>
+                </td>
+                <td class="py-3 text-slate-600">{{ evaluation.team_collaboration_remarks|default:"Supportive and cooperative" }}</td>
+              </tr>
+              <tr class="hover:bg-slate-50/60">
+                <td class="py-3 font-bold text-slate-900">7. Communication</td>
+                <td class="py-3 text-center font-black text-blue-600 text-sm">
+                  <span class="inline-flex items-center gap-1">★ {{ evaluation.communication }}/5</span>
+                </td>
+                <td class="py-3 text-slate-600">{{ evaluation.communication_remarks|default:"Clear and transparent" }}</td>
+              </tr>
+              <tr class="hover:bg-slate-50/60">
+                <td class="py-3 font-bold text-slate-900">8. Goal Achievement</td>
+                <td class="py-3 text-center font-black text-blue-600 text-sm">
+                  <span class="inline-flex items-center gap-1">★ {{ evaluation.goal_achievement }}/5</span>
+                </td>
+                <td class="py-3 text-slate-600">{{ evaluation.goal_achievement_remarks|default:"Met expected milestones" }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Qualitative Feedback Cards -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-slate-100 text-xs">
+          {% if evaluation.overall_feedback %}
+            <div class="sm:col-span-2 p-4 rounded-2xl bg-blue-50/60 border border-blue-200/60 space-y-1">
+              <span class="font-bold text-blue-900 block text-[11px] uppercase tracking-wider">Overall Feedback</span>
+              <p class="text-slate-800 leading-relaxed">{{ evaluation.overall_feedback }}</p>
+            </div>
+          {% endif %}
+
+          {% if evaluation.strengths %}
+            <div class="p-4 rounded-2xl bg-emerald-50/60 border border-emerald-200/60 space-y-1">
+              <span class="font-bold text-emerald-900 block text-[11px] uppercase tracking-wider">Observed Strengths</span>
+              <p class="text-slate-800 leading-relaxed">{{ evaluation.strengths }}</p>
+            </div>
+          {% endif %}
+
+          {% if evaluation.areas_for_improvement %}
+            <div class="p-4 rounded-2xl bg-amber-50/60 border border-amber-200/60 space-y-1">
+              <span class="font-bold text-amber-900 block text-[11px] uppercase tracking-wider">Areas for Improvement</span>
+              <p class="text-slate-800 leading-relaxed">{{ evaluation.areas_for_improvement }}</p>
+            </div>
+          {% endif %}
+
+          {% if evaluation.recommendations %}
+            <div class="p-4 rounded-2xl bg-indigo-50/60 border border-indigo-200/60 space-y-1">
+              <span class="font-bold text-indigo-900 block text-[11px] uppercase tracking-wider">Recommendations</span>
+              <p class="text-slate-800 leading-relaxed">{{ evaluation.recommendations }}</p>
+            </div>
+          {% endif %}
+
+          {% if evaluation.next_week_expectations %}
+            <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
+              <span class="font-bold text-slate-900 block text-[11px] uppercase tracking-wider">Next Week Expectations</span>
+              <p class="text-slate-800 leading-relaxed">{{ evaluation.next_week_expectations }}</p>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    {% else %}
+      <div class="p-6 rounded-3xl bg-slate-100 border border-slate-200 text-center text-xs text-slate-500">
+        <i class="bi bi-hourglass-split text-2xl text-slate-400 block mb-1"></i>
+        HR performance evaluation has not been conducted for this report yet. You will be notified once reviewed.
+      </div>
+    {% endif %}
+  </main>
+</body>
+</html>
+

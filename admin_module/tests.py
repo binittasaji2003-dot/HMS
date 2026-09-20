@@ -690,6 +690,136 @@ class RecruitmentMonitoringAndApprovalTests(TestCase):
         self.assertTrue(emp_user.is_active)
         self.assertEqual(emp_user.status, User.StatusChoices.ACTIVE)
 
+    def test_reject_flow_keeps_candidate_role_and_records_reason(self):
+        emp_user = User.objects.create_user(
+            email="cand.reject@company.com",
+            name="Rejected Candidate",
+            role=User.RoleChoices.CANDIDATE,
+            status=User.StatusChoices.ACTIVE,
+        )
+        employee = Employee.objects.create(
+            user=emp_user,
+            candidate=self.candidate,
+            employee_code="EMP-888",
+            department=self.department,
+            designation="Associate PM",
+            joining_date=date(2024, 4, 1),
+            employment_status="INACTIVE",
+        )
+        approval = EmployeeApproval.objects.create(
+            employee=employee,
+            status="PENDING",
+        )
+
+        post_response = self.client.post(
+            reverse("admin_module:recruitment_approval_reject", kwargs={"employee_id": employee.pk}),
+            {"rejection_reason": "Not matching technical requirements."},
+        )
+        self.assertEqual(post_response.status_code, 302)
+
+        approval.refresh_from_db()
+        employee.refresh_from_db()
+        emp_user.refresh_from_db()
+
+        self.assertEqual(approval.status, "REJECTED")
+        self.assertEqual(approval.comments, "Not matching technical requirements.")
+        self.assertEqual(employee.employment_status, "INACTIVE")
+        self.assertEqual(emp_user.role, User.RoleChoices.CANDIDATE)
+
+    def test_hr_accept_and_admin_approve_workflow_with_same_password(self):
+        # 1. Candidate registered with specific password
+        cand_user = User.objects.create_user(
+            email="hiring.candidate@test.com",
+            password="MySecretPassword123!",
+            name="Alice Applicant",
+            role=User.RoleChoices.CANDIDATE,
+            status=User.StatusChoices.ACTIVE,
+        )
+        cand_profile = Candidate.objects.create(
+            user=cand_user,
+            first_name="Alice",
+            last_name="Applicant",
+            phone="9876543210",
+        )
+        application = JobApplication.objects.create(
+            candidate=cand_profile,
+            vacancy=self.vacancy,
+            status="SELECTED",
+        )
+
+        # 2. HR Manager logs in and accepts candidate as employee
+        hr_user = User.objects.create_user(
+            email="hr.lead@company.com",
+            password="HRPass123!",
+            name="HR Recruiter",
+            role=User.RoleChoices.HR,
+            status=User.StatusChoices.ACTIVE,
+            is_active=True,
+        )
+        HRManager.objects.create(
+            user=hr_user,
+            department=self.department,
+            employee_code="HR-0099",
+            is_active=True,
+        )
+        self.client.force_login(hr_user)
+
+        # HR posts accept-as-employee
+        accept_resp = self.client.post(
+            reverse("hr:application_accept_employee", kwargs={"pk": application.pk})
+        )
+        self.assertEqual(accept_resp.status_code, 302)
+
+        # Verify Employee record and EmployeeApproval created with PENDING
+        emp = Employee.objects.filter(user=cand_user).first()
+        self.assertIsNotNone(emp)
+        self.assertEqual(emp.employment_status, "INACTIVE")
+        self.assertEqual(emp.created_by, hr_user)
+
+        approval = EmployeeApproval.objects.filter(employee=emp).first()
+        self.assertIsNotNone(approval)
+        self.assertEqual(approval.status, "PENDING")
+
+        # 3. Admin views pending approval in existing New Employee Approvals page
+        self.client.force_login(self.admin)
+        approvals_resp = self.client.get(reverse("admin_module:recruitment_approvals"))
+        self.assertEqual(approvals_resp.status_code, 200)
+        self.assertContains(approvals_resp, "Alice Applicant")
+        self.assertContains(approvals_resp, "Product Manager")
+
+        # Admin reviews the candidate
+        review_resp = self.client.get(
+            reverse("admin_module:recruitment_approval_review", kwargs={"employee_id": emp.pk})
+        )
+        self.assertEqual(review_resp.status_code, 200)
+        self.assertContains(review_resp, "Alice Applicant")
+
+        # Admin approves
+        approve_resp = self.client.post(
+            reverse("admin_module:recruitment_approval_approve", kwargs={"employee_id": emp.pk}),
+            {"comments": "Excellent candidate, welcome!"},
+        )
+        self.assertEqual(approve_resp.status_code, 302)
+
+        # 4. Verify candidate is now active employee, role is Employee, same password works
+        emp.refresh_from_db()
+        cand_user.refresh_from_db()
+        approval.refresh_from_db()
+
+        self.assertEqual(approval.status, "APPROVED")
+        self.assertEqual(emp.employment_status, "ACTIVE")
+        self.assertEqual(cand_user.role, User.RoleChoices.EMPLOYEE)
+        self.assertTrue(cand_user.check_password("MySecretPassword123!"))
+
+        # 5. User logs in with candidate credentials and gets employee redirect
+        self.client.logout()
+        login_success = self.client.login(email="hiring.candidate@test.com", password="MySecretPassword123!")
+        self.assertTrue(login_success)
+
+        redirect_resp = self.client.get(reverse("users:redirect"))
+        self.assertEqual(redirect_resp.status_code, 302)
+        self.assertIn(reverse("employees:dashboard"), redirect_resp.url)
+
     def test_candidates_list_has_no_add_candidate_action(self):
         response = self.client.get(reverse("admin_module:candidates_list"))
         self.assertEqual(response.status_code, 200)

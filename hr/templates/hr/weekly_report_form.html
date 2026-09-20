@@ -1,0 +1,181 @@
+{% extends "hr/base.html" %}
+
+{% block title %}{% if is_edit %}Edit Weekly Report{% else %}Create Weekly Report{% endif %} - HRMS Portal{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <a href="{% url 'hr:weekly_report_list' %}" class="text-decoration-none text-muted small mb-1 d-inline-block">
+                <i class="bi bi-arrow-left me-1"></i> Back to Weekly Reports
+            </a>
+            <h3 class="fw-bold text-dark mb-0">{% if is_edit %}Edit Weekly Report{% else %}Create Weekly Performance Report{% endif %}</h3>
+        </div>
+    </div>
+
+    {% if form.errors %}
+        <div class="alert alert-danger rounded-3 mb-4">
+            <h6 class="fw-bold mb-1"><i class="bi bi-exclamation-triangle me-2"></i>Please correct the errors below:</h6>
+            <ul class="mb-0 small">
+                {% for field in form %}
+                    {% for error in field.errors %}
+                        <li><strong>{{ field.label }}:</strong> {{ error }}</li>
+                    {% endfor %}
+                {% endfor %}
+                {% for error in form.non_field_errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+
+        <!-- Section 1: Report Information & Period -->
+        <div class="card card-custom border-0 mb-4">
+            <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-primary rounded-circle p-2"><i class="bi bi-calendar3"></i></span>
+                    <h5 class="fw-bold text-dark mb-0">1. Report Information & Period</h5>
+                </div>
+                <p class="text-muted small mt-1 mb-0">Specify the reporting week timeframe and manager details.</p>
+            </div>
+            <div class="card-body p-4">
+                <div class="row g-3">
+                    <div class="col-md-6 col-lg-3">
+                        <label class="form-label text-muted small fw-bold">HR MANAGER</label>
+                        <input type="text" class="form-control custom-input bg-light" value="{{ hr_profile.full_name }}" readonly>
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                        <label class="form-label text-muted small fw-bold">HR / EMPLOYEE CODE</label>
+                        <input type="text" class="form-control custom-input bg-light" value="{{ hr_profile.employee_code }}" readonly>
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                        <label class="form-label text-muted small fw-bold">WEEK START DATE <span class="text-danger">*</span></label>
+                        {{ form.week_start_date }}
+                    </div>
+                    <div class="col-md-6 col-lg-3">
+                        <label class="form-label text-muted small fw-bold">WEEK END DATE <span class="text-danger">*</span></label>
+                        {{ form.week_end_date }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 2: Work Summary & Major Tasks Completed -->
+        <div class="card card-custom border-0 mb-4">
+            <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-primary rounded-circle p-2"><i class="bi bi-briefcase"></i></span>
+                    <h5 class="fw-bold text-dark mb-0">2. Work Summary & Responsibilities</h5>
+                </div>
+                <p class="text-muted small mt-1 mb-0">Describe the primary focus and core tasks executed during this week.</p>
+            </div>
+            <div class="card-body p-4">
+                <div class="row g-4">
+                    <div class="col-12">
+                        <label class="form-label text-dark fw-semibold">Weekly Work Summary <span class="text-danger">*</span></label>
+                        {{ form.work_summary }}
+                        <div class="form-text">Provide an executive summary of your HR management and recruitment responsibilities handled.</div>
+                    </div>
+                    <div class="col-12">
+                        <label class="form-label text-dark fw-semibold">Major Tasks Completed <span class="text-danger">*</span></label>
+                        {{ form.tasks_completed }}
+                        <div class="form-text">List specific completed actions, screening batches, interview coordination, onboarding steps, etc.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 3: Achievements, Challenges, Pending & Next Week Plan -->
+        <div class="card card-custom border-0 mb-4">
+            <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-primary rounded-circle p-2"><i class="bi bi-clipboard2-check"></i></span>
+                    <h5 class="fw-bold text-dark mb-0">3. Accomplishments, Challenges & Next Week Plan</h5>
+                </div>
+                <p class="text-muted small mt-1 mb-0">Document your performance highlights, roadblocks, and upcoming priorities.</p>
+            </div>
+            <div class="card-body p-4">
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <label class="form-label text-dark fw-semibold">Key Achievements / Milestones</label>
+                        {{ form.achievements }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-dark fw-semibold">Challenges & Blockers Encountered</label>
+                        {{ form.challenges }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-dark fw-semibold">Pending / In-Progress Tasks</label>
+                        {{ form.pending_tasks }}
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label text-dark fw-semibold">Next Week Plan & Schedule</label>
+                        {{ form.next_week_plan }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 4: Supporting Recruitment Activity Numbers -->
+        <div class="card card-custom border-0 mb-4">
+            <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
+                <div class="d-flex align-items-center gap-2">
+                    <span class="badge bg-primary rounded-circle p-2"><i class="bi bi-bar-chart-line"></i></span>
+                    <h5 class="fw-bold text-dark mb-0">4. Recruitment Activity Details (Supporting Metrics)</h5>
+                </div>
+                <p class="text-muted small mt-1 mb-0">Supporting pipeline metrics completed during this reporting period.</p>
+            </div>
+            <div class="card-body p-4">
+                <div class="row g-3">
+                    <div class="col-6 col-md-4 col-lg-2">
+                        <label class="form-label text-muted small fw-bold">VACANCIES WORKED</label>
+                        {{ form.vacancies_worked }}
+                    </div>
+                    <div class="col-6 col-md-4 col-lg-2">
+                        <label class="form-label text-muted small fw-bold">CANDIDATES SCREENED</label>
+                        {{ form.candidates_screened }}
+                    </div>
+                    <div class="col-6 col-md-4 col-lg-2">
+                        <label class="form-label text-muted small fw-bold">SHORTLISTED</label>
+                        {{ form.candidates_shortlisted }}
+                    </div>
+                    <div class="col-6 col-md-4 col-lg-2">
+                        <label class="form-label text-muted small fw-bold">APTITUDE TESTS</label>
+                        {{ form.aptitude_tests }}
+                    </div>
+                    <div class="col-6 col-md-4 col-lg-2">
+                        <label class="form-label text-muted small fw-bold">INTERVIEWS</label>
+                        {{ form.interviews }}
+                    </div>
+                    <div class="col-6 col-md-4 col-lg-2">
+                        <label class="form-label text-muted small fw-bold">CANDIDATES SELECTED</label>
+                        {{ form.candidates_selected }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Actions Bar -->
+        <div class="card card-custom border-0 mb-5">
+            <div class="card-body p-4 d-flex justify-content-between align-items-center">
+                <a href="{% url 'hr:weekly_report_list' %}" class="btn btn-outline-secondary rounded-3 px-4">
+                    Cancel
+                </a>
+                <div class="d-flex gap-2">
+                    <button type="submit" name="action" value="DRAFT" class="btn btn-outline-primary rounded-3 px-4 fw-semibold">
+                        <i class="bi bi-floppy me-1"></i> Save as Draft
+                    </button>
+                    <button type="submit" name="action" value="SUBMIT" class="btn btn-primary rounded-3 px-4 fw-semibold shadow-sm" onclick="return confirm('Are you sure you want to submit this weekly report to Admin?');">
+                        <i class="bi bi-send me-1"></i> Submit Report to Admin
+                    </button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}
+

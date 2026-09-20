@@ -1,0 +1,225 @@
+{% extends "hr/base.html" %}
+
+{% block title %}Interview Evaluation - {{ candidate.first_name }} {{ candidate.last_name }} | Smart HRMS{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-1 small">
+                    <li class="breadcrumb-item"><a href="{% url 'hr:interview_list' %}" class="text-decoration-none">Interviews</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Evaluation</li>
+                </ol>
+            </nav>
+            <h4 class="fw-bold text-primary mb-0">
+                <i class="bi bi-clipboard2-check me-2"></i>Candidate Interview Evaluation
+            </h4>
+        </div>
+        <a href="{% url 'hr:interview_list' %}" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left me-1"></i> Back to Interviews
+        </a>
+    </div>
+</div>
+
+<!-- Candidate & Interview Snapshot -->
+<div class="row g-4 mb-4">
+    <div class="col-lg-4">
+        <div class="card card-custom border-0 shadow-sm p-4 h-100">
+            <div class="text-center mb-3">
+                <div class="avatar-lg bg-primary-subtle text-primary rounded-circle d-inline-flex align-items-center justify-content-center fw-bold fs-3 mb-2" style="width: 70px; height: 70px;">
+                    {{ candidate.first_name|first }}{{ candidate.last_name|first }}
+                </div>
+                <h5 class="fw-bold mb-0">{{ candidate.first_name }} {{ candidate.last_name }}</h5>
+                <p class="text-muted small mb-1">{{ candidate.user.email }}</p>
+                <span class="badge bg-primary">{{ application.get_status_display }}</span>
+            </div>
+            <hr class="my-3">
+            <div class="small">
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Target Position:</span>
+                    <span class="fw-semibold text-dark">{{ job.title }}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Department:</span>
+                    <span class="fw-semibold text-dark">{{ job.department.name|default:"General" }}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Interview Date:</span>
+                    <span class="fw-semibold text-dark">{{ interview.interview_date|date:"M d, Y" }}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Interview Time:</span>
+                    <span class="fw-semibold text-dark">{{ interview.interview_time|time:"h:i A" }}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Physical Venue:</span>
+                    <span class="fw-semibold text-dark">{{ interview.location.location_name|default:"Headquarters" }}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span class="text-muted">Attendance:</span>
+                    <span class="badge bg-success"><i class="bi bi-check-circle me-1"></i>Attended</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-8">
+        <div class="card card-custom border-0 shadow-sm p-4">
+            <div class="d-flex align-items-center justify-content-between mb-3 border-bottom pb-2">
+                <h5 class="fw-bold mb-0 text-dark">
+                    <i class="bi bi-star-fill text-warning me-2"></i>Performance Rating & Decision
+                </h5>
+                <span class="badge bg-light text-muted border">Score Scale: 1 (Lowest) - 5 (Highest)</span>
+            </div>
+
+            <form method="POST" id="evalForm">
+                {% csrf_token %}
+                <div class="row g-3 mb-4">
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">1. Technical Knowledge & Core Skills <span class="text-danger">*</span></label>
+                        <select name="technical_rating" class="form-select rating-input" required>
+                            <option value="5" {% if evaluation and evaluation.technical_rating == 5 %}selected{% endif %}>5 - Exceptional Mastery</option>
+                            <option value="4" {% if evaluation and evaluation.technical_rating == 4 %}selected{% elif not evaluation %}selected{% endif %}>4 - Very Good / Competent</option>
+                            <option value="3" {% if evaluation and evaluation.technical_rating == 3 %}selected{% endif %}>3 - Meets Standard Expectations</option>
+                            <option value="2" {% if evaluation and evaluation.technical_rating == 2 %}selected{% endif %}>2 - Needs Improvement / Below Average</option>
+                            <option value="1" {% if evaluation and evaluation.technical_rating == 1 %}selected{% endif %}>1 - Unsatisfactory</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">2. Communication & Articulation <span class="text-danger">*</span></label>
+                        <select name="communication_rating" class="form-select rating-input" required>
+                            <option value="5" {% if evaluation and evaluation.communication_rating == 5 %}selected{% endif %}>5 - Fluent, Clear & Persuasive</option>
+                            <option value="4" {% if evaluation and evaluation.communication_rating == 4 %}selected{% elif not evaluation %}selected{% endif %}>4 - Clear & Effective</option>
+                            <option value="3" {% if evaluation and evaluation.communication_rating == 3 %}selected{% endif %}>3 - Adequate / Understandable</option>
+                            <option value="2" {% if evaluation and evaluation.communication_rating == 2 %}selected{% endif %}>2 - Hesitant / Needs Coaching</option>
+                            <option value="1" {% if evaluation and evaluation.communication_rating == 1 %}selected{% endif %}>1 - Poor Communication</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">3. Problem Solving & Logical Thinking <span class="text-danger">*</span></label>
+                        <select name="problem_solving_rating" class="form-select rating-input" required>
+                            <option value="5" {% if evaluation and evaluation.problem_solving_rating == 5 %}selected{% endif %}>5 - Outstanding Analytical Approach</option>
+                            <option value="4" {% if evaluation and evaluation.problem_solving_rating == 4 %}selected{% elif not evaluation %}selected{% endif %}>4 - Sound Problem-Solving Instincts</option>
+                            <option value="3" {% if evaluation and evaluation.problem_solving_rating == 3 %}selected{% endif %}>3 - Standard Reasoning</option>
+                            <option value="2" {% if evaluation and evaluation.problem_solving_rating == 2 %}selected{% endif %}>2 - Struggles with Complex Questions</option>
+                            <option value="1" {% if evaluation and evaluation.problem_solving_rating == 1 %}selected{% endif %}>1 - Unable to Solve Core Problems</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">4. Role-Specific Qualifications <span class="text-danger">*</span></label>
+                        <select name="role_skill_rating" class="form-select rating-input" required>
+                            <option value="5" {% if evaluation and evaluation.role_skill_rating == 5 %}selected{% endif %}>5 - Perfectly Aligned with Role</option>
+                            <option value="4" {% if evaluation and evaluation.role_skill_rating == 4 %}selected{% elif not evaluation %}selected{% endif %}>4 - Strong Role Competencies</option>
+                            <option value="3" {% if evaluation and evaluation.role_skill_rating == 3 %}selected{% endif %}>3 - Acceptable Qualification Level</option>
+                            <option value="2" {% if evaluation and evaluation.role_skill_rating == 2 %}selected{% endif %}>2 - Gaps in Required Knowledge</option>
+                            <option value="1" {% if evaluation and evaluation.role_skill_rating == 1 %}selected{% endif %}>1 - Misaligned with Role</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label small fw-semibold">5. Professionalism & Cultural Fit <span class="text-danger">*</span></label>
+                        <select name="professionalism_rating" class="form-select rating-input" required>
+                            <option value="5" {% if evaluation and evaluation.professionalism_rating == 5 %}selected{% endif %}>5 - Exceptional Attitude & Drive</option>
+                            <option value="4" {% if evaluation and evaluation.professionalism_rating == 4 %}selected{% elif not evaluation %}selected{% endif %}>4 - Positive, Professional & Cooperative</option>
+                            <option value="3" {% if evaluation and evaluation.professionalism_rating == 3 %}selected{% endif %}>3 - Satisfactory Work Ethic</option>
+                            <option value="2" {% if evaluation and evaluation.professionalism_rating == 2 %}selected{% endif %}>2 - Reservation on Culture Fit</option>
+                            <option value="1" {% if evaluation and evaluation.professionalism_rating == 1 %}selected{% endif %}>1 - Unprofessional</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-6">
+                        <div class="p-3 bg-light rounded-3 border h-100 d-flex flex-column justify-content-center">
+                            <span class="text-muted small fw-semibold">Calculated Average Rating:</span>
+                            <div class="d-flex align-items-baseline gap-2 mt-1">
+                                <h3 class="fw-bold text-primary mb-0" id="avgScoreDisplay">4.0</h3>
+                                <span class="text-muted">/ 5.0</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <label class="form-label small fw-semibold">Confidential Interview Comments & Observations</label>
+                        <textarea name="comments" rows="3" class="form-control" placeholder="Log detailed candidate strengths, key responses, or hiring justifications...">{{ evaluation.comments|default:"" }}</textarea>
+                        <small class="text-muted"><i class="bi bi-shield-lock me-1"></i>These notes are strictly confidential to HR and Admin and are NEVER displayed to candidates.</small>
+                    </div>
+                </div>
+
+                <div class="p-3 bg-light-subtle rounded-3 border mb-4">
+                    <h6 class="fw-bold text-dark mb-2">Final Recruitment Decision</h6>
+                    <p class="text-muted small mb-3">
+                        Selecting <strong>PASS / SELECT</strong> moves the candidate to <code>SELECTED</code> status and enables HR forwarding to Admin. Selecting <strong>FAIL / REJECT</strong> closes the application.
+                    </p>
+                    <div class="d-flex gap-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="decision" id="decisionPass" value="PASS" {% if not evaluation or evaluation.result == 'PASS' %}checked{% endif %}>
+                            <label class="form-check-label fw-bold text-success" for="decisionPass">
+                                <i class="bi bi-check-circle-fill me-1"></i>PASS / SELECT CANDIDATE
+                            </label>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="radio" name="decision" id="decisionFail" value="FAIL" {% if evaluation and evaluation.result == 'FAIL' %}checked{% endif %}>
+                            <label class="form-check-label fw-bold text-danger" for="decisionFail">
+                                <i class="bi bi-x-circle-fill me-1"></i>FAIL / REJECT CANDIDATE
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end gap-2">
+                    <a href="{% url 'hr:interview_list' %}" class="btn btn-light border">Cancel</a>
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#confirmEvalModal">
+                        <i class="bi bi-check-lg me-1"></i>Submit Interview Evaluation
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Confirmation Modal -->
+<div class="modal fade text-start" id="confirmEvalModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-bottom">
+                <h5 class="modal-title fw-bold text-dark">Confirm Interview Evaluation</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body py-4 text-center">
+                <div class="avatar-lg bg-primary-subtle text-primary rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 60px; height: 60px;">
+                    <i class="bi bi-question-circle fs-2"></i>
+                </div>
+                <h6 class="fw-bold">Are you sure you want to submit the interview result?</h6>
+                <p class="text-muted small mb-0">The candidate status will be updated immediately and official notifications will be dispatched.</p>
+            </div>
+            <div class="modal-footer border-top">
+                <button type="button" class="btn btn-light border" data-bs-dismiss="modal">Review Again</button>
+                <button type="button" class="btn btn-primary" onclick="document.getElementById('evalForm').submit();">
+                    Yes, Confirm & Submit
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    function recalcAvg() {
+        const inputs = document.querySelectorAll('.rating-input');
+        let sum = 0;
+        inputs.forEach(sel => sum += parseInt(sel.value || 0));
+        const avg = (sum / inputs.length).toFixed(1);
+        const display = document.getElementById('avgScoreDisplay');
+        if (display) display.textContent = avg;
+    }
+    document.querySelectorAll('.rating-input').forEach(sel => {
+        sel.addEventListener('change', recalcAvg);
+    });
+    recalcAvg();
+});
+</script>
+{% endblock %}
+

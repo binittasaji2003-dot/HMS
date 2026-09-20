@@ -42,9 +42,29 @@
              class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-600 hover:text-hrms-blue hover:bg-blue-50/60 rounded-xl">
             <i class="bi bi-grid text-base"></i><span>Dashboard</span>
           </a>
+          <a href="{% url 'employees:profile' %}"
+             class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-600 hover:text-hrms-blue hover:bg-blue-50/60 rounded-xl">
+            <i class="bi bi-person text-base"></i><span>My Profile</span>
+          </a>
+          <a href="{% url 'employees:reports_list' %}"
+             class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-600 hover:text-hrms-blue hover:bg-blue-50/60 rounded-xl">
+            <i class="bi bi-file-earmark-text text-base"></i><span>Reports</span>
+          </a>
+          <a href="{% url 'employees:leave_management' %}"
+             class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-600 hover:text-hrms-blue hover:bg-blue-50/60 rounded-xl">
+            <i class="bi bi-calendar2-check text-base"></i><span>Leave</span>
+          </a>
+          <a href="{% url 'employees:performance' %}"
+             class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-600 hover:text-hrms-blue hover:bg-blue-50/60 rounded-xl">
+            <i class="bi bi-bar-chart-line text-base"></i><span>Performance</span>
+          </a>
           <a href="{% url 'employees:announcements' %}"
              class="flex items-center gap-3 px-4 py-3 text-sm font-bold text-white bg-hrms-blue rounded-xl shadow-md shadow-blue-500/20">
             <i class="bi bi-megaphone-fill text-base"></i><span>Announcements</span>
+          </a>
+          <a href="{% url 'employees:notifications' %}"
+             class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-600 hover:text-hrms-blue hover:bg-blue-50/60 rounded-xl">
+            <i class="bi bi-bell text-base"></i><span>Notifications</span>
           </a>
         </nav>
       </div>

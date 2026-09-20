@@ -1,0 +1,224 @@
+{% extends "hr/base.html" %}
+
+{% block title %}HR Weekly Reports - HRMS Portal{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <!-- Header Section -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <div>
+            <h3 class="fw-bold text-dark mb-1">Weekly Performance Reports</h3>
+            <p class="text-muted small mb-0">Record and submit your weekly HR operational accomplishments, initiatives, and performance reviews.</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'hr:performance_analysis' %}" class="btn btn-outline-primary rounded-3 px-3 py-2 fw-semibold">
+                <i class="bi bi-graph-up-arrow me-1"></i> Performance Analysis
+            </a>
+            <a href="{% url 'hr:weekly_report_create' %}" class="btn btn-primary rounded-3 px-3 py-2 fw-semibold shadow-sm">
+                <i class="bi bi-plus-lg me-1"></i> Create Weekly Report
+            </a>
+        </div>
+    </div>
+
+    <!-- Summary KPI Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-lg-3">
+            <div class="card card-custom border-0 p-3 h-100">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="text-muted small fw-medium">Total Reports</span>
+                    <span class="badge bg-primary-subtle text-primary rounded-pill px-2 py-1"><i class="bi bi-file-earmark-text"></i></span>
+                </div>
+                <h4 class="fw-bold text-dark mb-0">{{ total_reports_count }}</h4>
+                <div class="text-muted small mt-1">Logged across all weeks</div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="card card-custom border-0 p-3 h-100">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="text-muted small fw-medium">Submitted / Under Review</span>
+                    <span class="badge bg-warning-subtle text-warning-emphasis rounded-pill px-2 py-1"><i class="bi bi-hourglass-split"></i></span>
+                </div>
+                <h4 class="fw-bold text-warning-emphasis mb-0">{{ submitted_count }}</h4>
+                <div class="text-muted small mt-1">Awaiting admin review</div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="card card-custom border-0 p-3 h-100">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="text-muted small fw-medium">Reviewed by Admin</span>
+                    <span class="badge bg-success-subtle text-success rounded-pill px-2 py-1"><i class="bi bi-check2-circle"></i></span>
+                </div>
+                <h4 class="fw-bold text-success mb-0">{{ reviewed_count }}</h4>
+                <div class="text-muted small mt-1">Evaluated & scored</div>
+            </div>
+        </div>
+        <div class="col-6 col-lg-3">
+            <div class="card card-custom border-0 p-3 h-100">
+                <div class="d-flex align-items-center justify-content-between mb-2">
+                    <span class="text-muted small fw-medium">Avg Performance Score</span>
+                    <span class="badge bg-info-subtle text-info rounded-pill px-2 py-1"><i class="bi bi-award"></i></span>
+                </div>
+                <h4 class="fw-bold text-primary mb-0">{% if overall_avg_percentage %}{{ overall_avg_percentage }}%{% else %}N/A{% endif %}</h4>
+                <div class="text-muted small mt-1">{% if overall_avg_score %}{{ overall_avg_score }} / 5 rating{% else %}No reviews yet{% endif %}</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation Tabs & Filter Bar -->
+    <div class="card card-custom border-0 mb-4">
+        <div class="card-body p-3">
+            <ul class="nav nav-pills gap-2">
+                <li class="nav-item">
+                    <a class="nav-link rounded-3 px-3 py-2 fw-medium {% if not selected_status %}active{% endif %}" href="{% url 'hr:weekly_report_list' %}">
+                        All Reports <span class="badge bg-secondary ms-1">{{ total_reports_count }}</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link rounded-3 px-3 py-2 fw-medium {% if selected_status == 'DRAFT' %}active{% endif %}" href="{% url 'hr:weekly_report_list' %}?status=DRAFT">
+                        Drafts <span class="badge bg-secondary ms-1">{{ draft_count }}</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link rounded-3 px-3 py-2 fw-medium {% if selected_status == 'SUBMITTED' %}active{% endif %}" href="{% url 'hr:weekly_report_list' %}?status=SUBMITTED">
+                        Submitted <span class="badge bg-secondary ms-1">{{ submitted_count }}</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link rounded-3 px-3 py-2 fw-medium {% if selected_status == 'REVIEWED' %}active{% endif %}" href="{% url 'hr:weekly_report_list' %}?status=REVIEWED">
+                        Reviewed <span class="badge bg-secondary ms-1">{{ reviewed_count }}</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link rounded-3 px-3 py-2 fw-medium {% if selected_status == 'NEEDS_IMPROVEMENT' %}active{% endif %}" href="{% url 'hr:weekly_report_list' %}?status=NEEDS_IMPROVEMENT">
+                        Needs Improvement <span class="badge bg-secondary ms-1">{{ needs_improvement_count }}</span>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- Reports Table Card -->
+    <div class="card card-custom border-0">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="bg-light">
+                        <tr>
+                            <th class="ps-4 py-3 text-muted text-uppercase" style="font-size: 0.75rem; font-weight: 700;">Report Period</th>
+                            <th class="py-3 text-muted text-uppercase" style="font-size: 0.75rem; font-weight: 700;">Work Summary</th>
+                            <th class="py-3 text-muted text-uppercase" style="font-size: 0.75rem; font-weight: 700;">Recruitment Summary</th>
+                            <th class="py-3 text-muted text-uppercase" style="font-size: 0.75rem; font-weight: 700;">Submitted On</th>
+                            <th class="py-3 text-muted text-uppercase" style="font-size: 0.75rem; font-weight: 700;">Status</th>
+                            <th class="py-3 text-muted text-uppercase" style="font-size: 0.75rem; font-weight: 700;">Score / Result</th>
+                            <th class="pe-4 py-3 text-end text-muted text-uppercase" style="font-size: 0.75rem; font-weight: 700;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% if reports %}
+                            {% for report in reports %}
+                                <tr>
+                                    <td class="ps-4">
+                                        <div class="fw-bold text-dark">{{ report.week_display }}</div>
+                                        <div class="text-muted small">Report #{{ report.report_id }}</div>
+                                    </td>
+                                    <td style="max-width: 260px;">
+                                        <div class="text-truncate text-dark fw-medium">{{ report.work_summary }}</div>
+                                        <div class="text-muted small text-truncate">{{ report.tasks_completed }}</div>
+                                    </td>
+                                    <td>
+                                        <div class="d-flex gap-2 flex-wrap" style="font-size: 0.78rem;">
+                                            <span class="badge bg-light text-dark border">
+                                                <i class="bi bi-briefcase me-1"></i>{{ report.vacancies_worked }} Vacancies
+                                            </span>
+                                            <span class="badge bg-light text-dark border">
+                                                <i class="bi bi-people me-1"></i>{{ report.candidates_screened }} Screened
+                                            </span>
+                                            <span class="badge bg-light text-dark border">
+                                                <i class="bi bi-person-check me-1"></i>{{ report.interviews }} Interviews
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        {% if report.submitted_at %}
+                                            <span class="text-dark fw-medium">{{ report.submitted_at|date:"M d, Y" }}</span>
+                                            <div class="text-muted small">{{ report.submitted_at|time:"h:i A" }}</div>
+                                        {% else %}
+                                            <span class="text-muted fst-italic">Not submitted yet</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if report.status == 'DRAFT' %}
+                                            <span class="badge bg-secondary-subtle text-secondary px-2 py-1 rounded-pill">Draft</span>
+                                        {% elif report.status == 'SUBMITTED' %}
+                                            <span class="badge bg-primary-subtle text-primary px-2 py-1 rounded-pill">Submitted</span>
+                                        {% elif report.status == 'UNDER_REVIEW' %}
+                                            <span class="badge bg-warning-subtle text-warning-emphasis px-2 py-1 rounded-pill">Under Review</span>
+                                        {% elif report.status == 'REVIEWED' %}
+                                            <span class="badge bg-success-subtle text-success px-2 py-1 rounded-pill"><i class="bi bi-check-circle me-1"></i>Reviewed</span>
+                                        {% elif report.status == 'NEEDS_IMPROVEMENT' %}
+                                            <span class="badge bg-danger-subtle text-danger px-2 py-1 rounded-pill">Needs Improvement</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if report.performance_review %}
+                                            <div class="fw-bold text-dark">{{ report.performance_review.performance_percentage }}%</div>
+                                            <div class="text-muted small">{{ report.performance_review.average_score }}/5 ({{ report.performance_review.get_performance_status_display }})</div>
+                                        {% else %}
+                                            <span class="text-muted small">Pending Review</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="pe-4 text-end">
+                                        <div class="d-flex justify-content-end gap-2">
+                                            <a href="{% url 'hr:weekly_report_detail' report.pk %}" class="btn btn-sm btn-outline-secondary rounded-2" title="View Details">
+                                                <i class="bi bi-eye me-1"></i> View
+                                            </a>
+                                            {% if report.is_editable %}
+                                                <a href="{% url 'hr:weekly_report_edit' report.pk %}" class="btn btn-sm btn-outline-primary rounded-2" title="Edit Report">
+                                                    <i class="bi bi-pencil"></i>
+                                                </a>
+                                                <form method="post" action="{% url 'hr:weekly_report_submit' report.pk %}" class="d-inline" onsubmit="return confirm('Submit this report to Admin for review?');">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="btn btn-sm btn-primary rounded-2" title="Submit to Admin">
+                                                        <i class="bi bi-send me-1"></i> Submit
+                                                    </button>
+                                                </form>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="7" class="text-center py-5 text-muted">
+                                    <i class="bi bi-journal-x fs-1 d-block mb-2 text-secondary"></i>
+                                    <h5>No Weekly Reports Found</h5>
+                                    <p class="small mb-3">You haven't created or submitted any weekly performance reports in this category yet.</p>
+                                    <a href="{% url 'hr:weekly_report_create' %}" class="btn btn-primary rounded-3 px-4">
+                                        <i class="bi bi-plus-lg me-1"></i> Create Weekly Report
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        {% if is_paginated %}
+            <div class="card-footer bg-white border-0 py-3 d-flex justify-content-between align-items-center">
+                <span class="text-muted small">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+                <ul class="pagination pagination-sm mb-0">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if selected_status %}&status={{ selected_status }}{% endif %}">Previous</a></li>
+                    {% endif %}
+                    <li class="page-item active"><span class="page-link">{{ page_obj.number }}</span></li>
+                    {% if page_obj.has_next %}
+                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}{% if selected_status %}&status={{ selected_status }}{% endif %}">Next</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+

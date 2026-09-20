@@ -10,13 +10,13 @@
     <div class="d-flex align-items-center gap-2 mb-1">
       <a href="{% url 'admin_module:hr_managers_list' %}" class="text-muted small text-decoration-none">HR Managers</a>
       <span class="text-muted small">/</span>
-      <span class="text-dark small fw-medium">{{ manager.user.name|default:manager.user.email }}</span>
+      <span class="text-dark small fw-medium">{{ manager.full_name }}</span>
     </div>
     <h1 class="h3 mb-0 fw-bold">{{ title }}</h1>
   </div>
-  <div class="d-flex gap-2">
+  <div class="d-flex gap-2 flex-wrap">
     <a href="{% url 'admin_module:hr_manager_edit' manager.pk %}" class="btn-primary-admin">
-      <i class="bi bi-pencil-square"></i> Edit Profile
+      <i class="bi bi-pencil-square"></i> Edit HR Profile
     </a>
     <a href="{% url back_url %}" class="btn-secondary-admin">
       <i class="bi bi-arrow-left"></i> Back to HR Managers
@@ -29,33 +29,43 @@
   <div class="d-flex align-items-center justify-content-between flex-wrap gap-3 mb-4">
     <div class="d-flex align-items-center gap-3">
       {% if profile_photo %}
-        <img src="{{ profile_photo.url }}" alt="{{ manager.user.name|default:manager.user.email }}"
-             style="width: 68px; height: 68px; border-radius: 16px; object-fit: cover; border: 2px solid rgba(59, 130, 246, 0.4); box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);">
+        <img src="{% if profile_photo.url %}{{ profile_photo.url }}{% else %}{{ profile_photo }}{% endif %}" alt="{{ manager.full_name }}"
+             style="width: 72px; height: 72px; border-radius: 16px; object-fit: cover; border: 2px solid rgba(59, 130, 246, 0.4); box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);">
       {% else %}
         <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold text-white fs-3"
-             style="width: 68px; height: 68px; border-radius: 16px !important; background: linear-gradient(135deg, #3B82F6, #1D4ED8); box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);">
-          {{ manager.user.name|default:manager.user.email|slice:":1"|upper }}
+             style="width: 72px; height: 72px; border-radius: 16px !important; background: linear-gradient(135deg, #3B82F6, #1D4ED8); box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);">
+          {{ manager.full_name|slice:":1"|upper }}
         </div>
       {% endif %}
       <div>
-        <h2 class="h4 mb-1 text-dark fw-bold">{{ manager.user.name|default:manager.user.email }}</h2>
+        <h2 class="h4 mb-1 text-dark fw-bold">{{ manager.full_name }}</h2>
         <div class="d-flex align-items-center gap-2 flex-wrap text-secondary small">
           <span><i class="bi bi-envelope me-1"></i>{{ manager.user.email }}</span>
           <span>&bull;</span>
           <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2 py-0">
-            {{ manager.department.name|default:"Unassigned" }}
+            {{ manager.department.name|default:"Human Resources" }}
           </span>
           <span>&bull;</span>
           <span class="badge bg-secondary bg-opacity-10 text-secondary border px-2 py-0">
             <i class="bi bi-person-badge me-1"></i>{{ manager.employee_code|default:"Not provided" }}
           </span>
           <span>&bull;</span>
-          <span class="text-secondary">{{ linked_employee.designation|default:"HR Manager" }}</span>
+          <span class="text-secondary fw-semibold">{{ manager.designation|default:"HR Manager" }}</span>
         </div>
       </div>
     </div>
 
     <div class="d-flex align-items-center gap-2">
+      {% if manager.profile_completed %}
+        <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-3 py-2 fw-semibold" style="font-size: 0.85rem; border-radius: 20px;">
+          <i class="bi bi-check-circle-fill me-1"></i> Profile Complete
+        </span>
+      {% else %}
+        <span class="badge bg-warning bg-opacity-10 text-dark border border-warning border-opacity-25 px-3 py-2 fw-semibold" style="font-size: 0.85rem; border-radius: 20px;">
+          <i class="bi bi-exclamation-circle-fill me-1"></i> Profile Incomplete ({{ manager.completion_percentage }}%)
+        </span>
+      {% endif %}
+
       {% if manager.user.status == 'Active' %}
         <span class="badge-status badge-status-active" style="font-size: 0.85rem; padding: 0.35rem 0.85rem;">
           <i class="bi bi-check-circle-fill me-1"></i> Active
@@ -100,7 +110,7 @@
       <div class="profile-stat-box" style="background-color: var(--bg-main); border: 1px solid var(--border-color); border-radius: 10px; padding: 0.75rem;">
         <span class="profile-stat-label">Joining Date</span>
         <span class="profile-stat-val text-primary" style="font-size: 0.9rem;">
-          {% if manager.joining_date %}{{ manager.joining_date|date:"M d, Y" }}{% else %}Not provided{% endif %}
+          {% if manager.joining_date %}{{ manager.joining_date|date:"M d, Y" }}{% else %}Not recorded{% endif %}
         </span>
       </div>
     </div>
@@ -115,26 +125,62 @@
 
 <!-- Detailed Information Sections -->
 <div class="row g-4">
-  <!-- Left Column: Personal & Professional Info -->
-  <div class="col-12 col-xl-7">
+  <!-- Left Column: Personal, Professional, & Account Information -->
+  <div class="col-12 col-xl-6">
     <div class="d-flex flex-column gap-4">
 
-      <!-- Section: Personal Information -->
+      <!-- Section 1: Personal Information -->
       <div class="saas-card p-4">
         <h2 class="card-title pb-3 mb-3 border-bottom">
-          <i class="bi bi-person-lines-fill text-primary"></i> Personal Information
+          <i class="bi bi-person-lines-fill text-primary"></i> 1. Personal Information
         </h2>
         <div class="row g-3">
           <div class="col-12 col-md-6">
             <label class="form-label text-muted small mb-1">Full Name</label>
-            <div class="text-dark fw-semibold">
-              {% if manager.user.name %}{{ manager.user.name }}{% else %}<span class="text-muted fst-italic">Not provided</span>{% endif %}
-            </div>
+            <div class="text-dark fw-semibold">{{ manager.full_name }}</div>
           </div>
           <div class="col-12 col-md-6">
             <label class="form-label text-muted small mb-1">Email Address</label>
+            <div class="text-dark fw-semibold">{{ manager.user.email }}</div>
+          </div>
+          <div class="col-12 col-md-6">
+            <label class="form-label text-muted small mb-1">Phone Number</label>
             <div class="text-dark fw-semibold">
-              {% if manager.user.email %}{{ manager.user.email }}{% else %}<span class="text-muted fst-italic">Not provided</span>{% endif %}
+              {% if manager.phone %}{{ manager.phone }}{% else %}<span class="text-muted fst-italic">Not provided</span>{% endif %}
+            </div>
+          </div>
+          <div class="col-12 col-md-6">
+            <label class="form-label text-muted small mb-1">Date of Birth</label>
+            <div class="text-dark fw-semibold">
+              {% if manager.date_of_birth %}{{ manager.date_of_birth|date:"F d, Y" }}{% else %}<span class="text-muted fst-italic">Not provided</span>{% endif %}
+            </div>
+          </div>
+          <div class="col-12 col-md-6">
+            <label class="form-label text-muted small mb-1">Gender</label>
+            <div class="text-dark fw-semibold">
+              {% if manager.gender %}{{ manager.get_gender_display }}{% else %}<span class="text-muted fst-italic">Not specified</span>{% endif %}
+            </div>
+          </div>
+          <div class="col-12 col-md-6">
+            <label class="form-label text-muted small mb-1">City & State</label>
+            <div class="text-dark fw-semibold">
+              {% if manager.city or manager.state %}
+                {{ manager.city }}{% if manager.city and manager.state %}, {% endif %}{{ manager.state }}
+              {% else %}
+                <span class="text-muted fst-italic">Not provided</span>
+              {% endif %}
+            </div>
+          </div>
+          <div class="col-12 col-md-6">
+            <label class="form-label text-muted small mb-1">Pincode</label>
+            <div class="text-dark fw-semibold">
+              {% if manager.pincode %}{{ manager.pincode }}{% else %}<span class="text-muted fst-italic">Not provided</span>{% endif %}
+            </div>
+          </div>
+          <div class="col-12">
+            <label class="form-label text-muted small mb-1">Residential Address</label>
+            <div class="text-dark fw-medium">
+              {% if manager.address %}{{ manager.address }}{% else %}<span class="text-muted fst-italic">Not provided</span>{% endif %}
             </div>
           </div>
           <div class="col-12">
@@ -142,8 +188,8 @@
             <div>
               {% if profile_photo %}
                 <div class="d-flex align-items-center gap-3">
-                  <img src="{{ profile_photo.url }}" alt="Profile Photo" class="rounded border" style="width: 48px; height: 48px; object-fit: cover;">
-                  <a href="{{ profile_photo.url }}" target="_blank" rel="noopener" class="btn-pill-action">
+                  <img src="{% if profile_photo.url %}{{ profile_photo.url }}{% else %}{{ profile_photo }}{% endif %}" alt="Profile Photo" class="rounded border" style="width: 48px; height: 48px; object-fit: cover;">
+                  <a href="{% if profile_photo.url %}{{ profile_photo.url }}{% else %}{{ profile_photo }}{% endif %}" target="_blank" rel="noopener" class="btn-pill-action">
                     <i class="bi bi-eye me-1"></i> View Photo
                   </a>
                 </div>
@@ -155,10 +201,10 @@
         </div>
       </div>
 
-      <!-- Section: Professional Information -->
+      <!-- Section 2: Professional Information -->
       <div class="saas-card p-4">
         <h2 class="card-title pb-3 mb-3 border-bottom">
-          <i class="bi bi-briefcase-fill text-primary"></i> Professional Information
+          <i class="bi bi-briefcase-fill text-primary"></i> 2. Professional Information
         </h2>
         <div class="row g-3">
           <div class="col-12 col-md-6">
@@ -170,7 +216,7 @@
           <div class="col-12 col-md-6">
             <label class="form-label text-muted small mb-1">Designation</label>
             <div class="text-dark fw-semibold">
-              {{ linked_employee.designation|default:"HR Manager" }}
+              {{ manager.designation|default:"HR Manager" }}
             </div>
           </div>
           <div class="col-12 col-md-6">
@@ -196,7 +242,7 @@
             </div>
           </div>
           <div class="col-12 col-md-6">
-            <label class="form-label text-muted small mb-1">HR Active Status</label>
+            <label class="form-label text-muted small mb-1">Employment Status</label>
             <div>
               {% if manager.is_active %}
                 <span class="badge-status badge-status-active">Active HR Lead</span>
@@ -206,73 +252,18 @@
             </div>
           </div>
           <div class="col-12 col-md-6">
-            <label class="form-label text-muted small mb-1">Record Created</label>
-            <div class="text-dark fw-medium">
-              {% if manager.created_at %}
-                {{ manager.created_at|date:"F d, Y H:i" }}
-              {% else %}
-                <span class="text-muted fst-italic">Not recorded</span>
-              {% endif %}
+            <label class="form-label text-muted small mb-1">Reporting Manager / HR Lead</label>
+            <div class="text-dark fw-semibold">
+              {{ manager.reporting_manager|default:"Executive Director / Admin" }}
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Section: Documents -->
+      <!-- Section 6: Account Information -->
       <div class="saas-card p-4">
         <h2 class="card-title pb-3 mb-3 border-bottom">
-          <i class="bi bi-folder2-open text-primary"></i> Documents
-        </h2>
-        {% if documents %}
-          <div class="table-responsive">
-            <table class="table-saas align-middle">
-              <thead>
-                <tr>
-                  <th>Document Type</th>
-                  <th>Uploaded Date</th>
-                  <th class="text-end">Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {% for doc in documents %}
-                  <tr>
-                    <td>
-                      <div class="d-flex align-items-center gap-2">
-                        <i class="bi bi-file-earmark-text text-primary fs-5"></i>
-                        <span class="fw-semibold text-dark">{{ doc.get_document_type_display }}</span>
-                      </div>
-                    </td>
-                    <td>
-                      <span class="text-secondary small">{{ doc.uploaded_at|date:"M d, Y H:i" }}</span>
-                    </td>
-                    <td class="text-end">
-                      <a href="{{ doc.document.url }}" target="_blank" rel="noopener" class="btn-pill-action">
-                        <i class="bi bi-download me-1"></i> View / Download
-                      </a>
-                    </td>
-                  </tr>
-                {% endfor %}
-              </tbody>
-            </table>
-          </div>
-        {% else %}
-          <div class="text-muted fst-italic p-3 bg-light rounded text-center">
-            <i class="bi bi-folder-x me-1"></i> Not uploaded
-          </div>
-        {% endif %}
-      </div>
-
-    </div>
-  </div>
-
-  <!-- Right Column: Account Information & Operations Scope -->
-  <div class="col-12 col-xl-5">
-    <div class="d-flex flex-column gap-4">
-
-      <!-- Section: Account Information (Never shows passwords/hashes) -->
-      <div class="saas-card p-4">
-        <h2 class="card-title pb-3 mb-3 border-bottom">
-          <i class="bi bi-shield-lock-fill text-primary"></i> Account Information
+          <i class="bi bi-shield-lock-fill text-primary"></i> 6. Account Information
         </h2>
         <div class="d-flex flex-column gap-3">
           <div class="d-flex justify-content-between align-items-center py-1 border-bottom border-light">
@@ -295,14 +286,6 @@
               <span class="badge-status badge-status-active">Active</span>
             {% else %}
               <span class="badge-status badge-status-danger">{{ manager.user.status|default:"Inactive" }}</span>
-            {% endif %}
-          </div>
-          <div class="d-flex justify-content-between align-items-center py-1 border-bottom border-light">
-            <span class="text-muted small">Login Access</span>
-            {% if manager.user.is_active %}
-              <span class="text-success small fw-semibold"><i class="bi bi-check-circle me-1"></i>Enabled</span>
-            {% else %}
-              <span class="text-danger small fw-semibold"><i class="bi bi-x-circle me-1"></i>Disabled</span>
             {% endif %}
           </div>
           <div class="d-flex justify-content-between align-items-center py-1 border-bottom border-light">
@@ -334,43 +317,167 @@
         </div>
       </div>
 
-      <!-- Section: HR Operations Summary -->
+    </div>
+  </div>
+
+  <!-- Right Column: Education, Experience, Documents, & Operations Scope -->
+  <div class="col-12 col-xl-6">
+    <div class="d-flex flex-column gap-4">
+
+      <!-- Section 3: Educational Background -->
+      <div class="saas-card p-4">
+        <h2 class="card-title pb-3 mb-3 border-bottom">
+          <i class="bi bi-mortarboard-fill text-primary"></i> 3. Educational Background
+        </h2>
+        {% if education_records %}
+          <div class="d-flex flex-column gap-3">
+            {% for edu in education_records %}
+              <div class="p-3 bg-light rounded border">
+                <div class="d-flex align-items-center justify-content-between gap-2 mb-1 flex-wrap">
+                  <h6 class="fw-bold text-dark mb-0">{{ edu.degree }}</h6>
+                  <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25">{{ edu.year_of_passing }}</span>
+                </div>
+                <div class="text-secondary small mb-1">
+                  <i class="bi bi-bank me-1"></i>{{ edu.institution }} &bull; {{ edu.university_board }}
+                </div>
+                <div class="text-muted small">
+                  <span class="fw-semibold text-dark">Grade / Score:</span> {{ edu.grade_percentage }}
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="text-muted fst-italic p-3 bg-light rounded text-center">
+            <i class="bi bi-mortarboard me-1"></i> No educational records recorded.
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Section 4: Work Experience -->
+      <div class="saas-card p-4">
+        <h2 class="card-title pb-3 mb-3 border-bottom">
+          <i class="bi bi-buildings-fill text-primary"></i> 4. Work Experience
+        </h2>
+        {% if manager.has_no_experience %}
+          <div class="p-3 mb-3 bg-info bg-opacity-10 border border-info border-opacity-25 rounded d-flex align-items-center gap-2">
+            <i class="bi bi-info-circle-fill text-info fs-5"></i>
+            <span class="text-dark fw-medium small">Status: <strong>Fresher</strong> (No prior work experience)</span>
+          </div>
+        {% endif %}
+
+        {% if experience_records %}
+          <div class="d-flex flex-column gap-3">
+            {% for exp in experience_records %}
+              <div class="p-3 bg-light rounded border">
+                <div class="d-flex align-items-center justify-content-between gap-2 mb-1 flex-wrap">
+                  <h6 class="fw-bold text-dark mb-0">{{ exp.designation }}</h6>
+                  <span class="badge bg-secondary bg-opacity-10 text-secondary border">{{ exp.company_name }}</span>
+                  {% if exp.is_current %}
+                    <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25">Current Role</span>
+                  {% endif %}
+                </div>
+                <div class="text-secondary small mb-1">
+                  <i class="bi bi-calendar3 me-1"></i>
+                  {{ exp.start_date|date:"M Y" }} - {% if exp.is_current %}Present{% elif exp.end_date %}{{ exp.end_date|date:"M Y" }}{% else %}—{% endif %}
+                </div>
+                {% if exp.responsibilities %}
+                  <p class="text-muted small mb-0 mt-1" style="white-space: pre-line;">{{ exp.responsibilities }}</p>
+                {% endif %}
+              </div>
+            {% endfor %}
+          </div>
+        {% elif not manager.has_no_experience %}
+          <div class="text-muted fst-italic p-3 bg-light rounded text-center">
+            <i class="bi bi-building me-1"></i> No previous experience records entered.
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Section 5: Documents -->
+      <div class="saas-card p-4">
+        <h2 class="card-title pb-3 mb-3 border-bottom">
+          <i class="bi bi-folder2-open text-primary"></i> 5. Uploaded Documents
+        </h2>
+        {% if documents %}
+          <div class="table-responsive">
+            <table class="table-saas align-middle">
+              <thead>
+                <tr>
+                  <th>Document Type</th>
+                  <th>Title</th>
+                  <th>Uploaded Date</th>
+                  <th class="text-end">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for doc in documents %}
+                  <tr>
+                    <td>
+                      <div class="d-flex align-items-center gap-2">
+                        <i class="bi bi-file-earmark-text text-primary fs-5"></i>
+                        <span class="fw-semibold text-dark">{{ doc.get_document_type_display }}</span>
+                      </div>
+                    </td>
+                    <td>
+                      <span class="text-dark small">{{ doc.title|default:"—" }}</span>
+                    </td>
+                    <td>
+                      <span class="text-secondary small">{{ doc.uploaded_at|date:"M d, Y" }}</span>
+                    </td>
+                    <td class="text-end">
+                      <a href="{% if doc.document_file %}{{ doc.document_file.url }}{% elif doc.document %}{{ doc.document.url }}{% endif %}" target="_blank" rel="noopener" class="btn-pill-action">
+                        <i class="bi bi-download me-1"></i> View / Download
+                      </a>
+                    </td>
+                  </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+        {% else %}
+          <div class="text-muted fst-italic p-3 bg-light rounded text-center">
+            <i class="bi bi-folder-x me-1"></i> Not uploaded
+          </div>
+        {% endif %}
+      </div>
+
+      <!-- Section: HR Operations Scope -->
       <div class="saas-card p-4">
         <h2 class="card-title pb-3 mb-3 border-bottom">
           <i class="bi bi-activity text-primary"></i> HR Operations Activity
         </h2>
-        <div class="row g-2 mb-3">
-          <div class="col-6">
+        <div class="row g-2">
+          <div class="col-6 col-sm-4">
             <div class="profile-stat-box" style="background-color: var(--bg-main); border: 1px solid var(--border-color); border-radius: 8px; padding: 0.6rem;">
               <span class="profile-stat-label">Jobs Posted</span>
               <span class="profile-stat-val text-primary">{{ posted_jobs|length }}</span>
             </div>
           </div>
-          <div class="col-6">
+          <div class="col-6 col-sm-4">
             <div class="profile-stat-box" style="background-color: var(--bg-main); border: 1px solid var(--border-color); border-radius: 8px; padding: 0.6rem;">
               <span class="profile-stat-label">Aptitude Tests</span>
               <span class="profile-stat-val text-primary">{{ aptitude_tests|length }}</span>
             </div>
           </div>
-          <div class="col-6">
+          <div class="col-6 col-sm-4">
             <div class="profile-stat-box" style="background-color: var(--bg-main); border: 1px solid var(--border-color); border-radius: 8px; padding: 0.6rem;">
               <span class="profile-stat-label">Interviews</span>
               <span class="profile-stat-val text-primary">{{ interviews|length }}</span>
             </div>
           </div>
-          <div class="col-6">
+          <div class="col-6 col-sm-4">
             <div class="profile-stat-box" style="background-color: var(--bg-main); border: 1px solid var(--border-color); border-radius: 8px; padding: 0.6rem;">
               <span class="profile-stat-label">Reports Reviewed</span>
               <span class="profile-stat-val text-primary">{{ reviewed_reports|length }}</span>
             </div>
           </div>
-          <div class="col-6">
+          <div class="col-6 col-sm-4">
             <div class="profile-stat-box" style="background-color: var(--bg-main); border: 1px solid var(--border-color); border-radius: 8px; padding: 0.6rem;">
               <span class="profile-stat-label">Performance Reviews</span>
               <span class="profile-stat-val text-primary">{{ performance_reviews|length }}</span>
             </div>
           </div>
-          <div class="col-6">
+          <div class="col-6 col-sm-4">
             <div class="profile-stat-box" style="background-color: var(--bg-main); border: 1px solid var(--border-color); border-radius: 8px; padding: 0.6rem;">
               <span class="profile-stat-label">Warnings Issued</span>
               <span class="profile-stat-val text-primary">{{ issued_warnings|length }}</span>
@@ -383,4 +490,3 @@
   </div>
 </div>
 {% endblock %}
-

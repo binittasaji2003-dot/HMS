@@ -1,0 +1,441 @@
+{% extends "hr/base.html" %}
+
+{% block title %}Evaluate Employee Weekly Report | Smart HRMS{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-0">
+    <!-- Header Bar -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="fw-bold text-primary mb-1">Weekly Performance Evaluation Matrix</h4>
+            <p class="text-muted small mb-0">Evaluate employee deliverables across 8 core performance criteria and submit structured feedback</p>
+        </div>
+        <div class="d-flex gap-2">
+            <a href="{% url 'hr:employee_report_list' %}" class="btn btn-outline-secondary btn-sm">
+                <i class="bi bi-arrow-left me-1"></i> Back to Reports List
+            </a>
+            <a href="{% url 'hr:employee_performance_analysis' %}" class="btn btn-outline-primary btn-sm">
+                <i class="bi bi-graph-up me-1"></i> Performance Analytics
+            </a>
+        </div>
+    </div>
+
+    <!-- Employee & Report Dossier Card -->
+    <div class="card border-0 shadow-sm rounded-4 mb-4 overflow-hidden">
+        <div class="card-body p-4 bg-gradient text-dark border-bottom" style="background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);">
+            <div class="row align-items-center">
+                <div class="col-md-8 d-flex align-items-center gap-3">
+                    {% if report.employee.profile_photo %}
+                        <img src="{{ report.employee.profile_photo.url }}" alt="{{ report.employee.full_name }}" class="rounded-circle border border-2 border-primary shadow-sm" style="width: 64px; height: 64px; object-fit: cover;">
+                    {% else %}
+                        <div class="rounded-circle bg-primary text-white fw-bold d-flex align-items-center justify-content-center shadow-sm" style="width: 64px; height: 64px; font-size: 1.5rem;">
+                            {{ report.employee.user.name|default:report.employee.user.email|slice:":1"|upper }}
+                        </div>
+                    {% endif %}
+                    <div>
+                        <div class="d-flex align-items-center gap-2">
+                            <h5 class="fw-bold mb-0 text-dark">{{ report.employee.full_name|default:report.employee.user.email }}</h5>
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle">{{ report.employee.employee_code }}</span>
+                            {% if report.status == 'REVIEWED' %}
+                                <span class="badge bg-success-subtle text-success border border-success-subtle">Reviewed</span>
+                            {% elif report.status == 'NEEDS_CORRECTION' %}
+                                <span class="badge bg-danger-subtle text-danger border border-danger-subtle">Needs Correction</span>
+                            {% elif report.status == 'UNDER_REVIEW' %}
+                                <span class="badge bg-info-subtle text-info border border-info-subtle">Under Review</span>
+                            {% else %}
+                                <span class="badge bg-warning-subtle text-warning border border-warning-subtle">Submitted</span>
+                            {% endif %}
+                        </div>
+                        <div class="text-muted small mt-1">
+                            <span><i class="bi bi-briefcase me-1"></i>{{ report.employee.designation }}</span> &bull; 
+                            <span><i class="bi bi-building me-1"></i>{{ report.employee.department.name|default:"General Dept" }}</span> &bull;
+                            <span><i class="bi bi-person-badge me-1"></i>Lead: {{ report.employee.team_lead_name }}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 text-md-end mt-3 mt-md-0">
+                    <div class="small fw-semibold text-muted">Weekly Period</div>
+                    <div class="fw-bold text-dark fs-6">{{ report.week_start_date|date:"M d, Y" }} &mdash; {{ report.week_end_date|date:"M d, Y" }}</div>
+                    <div class="small text-muted mt-1">Progress: <span class="badge bg-secondary">{{ report.get_progress_status_display }}</span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Two Columns: Report Deliverables vs Evaluation Matrix Form -->
+    <form method="POST" id="evaluationMatrixForm">
+        {% csrf_token %}
+        <div class="row g-4">
+            <!-- Left Column: Employee Submission Details -->
+            <div class="col-lg-5">
+                <div class="card border-0 shadow-sm rounded-4 h-100">
+                    <div class="card-header bg-white border-bottom py-3">
+                        <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-journal-text text-primary me-2"></i>Employee Weekly Submission</h6>
+                    </div>
+                    <div class="card-body p-4 space-y-3" style="max-height: 850px; overflow-y: auto;">
+                        <div class="mb-3">
+                            <label class="small text-muted fw-bold text-uppercase d-block mb-1">Report Title</label>
+                            <div class="p-2.5 bg-light rounded-3 fw-semibold text-dark">{{ report.title }}</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="small text-muted fw-bold text-uppercase d-block mb-1">Work Summary</label>
+                            <div class="p-3 bg-light rounded-3 small text-dark" style="white-space: pre-line;">{{ report.work_summary }}</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="small text-muted fw-bold text-uppercase d-block mb-1">Tasks Completed</label>
+                            <div class="p-3 bg-light rounded-3 small text-dark" style="white-space: pre-line;">{{ report.tasks_completed }}</div>
+                        </div>
+
+                        {% if report.achievements %}
+                        <div class="mb-3">
+                            <label class="small text-success fw-bold text-uppercase d-block mb-1">Major Achievements</label>
+                            <div class="p-3 bg-success-subtle text-success-emphasis rounded-3 small" style="white-space: pre-line;">{{ report.achievements }}</div>
+                        </div>
+                        {% endif %}
+
+                        {% if report.challenges %}
+                        <div class="mb-3">
+                            <label class="small text-danger fw-bold text-uppercase d-block mb-1">Challenges Faced</label>
+                            <div class="p-3 bg-danger-subtle text-danger-emphasis rounded-3 small" style="white-space: pre-line;">{{ report.challenges }}</div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="small text-primary fw-bold text-uppercase d-block mb-1">How Challenges Were Handled</label>
+                            <div class="p-3 bg-primary-subtle text-primary-emphasis rounded-3 small" style="white-space: pre-line;">{{ report.challenges_handling|default:"Resolved through standard workflow." }}</div>
+                        </div>
+                        {% endif %}
+
+                        {% if report.pending_tasks %}
+                        <div class="mb-3">
+                            <label class="small text-muted fw-bold text-uppercase d-block mb-1">Pending / In-Progress Tasks</label>
+                            <div class="p-3 bg-light rounded-3 small text-dark" style="white-space: pre-line;">{{ report.pending_tasks }}</div>
+                        </div>
+                        {% endif %}
+
+                        <div class="mb-3">
+                            <label class="small text-primary fw-bold text-uppercase d-block mb-1">Next Week's Plan & Goals</label>
+                            <div class="p-3 bg-light rounded-3 small text-dark" style="white-space: pre-line;">{{ report.next_week_plan }}</div>
+                        </div>
+
+                        {% if report.skills_technologies_used %}
+                        <div class="mb-3">
+                            <label class="small text-muted fw-bold text-uppercase d-block mb-1">Skills & Technologies Used</label>
+                            <div class="p-2.5 bg-light rounded-3 small fw-semibold text-dark">{{ report.skills_technologies_used }}</div>
+                        </div>
+                        {% endif %}
+
+                        {% if report.additional_comments %}
+                        <div class="mb-3">
+                            <label class="small text-muted fw-bold text-uppercase d-block mb-1">Additional Employee Comments</label>
+                            <div class="p-2.5 bg-light rounded-3 small text-dark">{{ report.additional_comments }}</div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column: 8-Criteria Performance Evaluation Matrix -->
+            <div class="col-lg-7">
+                <div class="card border-0 shadow-sm rounded-4 mb-4">
+                    <div class="card-header bg-white border-bottom py-3 d-flex justify-content-between align-items-center">
+                        <h6 class="fw-bold mb-0 text-dark"><i class="bi bi-star-fill text-warning me-2"></i>Performance Evaluation Matrix (8 Core Criteria)</h6>
+                        <span class="badge bg-primary">Rating Scale: 1 (Poor) to 5 (Excellent)</span>
+                    </div>
+                    <div class="card-body p-4">
+                        <!-- Live Score Banner -->
+                        <div class="card border-0 shadow-sm rounded-3 mb-4 text-white" style="background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);">
+                            <div class="card-body p-3">
+                                <div class="row text-center align-items-center">
+                                    <div class="col-3 border-end border-secondary">
+                                        <div class="small text-muted text-uppercase fw-bold" style="font-size: 0.7rem;">Total Score</div>
+                                        <div class="fs-4 fw-black text-white" id="liveTotalScore">--/40</div>
+                                    </div>
+                                    <div class="col-3 border-end border-secondary">
+                                        <div class="small text-muted text-uppercase fw-bold" style="font-size: 0.7rem;">Average Rating</div>
+                                        <div class="fs-4 fw-black text-warning" id="liveAvgRating">--/5.0</div>
+                                    </div>
+                                    <div class="col-3 border-end border-secondary">
+                                        <div class="small text-muted text-uppercase fw-bold" style="font-size: 0.7rem;">Percentage</div>
+                                        <div class="fs-4 fw-black text-success" id="livePercentage">--%</div>
+                                    </div>
+                                    <div class="col-3">
+                                        <div class="small text-muted text-uppercase fw-bold" style="font-size: 0.7rem;">Category</div>
+                                        <span class="badge bg-primary" id="liveCategoryBadge">Evaluating...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 8 Criteria Matrix Table -->
+                        <div class="table-responsive mb-4">
+                            <table class="table table-bordered align-middle mb-0" id="matrixTable">
+                                <thead class="table-light small">
+                                    <tr>
+                                        <th style="width: 32%;">Evaluation Criterion</th>
+                                        <th style="width: 28%;" class="text-center">Score Rating</th>
+                                        <th style="width: 40%;">Reviewer Remarks</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="small">
+                                    <!-- 1. Task Completion -->
+                                    <tr>
+                                        <td>
+                                            <strong>1. Task Completion</strong>
+                                            <div class="text-muted" style="font-size: 0.75rem;">Completeness and delivery of sprint targets</div>
+                                        </td>
+                                        <td>
+                                            <select name="task_completion" class="form-select form-select-sm matrix-score-select" required>
+                                                <option value="5" {% if form.task_completion.value == 5 or form.task_completion.value == '5' %}selected{% endif %}>5 - Excellent (100%)</option>
+                                                <option value="4" {% if form.task_completion.value == 4 or form.task_completion.value == '4' %}selected{% endif %}>4 - Very Good (80%)</option>
+                                                <option value="3" {% if not form.task_completion.value or form.task_completion.value == 3 or form.task_completion.value == '3' %}selected{% endif %}>3 - Good (60%)</option>
+                                                <option value="2" {% if form.task_completion.value == 2 or form.task_completion.value == '2' %}selected{% endif %}>2 - Needs Improvement (40%)</option>
+                                                <option value="1" {% if form.task_completion.value == 1 or form.task_completion.value == '1' %}selected{% endif %}>1 - Unsatisfactory (20%)</option>
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <input type="text" name="task_completion_remarks" class="form-control form-control-sm" placeholder="e.g., Completed all sprint items" value="{{ form.task_completion_remarks.value|default:'' }}">
+                                        </td>
+                                    </tr>
+
+                                    <!-- 2. Quality of Work -->
+                                    <tr>
+                                        <td>
+                                            <strong>2. Quality of Work</strong>
+                                            <div class="text-muted" style="font-size: 0.75rem;">Accuracy, code cleanliness, and thoroughness</div>
+                                        </td>
+                                        <td>
+                                            <select name="quality_of_work" class="form-select form-select-sm matrix-score-select" required>
+                                                <option value="5" {% if form.quality_of_work.value == 5 or form.quality_of_work.value == '5' %}selected{% endif %}>5 - Excellent (100%)</option>
+                                                <option value="4" {% if form.quality_of_work.value == 4 or form.quality_of_work.value == '4' %}selected{% endif %}>4 - Very Good (80%)</option>
+                                                <option value="3" {% if not form.quality_of_work.value or form.quality_of_work.value == 3 or form.quality_of_work.value == '3' %}selected{% endif %}>3 - Good (60%)</option>
+                                                <option value="2" {% if form.quality_of_work.value == 2 or form.quality_of_work.value == '2' %}selected{% endif %}>2 - Needs Improvement (40%)</option>
+                                                <option value="1" {% if form.quality_of_work.value == 1 or form.quality_of_work.value == '1' %}selected{% endif %}>1 - Unsatisfactory (20%)</option>
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <input type="text" name="quality_of_work_remarks" class="form-control form-control-sm" placeholder="e.g., Well documented and tested" value="{{ form.quality_of_work_remarks.value|default:'' }}">
+                                        </td>
+                                    </tr>
+
+                                    <!-- 3. Technical Skills -->
+                                    <tr>
+                                        <td>
+                                            <strong>3. Technical Skills</strong>
+                                            <div class="text-muted" style="font-size: 0.75rem;">Technology stack mastery & architecture</div>
+                                        </td>
+                                        <td>
+                                            <select name="technical_skills" class="form-select form-select-sm matrix-score-select" required>
+                                                <option value="5" {% if form.technical_skills.value == 5 or form.technical_skills.value == '5' %}selected{% endif %}>5 - Excellent (100%)</option>
+                                                <option value="4" {% if form.technical_skills.value == 4 or form.technical_skills.value == '4' %}selected{% endif %}>4 - Very Good (80%)</option>
+                                                <option value="3" {% if not form.technical_skills.value or form.technical_skills.value == 3 or form.technical_skills.value == '3' %}selected{% endif %}>3 - Good (60%)</option>
+                                                <option value="2" {% if form.technical_skills.value == 2 or form.technical_skills.value == '2' %}selected{% endif %}>2 - Needs Improvement (40%)</option>
+                                                <option value="1" {% if form.technical_skills.value == 1 or form.technical_skills.value == '1' %}selected{% endif %}>1 - Unsatisfactory (20%)</option>
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <input type="text" name="technical_skills_remarks" class="form-control form-control-sm" placeholder="e.g., Strong framework proficiency" value="{{ form.technical_skills_remarks.value|default:'' }}">
+                                        </td>
+                                    </tr>
+
+                                    <!-- 4. Problem Solving -->
+                                    <tr>
+                                        <td>
+                                            <strong>4. Problem Solving</strong>
+                                            <div class="text-muted" style="font-size: 0.75rem;">Debugging, initiative, resolving blockers</div>
+                                        </td>
+                                        <td>
+                                            <select name="problem_solving" class="form-select form-select-sm matrix-score-select" required>
+                                                <option value="5" {% if form.problem_solving.value == 5 or form.problem_solving.value == '5' %}selected{% endif %}>5 - Excellent (100%)</option>
+                                                <option value="4" {% if form.problem_solving.value == 4 or form.problem_solving.value == '4' %}selected{% endif %}>4 - Very Good (80%)</option>
+                                                <option value="3" {% if not form.problem_solving.value or form.problem_solving.value == 3 or form.problem_solving.value == '3' %}selected{% endif %}>3 - Good (60%)</option>
+                                                <option value="2" {% if form.problem_solving.value == 2 or form.problem_solving.value == '2' %}selected{% endif %}>2 - Needs Improvement (40%)</option>
+                                                <option value="1" {% if form.problem_solving.value == 1 or form.problem_solving.value == '1' %}selected{% endif %}>1 - Unsatisfactory (20%)</option>
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <input type="text" name="problem_solving_remarks" class="form-control form-control-sm" placeholder="e.g., Effectively debugged issues" value="{{ form.problem_solving_remarks.value|default:'' }}">
+                                        </td>
+                                    </tr>
+
+                                    <!-- 5. Timeliness -->
+                                    <tr>
+                                        <td>
+                                            <strong>5. Timeliness</strong>
+                                            <div class="text-muted" style="font-size: 0.75rem;">Adherence to deadlines & prompt updates</div>
+                                        </td>
+                                        <td>
+                                            <select name="timeliness" class="form-select form-select-sm matrix-score-select" required>
+                                                <option value="5" {% if form.timeliness.value == 5 or form.timeliness.value == '5' %}selected{% endif %}>5 - Excellent (100%)</option>
+                                                <option value="4" {% if form.timeliness.value == 4 or form.timeliness.value == '4' %}selected{% endif %}>4 - Very Good (80%)</option>
+                                                <option value="3" {% if not form.timeliness.value or form.timeliness.value == 3 or form.timeliness.value == '3' %}selected{% endif %}>3 - Good (60%)</option>
+                                                <option value="2" {% if form.timeliness.value == 2 or form.timeliness.value == '2' %}selected{% endif %}>2 - Needs Improvement (40%)</option>
+                                                <option value="1" {% if form.timeliness.value == 1 or form.timeliness.value == '1' %}selected{% endif %}>1 - Unsatisfactory (20%)</option>
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <input type="text" name="timeliness_remarks" class="form-control form-control-sm" placeholder="e.g., Delivered ahead of deadline" value="{{ form.timeliness_remarks.value|default:'' }}">
+                                        </td>
+                                    </tr>
+
+                                    <!-- 6. Team Collaboration -->
+                                    <tr>
+                                        <td>
+                                            <strong>6. Team Collaboration</strong>
+                                            <div class="text-muted" style="font-size: 0.75rem;">Support for peers, reviews, teamwork</div>
+                                        </td>
+                                        <td>
+                                            <select name="team_collaboration" class="form-select form-select-sm matrix-score-select" required>
+                                                <option value="5" {% if form.team_collaboration.value == 5 or form.team_collaboration.value == '5' %}selected{% endif %}>5 - Excellent (100%)</option>
+                                                <option value="4" {% if form.team_collaboration.value == 4 or form.team_collaboration.value == '4' %}selected{% endif %}>4 - Very Good (80%)</option>
+                                                <option value="3" {% if not form.team_collaboration.value or form.team_collaboration.value == 3 or form.team_collaboration.value == '3' %}selected{% endif %}>3 - Good (60%)</option>
+                                                <option value="2" {% if form.team_collaboration.value == 2 or form.team_collaboration.value == '2' %}selected{% endif %}>2 - Needs Improvement (40%)</option>
+                                                <option value="1" {% if form.team_collaboration.value == 1 or form.team_collaboration.value == '1' %}selected{% endif %}>1 - Unsatisfactory (20%)</option>
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <input type="text" name="team_collaboration_remarks" class="form-control form-control-sm" placeholder="e.g., Active in team reviews" value="{{ form.team_collaboration_remarks.value|default:'' }}">
+                                        </td>
+                                    </tr>
+
+                                    <!-- 7. Communication -->
+                                    <tr>
+                                        <td>
+                                            <strong>7. Communication</strong>
+                                            <div class="text-muted" style="font-size: 0.75rem;">Clarity in standups, reports, & documentation</div>
+                                        </td>
+                                        <td>
+                                            <select name="communication" class="form-select form-select-sm matrix-score-select" required>
+                                                <option value="5" {% if form.communication.value == 5 or form.communication.value == '5' %}selected{% endif %}>5 - Excellent (100%)</option>
+                                                <option value="4" {% if form.communication.value == 4 or form.communication.value == '4' %}selected{% endif %}>4 - Very Good (80%)</option>
+                                                <option value="3" {% if not form.communication.value or form.communication.value == 3 or form.communication.value == '3' %}selected{% endif %}>3 - Good (60%)</option>
+                                                <option value="2" {% if form.communication.value == 2 or form.communication.value == '2' %}selected{% endif %}>2 - Needs Improvement (40%)</option>
+                                                <option value="1" {% if form.communication.value == 1 or form.communication.value == '1' %}selected{% endif %}>1 - Unsatisfactory (20%)</option>
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <input type="text" name="communication_remarks" class="form-control form-control-sm" placeholder="e.g., Clear and detailed reporting" value="{{ form.communication_remarks.value|default:'' }}">
+                                        </td>
+                                    </tr>
+
+                                    <!-- 8. Goal Achievement -->
+                                    <tr>
+                                        <td>
+                                            <strong>8. Goal Achievement</strong>
+                                            <div class="text-muted" style="font-size: 0.75rem;">Attainment of weekly targets & milestones</div>
+                                        </td>
+                                        <td>
+                                            <select name="goal_achievement" class="form-select form-select-sm matrix-score-select" required>
+                                                <option value="5" {% if form.goal_achievement.value == 5 or form.goal_achievement.value == '5' %}selected{% endif %}>5 - Excellent (100%)</option>
+                                                <option value="4" {% if form.goal_achievement.value == 4 or form.goal_achievement.value == '4' %}selected{% endif %}>4 - Very Good (80%)</option>
+                                                <option value="3" {% if not form.goal_achievement.value or form.goal_achievement.value == 3 or form.goal_achievement.value == '3' %}selected{% endif %}>3 - Good (60%)</option>
+                                                <option value="2" {% if form.goal_achievement.value == 2 or form.goal_achievement.value == '2' %}selected{% endif %}>2 - Needs Improvement (40%)</option>
+                                                <option value="1" {% if form.goal_achievement.value == 1 or form.goal_achievement.value == '1' %}selected{% endif %}>1 - Unsatisfactory (20%)</option>
+                                            </select>
+                                        </td>
+                                        <td>
+                                            <input type="text" name="goal_achievement_remarks" class="form-control form-control-sm" placeholder="e.g., Met all key objectives" value="{{ form.goal_achievement_remarks.value|default:'' }}">
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Qualitative Feedback Section -->
+                        <h6 class="fw-bold text-dark border-bottom pb-2 mb-3"><i class="bi bi-chat-left-quote text-primary me-2"></i>Qualitative Evaluation & Recommendations</h6>
+                        
+                        <div class="row g-3 mb-4">
+                            <div class="col-12">
+                                <label class="form-label small fw-bold text-dark">Overall Feedback & Evaluation Summary *</label>
+                                <textarea name="overall_feedback" class="form-control" rows="3" placeholder="Provide detailed holistic feedback on the employee's weekly performance..." required>{{ form.overall_feedback.value|default:'' }}</textarea>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-success">Key Observed Strengths</label>
+                                <textarea name="strengths" class="form-control" rows="2" placeholder="Specific technical or professional strengths demonstrated...">{{ form.strengths.value|default:'' }}</textarea>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-warning">Areas for Improvement</label>
+                                <textarea name="areas_for_improvement" class="form-control" rows="2" placeholder="Specific skills or processes requiring enhancement...">{{ form.areas_for_improvement.value|default:'' }}</textarea>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-primary">Recommendations & Growth Plan</label>
+                                <textarea name="recommendations" class="form-control" rows="2" placeholder="Actionable recommendations, training or tools suggested...">{{ form.recommendations.value|default:'' }}</textarea>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label small fw-bold text-dark">Next Week Expectations</label>
+                                <textarea name="next_week_expectations" class="form-control" rows="2" placeholder="Specific objectives and targets for upcoming week...">{{ form.next_week_expectations.value|default:'' }}</textarea>
+                            </div>
+                        </div>
+
+                        <!-- Review Decision & Submission -->
+                        <div class="card bg-light border p-3 rounded-3">
+                            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
+                                <div>
+                                    <label class="form-label small fw-bold text-dark mb-1">Final Review Decision *</label>
+                                    <select name="status_decision" class="form-select form-select-sm" style="max-width: 280px;" required>
+                                        <option value="REVIEWED" {% if report.status == 'REVIEWED' or not report.status or report.status == 'SUBMITTED' or report.status == 'UNDER_REVIEW' %}selected{% endif %}>Approve & Mark as Reviewed</option>
+                                        <option value="NEEDS_CORRECTION" {% if report.status == 'NEEDS_CORRECTION' %}selected{% endif %}>Request Correction / Revision</option>
+                                    </select>
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <a href="{% url 'hr:employee_report_list' %}" class="btn btn-outline-secondary btn-sm">Cancel</a>
+                                    <button type="submit" class="btn btn-primary btn-sm px-4 fw-bold">
+                                        <i class="bi bi-check-circle-fill me-1"></i> Save Evaluation & Dispatch Notification
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    function calculateLiveScore() {
+        const selects = document.querySelectorAll('.matrix-score-select');
+        let total = 0;
+        selects.forEach(select => {
+            total += parseInt(select.value) || 0;
+        });
+
+        const count = selects.length || 8;
+        const maxScore = count * 5;
+        const avg = (total / count).toFixed(2);
+        const percentage = ((total / maxScore) * 100).toFixed(1);
+
+        document.getElementById('liveTotalScore').textContent = `${total}/${maxScore}`;
+        document.getElementById('liveAvgRating').textContent = `${avg}/5.0`;
+        document.getElementById('livePercentage').textContent = `${percentage}%`;
+
+        const badge = document.getElementById('liveCategoryBadge');
+        if (percentage >= 90) {
+            badge.className = 'badge bg-success';
+            badge.textContent = 'Excellent (5★)';
+        } else if (percentage >= 75) {
+            badge.className = 'badge bg-primary';
+            badge.textContent = 'Very Good (4★)';
+        } else if (percentage >= 60) {
+            badge.className = 'badge bg-info text-dark';
+            badge.textContent = 'Good (3★)';
+        } else if (percentage >= 40) {
+            badge.className = 'badge bg-warning text-dark';
+            badge.textContent = 'Needs Work (2★)';
+        } else {
+            badge.className = 'badge bg-danger';
+            badge.textContent = 'Unsatisfactory (1★)';
+        }
+    }
+
+    document.querySelectorAll('.matrix-score-select').forEach(sel => {
+        sel.addEventListener('change', calculateLiveScore);
+    });
+
+    // Initial calculation
+    calculateLiveScore();
+});
+</script>
+{% endblock %}
+

@@ -1,0 +1,121 @@
+{% extends "hr/base.html" %}
+
+{% block title %}Shortlisted Candidates — {{ job.title }} | Smart HRMS{% endblock %}
+
+{% block content %}
+<!-- Header Bar -->
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <div>
+        <a href="{% url 'hr:job_screening' job.pk %}" class="text-decoration-none small text-muted">
+            <i class="bi bi-arrow-left me-1"></i> Back to Resume Screening
+        </a>
+        <h4 class="fw-bold text-success mt-1 mb-1">
+            <i class="bi bi-check2-circle me-2"></i>Shortlisted Candidates: {{ job.title }}
+        </h4>
+        <div class="d-flex align-items-center gap-2 flex-wrap">
+            <span class="badge bg-light text-dark border">{{ job.department.name }}</span>
+            <span class="badge bg-success px-3 py-1">Shortlisted: {{ shortlisted_count }} Candidates</span>
+        </div>
+    </div>
+    <div class="d-flex gap-2">
+        <a href="{% url 'hr:job_screening' job.pk %}" class="btn btn-outline-primary">
+            <i class="bi bi-funnel me-1"></i> All Applicants Screening
+        </a>
+        <a href="{% url 'hr:job_detail' job.pk %}" class="btn btn-outline-secondary">
+            <i class="bi bi-eye me-1"></i> Job Details
+        </a>
+    </div>
+</div>
+
+<!-- Candidate Cards Grid -->
+<div class="row g-4">
+    {% for app in shortlisted_applications %}
+    {% with scr=app.screening_result %}
+    <div class="col-12 col-md-6 col-lg-4">
+        <div class="card card-custom h-100 p-4 shadow-sm border-top border-4 border-success d-flex flex-column justify-content-between">
+            <div>
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <div>
+                        <h5 class="fw-bold text-dark mb-1">{{ forloop.counter }}. {{ app.candidate.first_name }} {{ app.candidate.last_name }}</h5>
+                        <div class="small text-muted">{{ app.candidate.user.email }}</div>
+                        {% if app.candidate.phone %}
+                        <div class="small text-muted"><i class="bi bi-telephone me-1"></i>{{ app.candidate.phone }}</div>
+                        {% endif %}
+                    </div>
+                    <span class="badge bg-success-subtle text-success border border-success-subtle px-2 py-1">
+                        {{ scr.match_score|default:100|floatformat:0 }}% Match
+                    </span>
+                </div>
+
+                <div class="bg-light p-3 rounded border mb-3 small">
+                    <div class="d-flex justify-content-between mb-1.5">
+                        <span class="text-muted">Required Skills:</span>
+                        <strong class="text-success"><i class="bi bi-check-circle me-1"></i>{{ scr.required_skills_matched }} / {{ scr.required_skills_total }} Matched</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-1.5">
+                        <span class="text-muted">Qualification:</span>
+                        <strong class="text-success"><i class="bi bi-check-circle me-1"></i>Matched ({{ scr.candidate_education|default:"Degree" }})</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-1.5">
+                        <span class="text-muted">Experience:</span>
+                        <strong class="text-success"><i class="bi bi-check-circle me-1"></i>Matched ({{ scr.candidate_experience|default:"Fresher" }})</strong>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted">Current Stage:</span>
+                        <span class="badge bg-light text-primary border">{{ app.get_status_display }}</span>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="small text-muted fw-semibold text-uppercase d-block mb-1">Top Matched Skills:</label>
+                    <div class="d-flex flex-wrap gap-1">
+                        {% for sk_item in scr.required_skills_data %}
+                            {% if sk_item.matched %}
+                                <span class="badge bg-success-subtle text-success border border-success-subtle small">✓ {{ sk_item.skill }}</span>
+                            {% endif %}
+                        {% endfor %}
+                        {% for sk_item in scr.preferred_skills_data %}
+                            {% if sk_item.matched %}
+                                <span class="badge bg-info-subtle text-info border border-info-subtle small">✓ {{ sk_item.skill }}</span>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <div class="pt-3 border-top">
+                <div class="d-flex gap-2 flex-wrap">
+                    <a href="{% url 'hr:application_screening_detail' app.pk %}" class="btn btn-sm btn-primary flex-fill">
+                        <i class="bi bi-file-earmark-medical me-1"></i> View Screening
+                    </a>
+                    {% if app.applied_resume %}
+                    <a href="{{ app.applied_resume.url }}" target="_blank" class="btn btn-sm btn-outline-secondary" title="View Resume">
+                        <i class="bi bi-file-earmark-pdf"></i> Resume
+                    </a>
+                    {% elif app.candidate.resume %}
+                    <a href="{{ app.candidate.resume.url }}" target="_blank" class="btn btn-sm btn-outline-secondary" title="View Resume">
+                        <i class="bi bi-file-earmark-pdf"></i> Resume
+                    </a>
+                    {% endif %}
+                    <a href="{% url 'hr:application_detail' app.pk %}" class="btn btn-sm btn-outline-primary" title="Application Review">
+                        <i class="bi bi-person-lines-fill"></i> Review
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endwith %}
+    {% empty %}
+    <div class="col-12 text-center py-5">
+        <div class="card card-custom p-5 shadow-sm max-w-lg mx-auto">
+            <i class="bi bi-people fs-1 text-muted d-block mb-2"></i>
+            <h5 class="fw-bold text-dark">No shortlisted candidates yet</h5>
+            <p class="text-muted small mb-3">Applicants who satisfy all mandatory qualification, skill, and experience criteria will appear here.</p>
+            <a href="{% url 'hr:job_screening' job.pk %}" class="btn btn-blue btn-sm">
+                <i class="bi bi-arrow-left me-1"></i> Go to Resume Screening
+            </a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

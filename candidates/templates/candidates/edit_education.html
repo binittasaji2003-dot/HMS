@@ -1,0 +1,108 @@
+{% extends "candidates/base_candidate.html" %}
+
+{% block title %}Edit Education | Smart HRMS{% endblock title %}
+
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-12 col-lg-8">
+    <a href="{% url 'candidates:profile' %}" class="btn btn-sm btn-outline-secondary rounded-pill px-3 mb-3">
+      <i class="bi bi-arrow-left me-1"></i> Back to Profile
+    </a>
+
+    <div class="portal-card bg-white p-4 p-md-5 shadow-sm border-0">
+      <div class="border-bottom pb-3 mb-4">
+        <span class="badge bg-primary-subtle text-primary fw-bold text-uppercase px-3 py-1.5 rounded-pill mb-2">
+          Update Education Record
+        </span>
+        <h3 class="fw-extrabold text-dark mb-1">Edit {{ education.education_level }}</h3>
+        <p class="text-muted small mb-0">{{ education.degree_program }} &bull; {{ education.institution }}</p>
+      </div>
+
+      <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+          <div class="alert alert-danger mb-4 p-3 rounded-3 small">
+            {% for error in form.non_field_errors %}
+              <div class="d-flex align-items-center gap-2">
+                <i class="bi bi-exclamation-triangle-fill"></i>
+                <span>{{ error }}</span>
+              </div>
+            {% endfor %}
+          </div>
+        {% endif %}
+
+        <div class="row g-3">
+          <div class="col-12 col-md-6">
+            <label class="form-label fw-semibold">Education Level <span class="text-danger">*</span></label>
+            {{ form.education_level }}
+            {% if form.education_level.errors %}<div class="text-danger small mt-1">{{ form.education_level.errors.0 }}</div>{% endif %}
+          </div>
+
+          <div class="col-12 col-md-6">
+            <label class="form-label fw-semibold">Degree / Program Name <span class="text-danger">*</span></label>
+            {{ form.degree_program }}
+            {% if form.degree_program.errors %}<div class="text-danger small mt-1">{{ form.degree_program.errors.0 }}</div>{% endif %}
+          </div>
+
+          <div class="col-12 col-md-6">
+            <label class="form-label fw-semibold">Field of Study</label>
+            {{ form.field_of_study }}
+            {% if form.field_of_study.errors %}<div class="text-danger small mt-1">{{ form.field_of_study.errors.0 }}</div>{% endif %}
+          </div>
+
+          <div class="col-12 col-md-6">
+            <label class="form-label fw-semibold">Education Status <span class="text-danger">*</span></label>
+            {{ form.education_status }}
+            {% if form.education_status.errors %}<div class="text-danger small mt-1">{{ form.education_status.errors.0 }}</div>{% endif %}
+          </div>
+
+          <div class="col-12 col-md-6">
+            <label class="form-label fw-semibold">Institution / College <span class="text-danger">*</span></label>
+            {{ form.institution }}
+            {% if form.institution.errors %}<div class="text-danger small mt-1">{{ form.institution.errors.0 }}</div>{% endif %}
+          </div>
+
+          <div class="col-12 col-md-6">
+            <label class="form-label fw-semibold">University / Board</label>
+            {{ form.university_board }}
+            {% if form.university_board.errors %}<div class="text-danger small mt-1">{{ form.university_board.errors.0 }}</div>{% endif %}
+          </div>
+
+          <div class="col-12 col-md-6">
+            <label class="form-label fw-semibold">Graduation / Completion Year</label>
+            {{ form.completion_year }}
+            {% if form.completion_year.errors %}<div class="text-danger small mt-1">{{ form.completion_year.errors.0 }}</div>{% endif %}
+          </div>
+
+          <div class="col-12 col-md-6">
+            <label class="form-label fw-semibold">CGPA or Percentage</label>
+            {{ form.percentage_or_cgpa }}
+            {% if form.percentage_or_cgpa.errors %}<div class="text-danger small mt-1">{{ form.percentage_or_cgpa.errors.0 }}</div>{% endif %}
+          </div>
+
+          <div class="col-12">
+            <label class="form-label fw-semibold">Certificate Document (PDF, JPG, PNG)</label>
+            {{ form.certificate }}
+            {% if education.certificate %}
+              <div class="small text-success mt-2">
+                <i class="bi bi-file-earmark-check-fill"></i> Current Certificate: 
+                <a href="{{ education.certificate.url }}" target="_blank" class="text-success fw-semibold">View Uploaded Certificate</a>
+              </div>
+            {% endif %}
+            {% if form.certificate.errors %}<div class="text-danger small mt-1">{{ form.certificate.errors.0 }}</div>{% endif %}
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-end gap-2 pt-4 mt-4 border-top">
+          <a href="{% url 'candidates:profile' %}" class="btn btn-light border px-4">Cancel</a>
+          <button type="submit" class="btn btn-blue-primary px-4">
+            <i class="bi bi-check-circle me-1"></i> Update Education
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock content %}
+

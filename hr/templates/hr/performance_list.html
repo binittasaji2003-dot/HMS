@@ -40,8 +40,12 @@
                 {% for rev in reviews %}
                 <tr>
                     <td>
-                        <strong>{{ rev.employee.user.name|default:rev.employee.user.email }}</strong><br>
-                        <small class="text-muted">{{ rev.employee.employee_code }} &bull; {{ rev.employee.department.name }}</small>
+                        {% if rev.employee and rev.employee.user %}
+                            <strong>{{ rev.employee.user.name|default:rev.employee.user.email }}</strong><br>
+                            <small class="text-muted">{{ rev.employee.employee_code }} &bull; {{ rev.employee.department.name|default:"General" }}</small>
+                        {% else %}
+                            <span class="text-muted">Unassigned Employee</span>
+                        {% endif %}
                     </td>
                     <td><span class="fw-semibold text-dark">{{ rev.review_period }}</span></td>
                     <td>
@@ -59,7 +63,11 @@
                         <span class="text-muted">{{ rev.comments|default:"No written feedback provided." }}</span>
                     </td>
                     <td>
-                        {{ rev.reviewed_by.user.name|default:rev.reviewed_by.user.email|default:"HR Team" }}
+                        {% if rev.reviewed_by and rev.reviewed_by.user %}
+                            {{ rev.reviewed_by.user.name|default:rev.reviewed_by.user.email }}
+                        {% else %}
+                            <span class="text-muted">HR Team</span>
+                        {% endif %}
                     </td>
                     <td>{{ rev.review_date|date:"M d, Y" }}</td>
                 </tr>

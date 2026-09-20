@@ -3,6 +3,29 @@
 {% block title %}HR Dashboard | Smart HRMS{% endblock %}
 
 {% block content %}
+<!-- Profile Incomplete Non-blocking Reminder -->
+{% if is_profile_incomplete %}
+<div class="alert alert-custom p-3 mb-4 d-flex align-items-center justify-content-between flex-wrap gap-3" style="background: #fff8e6; border: 1px solid #fed7aa; border-left: 5px solid #f59e0b; border-radius: 12px;">
+    <div class="d-flex align-items-center gap-3">
+        <div class="rounded-circle d-flex align-items-center justify-content-center text-warning bg-white shadow-sm" style="width: 44px; height: 44px; min-width: 44px; border: 1px solid #fde68a;">
+            <i class="bi bi-person-exclamation fs-4"></i>
+        </div>
+        <div>
+            <h6 class="fw-bold mb-1 text-dark">
+                Please complete your profile
+                <span class="badge bg-warning bg-opacity-25 text-dark ms-2 fw-normal" style="font-size: 0.75rem;">{{ profile_completion_percentage }}% Complete</span>
+            </h6>
+            <p class="text-muted small mb-0">Your HR profile is missing personal details, education, work experience, or identity documents. Complete it to finish account setup.</p>
+        </div>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+        <a href="{% url 'hr:profile' %}" class="btn btn-warning btn-sm px-3 fw-semibold text-dark shadow-sm">
+            <i class="bi bi-arrow-right-circle me-1"></i> Complete Profile
+        </a>
+    </div>
+</div>
+{% endif %}
+
 <!-- 1. Top Welcome Banner Card -->
 <div class="card card-custom p-4 mb-4" style="background: linear-gradient(135deg, #eef5ff 0%, #ffffff 100%); border: 1px solid #dbeafe;">
     <div class="row align-items-center">

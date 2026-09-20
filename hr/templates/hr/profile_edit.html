@@ -1,7 +1,7 @@
 {% extends "hr/base.html" %}
 {% load static %}
 
-{% block title %}Edit Profile | HRMS Portal{% endblock %}
+{% block title %}Edit HR Profile | Smart HRMS{% endblock %}
 
 {% block content %}
 <!-- Top Header & Breadcrumbs -->
@@ -14,8 +14,8 @@
             <span class="text-muted small">/</span>
             <span class="text-dark small fw-medium">Edit Profile</span>
         </div>
-        <h3 class="fw-bold text-dark mb-0">Edit HR Profile</h3>
-        <p class="text-muted small mb-0">Update your personal identity, contact details, and organization settings.</p>
+        <h3 class="fw-bold text-dark mb-0">Edit HR Manager Profile</h3>
+        <p class="text-muted small mb-0">Update your personal details, contact coordinates, residential address, and profile photo.</p>
     </div>
     <div class="d-flex gap-2">
         <a href="{% url 'hr:profile' %}" class="btn btn-outline-secondary btn-sm px-3">
@@ -42,19 +42,35 @@
     {% endif %}
 
     <div class="row g-4">
-        <!-- Left Column: Personal & Contact Information -->
+        <!-- Left Column: Personal & Residential Details -->
         <div class="col-12 col-xl-7">
             <div class="card card-custom p-4 mb-4">
                 <h5 class="fw-bold text-dark pb-3 mb-3 border-bottom">
-                    <i class="bi bi-person-lines-fill text-primary me-2"></i> Personal & Contact Details
+                    <i class="bi bi-person-lines-fill text-primary me-2"></i> Personal Information
                 </h5>
 
                 <div class="row g-3">
-                    <div class="col-12 col-md-6">
-                        <label class="form-label small fw-semibold text-dark">Full Name <span class="text-danger">*</span></label>
-                        {{ form.full_name }}
-                        {% if form.full_name.errors %}
-                            <div class="text-danger small mt-1">{{ form.full_name.errors.0 }}</div>
+                    <div class="col-12 col-md-4">
+                        <label class="form-label small fw-semibold text-dark">First Name <span class="text-danger">*</span></label>
+                        {{ form.first_name }}
+                        {% if form.first_name.errors %}
+                            <div class="text-danger small mt-1">{{ form.first_name.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-12 col-md-4">
+                        <label class="form-label small fw-semibold text-dark">Middle Name</label>
+                        {{ form.middle_name }}
+                        {% if form.middle_name.errors %}
+                            <div class="text-danger small mt-1">{{ form.middle_name.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-12 col-md-4">
+                        <label class="form-label small fw-semibold text-dark">Last Name <span class="text-danger">*</span></label>
+                        {{ form.last_name }}
+                        {% if form.last_name.errors %}
+                            <div class="text-danger small mt-1">{{ form.last_name.errors.0 }}</div>
                         {% endif %}
                     </div>
 
@@ -82,11 +98,43 @@
                         {% endif %}
                     </div>
 
+                    <div class="col-12 col-md-6">
+                        <label class="form-label small fw-semibold text-dark">Gender</label>
+                        {{ form.gender }}
+                        {% if form.gender.errors %}
+                            <div class="text-danger small mt-1">{{ form.gender.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
                     <div class="col-12">
-                        <label class="form-label small fw-semibold text-dark">Residential / Office Address</label>
+                        <label class="form-label small fw-semibold text-dark">Residential Address</label>
                         {{ form.address }}
                         {% if form.address.errors %}
                             <div class="text-danger small mt-1">{{ form.address.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-12 col-md-4">
+                        <label class="form-label small fw-semibold text-dark">City</label>
+                        {{ form.city }}
+                        {% if form.city.errors %}
+                            <div class="text-danger small mt-1">{{ form.city.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-12 col-md-4">
+                        <label class="form-label small fw-semibold text-dark">State</label>
+                        {{ form.state }}
+                        {% if form.state.errors %}
+                            <div class="text-danger small mt-1">{{ form.state.errors.0 }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="col-12 col-md-4">
+                        <label class="form-label small fw-semibold text-dark">Pincode</label>
+                        {{ form.pincode }}
+                        {% if form.pincode.errors %}
+                            <div class="text-danger small mt-1">{{ form.pincode.errors.0 }}</div>
                         {% endif %}
                     </div>
 
@@ -98,55 +146,63 @@
                             {% endif %}
                             <div class="flex-grow-1">
                                 {{ form.profile_photo }}
-                                <div class="form-text text-muted small">Upload PNG, JPG, or JPEG image (max 5MB).</div>
+                                <div class="form-text text-muted small">Upload JPG, PNG, or JPEG format photo.</div>
                             </div>
                         </div>
                         {% if form.profile_photo.errors %}
                             <div class="text-danger small mt-1">{{ form.profile_photo.errors.0 }}</div>
                         {% endif %}
                     </div>
+
+                    <div class="col-12 pt-2 border-top">
+                        <div class="form-check form-switch p-3 bg-light rounded border">
+                            {{ form.has_no_experience }}
+                            <label class="form-check-label fw-semibold text-dark ms-2" for="id_has_no_experience">
+                                No Previous Work Experience (Fresher)
+                            </label>
+                            <div class="text-muted small ms-2">Check this option if you do not have prior company work experience.</div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Right Column: Professional & System Details (Read-only / Org) -->
+        <!-- Right Column: Professional Info (Read-only setup) -->
         <div class="col-12 col-xl-5">
             <div class="card card-custom p-4 mb-4">
                 <h5 class="fw-bold text-dark pb-3 mb-3 border-bottom">
-                    <i class="bi bi-building text-primary me-2"></i> Organization & System Information
+                    <i class="bi bi-briefcase text-primary me-2"></i> Professional Setup (Admin Controlled)
                 </h5>
 
                 <div class="row g-3">
-                    <div class="col-12">
-                        <label class="form-label small fw-semibold text-dark">Department</label>
-                        {{ form.department }}
-                        {% if form.department.errors %}
-                            <div class="text-danger small mt-1">{{ form.department.errors.0 }}</div>
-                        {% endif %}
-                    </div>
-
                     <div class="col-12 col-md-6">
-                        <label class="form-label small fw-semibold text-muted">Employee Code</label>
-                        <input type="text" class="form-control bg-light" value="{{ hr_profile.employee_code|default:'Not provided' }}" readonly disabled>
-                        <div class="form-text text-muted" style="font-size: 0.75rem;">Controlled by Administrator</div>
+                        <label class="form-label small fw-semibold text-muted">Employee Code / HR ID</label>
+                        <input type="text" class="form-control bg-light" value="{{ hr_profile.employee_code|default:'HR-0001' }}" readonly disabled>
                     </div>
 
                     <div class="col-12 col-md-6">
                         <label class="form-label small fw-semibold text-muted">Designation</label>
-                        <input type="text" class="form-control bg-light" value="{{ linked_employee.designation|default:'HR Manager' }}" readonly disabled>
-                        <div class="form-text text-muted" style="font-size: 0.75rem;">Standard System Role</div>
+                        <input type="text" class="form-control bg-light" value="{{ hr_profile.designation|default:'HR Manager' }}" readonly disabled>
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <label class="form-label small fw-semibold text-muted">Department</label>
+                        <input type="text" class="form-control bg-light" value="{{ hr_profile.department.name|default:'Human Resources' }}" readonly disabled>
                     </div>
 
                     <div class="col-12 col-md-6">
                         <label class="form-label small fw-semibold text-muted">Joining Date</label>
-                        <input type="text" class="form-control bg-light" value="{% if hr_profile.joining_date %}{{ hr_profile.joining_date|date:'Y-m-d' }}{% else %}Not provided{% endif %}" readonly disabled>
-                        <div class="form-text text-muted" style="font-size: 0.75rem;">Controlled by Administrator</div>
+                        <input type="text" class="form-control bg-light" value="{% if hr_profile.joining_date %}{{ hr_profile.joining_date|date:'Y-m-d' }}{% else %}Not specified{% endif %}" readonly disabled>
                     </div>
 
                     <div class="col-12 col-md-6">
-                        <label class="form-label small fw-semibold text-muted">Account Status</label>
-                        <input type="text" class="form-control bg-light" value="{{ user_obj.get_status_display|default:user_obj.status|default:'Active' }}" readonly disabled>
-                        <div class="form-text text-muted" style="font-size: 0.75rem;">System Account State</div>
+                        <label class="form-label small fw-semibold text-muted">Reporting Manager</label>
+                        <input type="text" class="form-control bg-light" value="{{ hr_profile.reporting_manager|default:'Executive Director' }}" readonly disabled>
+                    </div>
+
+                    <div class="col-12 col-md-6">
+                        <label class="form-label small fw-semibold text-muted">Employment Status</label>
+                        <input type="text" class="form-control bg-light" value="{% if hr_profile.is_active %}Active{% else %}Inactive{% endif %}" readonly disabled>
                     </div>
                 </div>
 

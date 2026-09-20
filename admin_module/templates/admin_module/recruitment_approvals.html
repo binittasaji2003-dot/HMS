@@ -53,90 +53,135 @@
 <!-- Pending Approvals Card -->
 <div class="saas-card mb-4">
   <div class="card-header flex-wrap gap-3">
-    <div class="d-flex align-items-center gap-2">
-      <h2 class="card-title">
-        <i class="bi bi-clipboard-check-fill text-primary"></i> Awaiting Approval
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+      <h2 class="card-title mb-0">
+        <i class="bi bi-clipboard-check-fill text-primary"></i> Employee Approval Requests
       </h2>
-      <span class="btn-pill-action">{{ pending_count }} Record{{ pending_count|pluralize }}</span>
+      <div class="btn-group btn-group-sm ms-2">
+        <a href="?status=PENDING" class="btn btn-sm {% if status_filter == 'PENDING' %}btn-primary text-white{% else %}btn-outline-secondary{% endif %}">
+          Pending ({{ pending_count }})
+        </a>
+        <a href="?status=APPROVED" class="btn btn-sm {% if status_filter == 'APPROVED' %}btn-primary text-white{% else %}btn-outline-secondary{% endif %}">
+          Approved ({{ approved_count }})
+        </a>
+        <a href="?status=REJECTED" class="btn btn-sm {% if status_filter == 'REJECTED' %}btn-primary text-white{% else %}btn-outline-secondary{% endif %}">
+          Rejected ({{ rejected_count }})
+        </a>
+        <a href="?status=ALL" class="btn btn-sm {% if status_filter == 'ALL' %}btn-primary text-white{% else %}btn-outline-secondary{% endif %}">
+          All
+        </a>
+      </div>
     </div>
 
     <form method="get" class="d-flex align-items-center gap-2 flex-wrap">
+      <input type="hidden" name="status" value="{{ status_filter }}">
       <div class="topbar-search-box" style="width: 240px;">
         <i class="bi bi-search"></i>
-        <input type="text" name="q" value="{{ search }}" placeholder="Search name, email, role...">
+        <input type="text" name="q" value="{{ search }}" placeholder="Search name, role, dept...">
       </div>
       <button type="submit" class="btn-pill-action"><i class="bi bi-funnel me-1"></i>Filter</button>
       {% if search %}
-        <a href="{% url 'admin_module:recruitment_approvals' %}" class="btn-pill-action"><i class="bi bi-x-lg me-1"></i>Clear</a>
+        <a href="{% url 'admin_module:recruitment_approvals' %}?status={{ status_filter }}" class="btn-pill-action"><i class="bi bi-x-lg me-1"></i>Clear</a>
       {% endif %}
     </form>
   </div>
 
-  {% if pending_list %}
-    <div class="table-responsive">
-      <table class="table-saas" id="approvalsTable">
-        <caption class="visually-hidden">Employee records awaiting approval</caption>
-        <thead>
+  <div class="table-responsive">
+    <table class="table-saas" id="approvalsTable">
+      <caption class="visually-hidden">Employee approval requests</caption>
+      <thead>
+        <tr>
+          <th scope="col" style="width: 18%;">Candidate Name</th>
+          <th scope="col" style="width: 14%;">Position</th>
+          <th scope="col" style="width: 13%;">Department</th>
+          <th scope="col" style="width: 12%;">Team</th>
+          <th scope="col" style="width: 12%;">Team Lead</th>
+          <th scope="col" style="width: 10%;">Joining Date</th>
+          <th scope="col" style="width: 11%;">Requested By</th>
+          <th scope="col" style="width: 10%;">Status</th>
+          <th scope="col" style="width: 10%; text-align: right;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for app_item in pending_approvals %}
           <tr>
-            <th scope="col" style="width: 24%;">New Employee</th>
-            <th scope="col" style="width: 14%;">Department</th>
-            <th scope="col" style="width: 16%;">Designation</th>
-            <th scope="col" style="width: 12%;">Joining Date</th>
-            <th scope="col" style="width: 12%;">Raised</th>
-            <th scope="col" style="width: 10%;">Status</th>
-            <th scope="col" style="width: 12%; text-align: right;">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for employee in pending_list %}
-            <tr>
-              <td>
-                <div class="emp-table-profile">
-                  <div class="emp-table-avatar" style="background: linear-gradient(135deg, #F59E0B, #D97706);">
-                    {{ employee.user.name|default:employee.user.email|slice:":1"|upper }}
-                  </div>
-                  <div>
-                    <div class="emp-table-name text-dark fw-semibold">{{ employee.user.name|default:employee.user.email }}</div>
-                    <div class="emp-table-dept text-muted">{{ employee.user.email }}</div>
-                  </div>
+            <td>
+              <div class="emp-table-profile">
+                <div class="emp-table-avatar" style="background: linear-gradient(135deg, #1a73e8, #0d47a1);">
+                  {{ app_item.employee.user.name|default:app_item.employee.user.email|slice:":1"|upper }}
                 </div>
-              </td>
-              <td><span class="btn-pill-action"><i class="bi bi-building me-1"></i>{{ employee.department.name|default:"Unassigned" }}</span></td>
-              <td><span class="text-dark fw-medium">{{ employee.designation|default:"—" }}</span></td>
-              <td><span class="text-secondary small">{{ employee.joining_date|date:"M d, Y"|default:"—" }}</span></td>
-              <td>
-                <div class="text-secondary small">
-                  <div>{{ employee.created_at|date:"M d, Y" }}</div>
-                  <div style="font-size: 0.72rem;">Record created</div>
+                <div>
+                  <div class="emp-table-name text-dark fw-semibold">{{ app_item.employee.user.name|default:app_item.employee.user.email }}</div>
+                  <div class="emp-table-dept text-muted" style="font-size: 0.72rem;">{{ app_item.employee.user.email }}</div>
                 </div>
-              </td>
-              <td>
+              </div>
+            </td>
+            <td><span class="text-dark fw-medium">{{ app_item.employee.designation|default:"—" }}</span></td>
+            <td>
+              <span class="btn-pill-action"><i class="bi bi-building me-1"></i>{{ app_item.employee.department.name|default:"Unassigned" }}</span>
+              {% if app_item.employee.department.department_leader %}
+                <div class="text-muted" style="font-size: 0.7rem;">Head: {{ app_item.employee.department.department_leader.name|default:app_item.employee.department.department_leader.email }}</div>
+              {% endif %}
+            </td>
+            <td><span class="text-dark small">{{ app_item.employee.team.team_name|default:"General" }}</span></td>
+            <td>
+              <span class="text-secondary small">
+                {% if app_item.employee.team_lead %}
+                  {{ app_item.employee.team_lead.name|default:app_item.employee.team_lead.email }}
+                {% else %}
+                  —
+                {% endif %}
+              </span>
+            </td>
+            <td><span class="text-dark small fw-semibold">{{ app_item.employee.joining_date|date:"M d, Y"|default:"—" }}</span></td>
+            <td>
+              <span class="text-secondary small">
+                <i class="bi bi-person-badge text-primary me-1"></i>
+                {% if app_item.requested_by %}
+                  {{ app_item.requested_by.name|default:app_item.requested_by.email }}
+                {% elif app_item.employee.created_by %}
+                  {{ app_item.employee.created_by.name|default:app_item.employee.created_by.email }}
+                {% else %}
+                  HR Lead
+                {% endif %}
+              </span>
+              <div class="text-muted" style="font-size: 0.7rem;">{{ app_item.employee.created_at|date:"M d, Y" }}</div>
+            </td>
+            <td>
+              {% if app_item.status == 'PENDING' %}
                 <span class="badge-status badge-status-pending"><i class="bi bi-hourglass-split me-1"></i>Pending</span>
-              </td>
-              <td style="text-align: right;">
-                <div class="d-inline-flex align-items-center gap-1">
-                  <a href="{% url 'admin_module:recruitment_approval_review' employee.pk %}" class="table-action-btn btn-action-view" title="Review Record">
-                    <i class="bi bi-eye"></i>
-                  </a>
-                  <a href="{% url 'admin_module:recruitment_approval_review' employee.pk %}#approve" class="btn-primary-admin" style="min-height: 32px; padding: 0.3rem 0.7rem; font-size: 0.78rem;">
-                    <i class="bi bi-check2-circle"></i> Approve
-                  </a>
-                </div>
-              </td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  {% else %}
-    <div class="empty-state-box">
-      <i class="bi bi-clipboard-check empty-state-icon"></i>
-      <h5 class="empty-state-title">No Pending Approvals</h5>
-      <p class="empty-state-desc">
-        {% if search %}No employee records match your search.{% else %}All new employee records have been reviewed.{% endif %}
-      </p>
-    </div>
-  {% endif %}
+              {% elif app_item.status == 'APPROVED' %}
+                <span class="badge-status badge-status-active"><i class="bi bi-check-circle-fill me-1"></i>Approved</span>
+              {% else %}
+                <span class="badge-status badge-status-inactive"><i class="bi bi-x-circle-fill me-1"></i>Rejected</span>
+              {% endif %}
+            </td>
+            <td style="text-align: right;">
+              <a href="{% url 'admin_module:recruitment_approval_review' app_item.employee.pk %}" class="btn btn-sm btn-outline-primary fw-semibold px-2 py-1" title="Review Full Details" style="font-size: 0.78rem;">
+                <i class="bi bi-eye me-1"></i>View Details
+              </a>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="9" class="text-center py-5">
+              <div class="empty-state-box">
+                <i class="bi bi-clipboard-check empty-state-icon"></i>
+                <h5 class="empty-state-title">No Requests Found</h5>
+                <p class="empty-state-desc">
+                  {% if search %}
+                    No employee approval requests match your search criteria.
+                  {% else %}
+                    There are no employee approval requests in this status view.
+                  {% endif %}
+                </p>
+              </div>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 </div>
 
 <!-- Recently Processed Employees -->
@@ -151,55 +196,48 @@
     <a href="{% url 'admin_module:employees_list' %}" class="btn-pill-action">Full Workforce</a>
   </div>
 
-  {% if recently_processed %}
-    <div class="table-responsive">
-      <table class="table-saas">
-        <caption class="visually-hidden">Recently processed employee records</caption>
-        <thead>
+  <div class="table-responsive">
+    <table class="table-saas">
+      <caption class="visually-hidden">Recently processed employee records</caption>
+      <thead>
+        <tr>
+          <th scope="col">Employee</th>
+          <th scope="col">Department</th>
+          <th scope="col">Designation</th>
+          <th scope="col">Joining Date</th>
+          <th scope="col" style="text-align: right;">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for employee in recently_processed %}
           <tr>
-            <th scope="col">Employee</th>
-            <th scope="col">Department</th>
-            <th scope="col">Designation</th>
-            <th scope="col">Joining Date</th>
-            <th scope="col" style="text-align: right;">Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for employee in recently_processed %}
-            <tr>
-              <td>
-                <div class="emp-table-profile">
-                  <div class="emp-table-avatar">{{ employee.user.name|default:employee.user.email|slice:":1"|upper }}</div>
-                  <div>
-                    <div class="emp-table-name text-dark fw-semibold">{{ employee.user.name|default:employee.user.email }}</div>
-                    <div class="emp-table-dept text-muted">{{ employee.user.email }}</div>
-                  </div>
+            <td>
+              <div class="emp-table-profile">
+                <div class="emp-table-avatar">{{ employee.user.name|default:employee.user.email|slice:":1"|upper }}</div>
+                <div>
+                  <div class="emp-table-name text-dark fw-semibold">{{ employee.user.name|default:employee.user.email }}</div>
+                  <div class="emp-table-dept text-muted">{{ employee.user.email }}</div>
                 </div>
-              </td>
-              <td><span class="btn-pill-action"><i class="bi bi-building me-1"></i>{{ employee.department.name|default:"Unassigned" }}</span></td>
-              <td><span class="text-dark fw-medium">{{ employee.designation|default:"—" }}</span></td>
-              <td><span class="text-secondary small">{{ employee.joining_date|date:"M d, Y"|default:"—" }}</span></td>
-              <td style="text-align: right;">
-                <a href="{% url 'admin_module:employee_detail' employee.pk %}" class="table-action-btn btn-action-view" title="View Employee Profile">
-                  <i class="bi bi-eye"></i>
-                </a>
-              </td>
-            </tr>
-          {% empty %}
-            <tr>
-              <td colspan="5" class="text-center py-4">
-                <p class="text-secondary small mb-0">No active employee records on file yet.</p>
-              </td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-  {% else %}
-    <div class="empty-state-box py-4">
-      <i class="bi bi-people empty-state-icon"></i>
-      <p class="empty-state-desc mb-0">Approved new hires will appear here.</p>
-    </div>
-  {% endif %}
+              </div>
+            </td>
+            <td><span class="btn-pill-action"><i class="bi bi-building me-1"></i>{{ employee.department.name|default:"Unassigned" }}</span></td>
+            <td><span class="text-dark fw-medium">{{ employee.designation|default:"—" }}</span></td>
+            <td><span class="text-secondary small">{{ employee.joining_date|date:"M d, Y"|default:"—" }}</span></td>
+            <td style="text-align: right;">
+              <a href="{% url 'admin_module:employee_detail' employee.pk %}" class="table-action-btn btn-action-view" title="View Employee Profile">
+                <i class="bi bi-eye"></i>
+              </a>
+            </td>
+          </tr>
+        {% empty %}
+          <tr>
+            <td colspan="5" class="text-center py-4">
+              <p class="text-secondary small mb-0">No active employee records on file yet.</p>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
 </div>
 {% endblock content %}

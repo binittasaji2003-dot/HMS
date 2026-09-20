@@ -12,49 +12,115 @@
           Candidate Portal
         </span>
         <h3 class="fw-bold text-dark mb-1">Welcome back, {{ request.user.name|default:request.user.email }}! 👋</h3>
-        <p class="text-muted small mb-0">Track your job applications, explore open vacancies, and manage your applicant profile.</p>
+        <p class="text-muted small mb-0">Track your job applications, explore open vacancies, and manage your candidate profile.</p>
       </div>
       <div class="d-flex gap-2 flex-wrap">
         <a href="{% url 'candidates:job_list' %}" class="btn-blue-primary">
           <i class="bi bi-search"></i> Explore Jobs
         </a>
-        <a href="{% url 'candidates:profile' %}" class="btn-blue-outline">
-          <i class="bi bi-person-gear"></i> Update Profile
-        </a>
+        {% if not is_profile_complete %}
+          <a href="{% url 'candidates:profile' %}" class="btn-blue-outline">
+            <i class="bi bi-person-gear"></i> Update Profile
+          </a>
+        {% endif %}
       </div>
+    </div>
+  </div>
+
+  <!-- Real Dynamic Profile Completion Bar Card -->
+  <div class="col-12">
+    <div class="portal-card bg-white p-4 shadow-sm border-0">
+      <div class="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-2 mb-3">
+        <div>
+          <div class="d-flex align-items-center gap-2">
+            <h6 class="fw-bold text-dark mb-0">
+              <i class="bi bi-speedometer2 text-primary me-1"></i> Profile Completion
+            </h6>
+            {% if is_profile_complete %}
+              <span class="badge bg-success-subtle text-success fw-bold px-2.5 py-1 rounded-pill">
+                <i class="bi bi-check-circle-fill me-1"></i> 100% Complete ✓
+              </span>
+            {% else %}
+              <span class="badge bg-warning-subtle text-warning fw-bold px-2.5 py-1 rounded-pill">
+                {{ profile_percentage }}% Complete
+              </span>
+            {% endif %}
+          </div>
+          <p class="text-muted small mb-0 mt-1">
+            {% if is_profile_complete %}
+              Your candidate profile is complete. You can now apply for all open job opportunities.
+            {% else %}
+              Complete all mandatory sections (Personal, Education, 10th, 12th, Experience, Photo, Resume) to apply for jobs.
+            {% endif %}
+          </p>
+        </div>
+        <div>
+          <a href="{% url 'candidates:profile' %}" class="btn btn-sm {% if is_profile_complete %}btn-outline-success{% else %}btn-blue-primary{% endif %} px-3">
+            <i class="bi bi-pencil-square me-1"></i> {% if is_profile_complete %}Edit Profile{% else %}Complete Profile ({{ profile_percentage }}%){% endif %}
+          </a>
+        </div>
+      </div>
+
+      <!-- Progress Bar -->
+      <div class="progress rounded-pill shadow-inner" style="height: 14px; background-color: #e2e8f0;">
+        <div class="progress-bar progress-bar-striped progress-bar-animated {% if is_profile_complete %}bg-success{% elif profile_percentage >= 60 %}bg-primary{% else %}bg-warning{% endif %}" 
+             role="progressbar" 
+             style="width: {{ profile_percentage }}%;" 
+             aria-valuenow="{{ profile_percentage }}" 
+             aria-valuemin="0" 
+             aria-valuemax="100">
+        </div>
+      </div>
+
+      {% if not is_profile_complete and missing_fields %}
+        <div class="mt-3 pt-3 border-top d-flex flex-wrap align-items-center gap-2">
+          <span class="small text-muted fw-semibold"><i class="bi bi-exclamation-circle text-warning me-1"></i> Missing Sections:</span>
+          {% for field in missing_fields %}
+            <span class="badge bg-light text-secondary border px-2 py-1 small">{{ field }}</span>
+          {% endfor %}
+        </div>
+      {% endif %}
     </div>
   </div>
 
   <!-- Metric Overview Cards -->
-  <div class="col-12 col-md-4">
+  <div class="col-12 col-md-3">
     <div class="portal-card text-center p-4">
-      <div class="mx-auto mb-3 bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 56px; height: 56px; font-size: 24px;">
+      <div class="mx-auto mb-3 bg-primary-subtle text-primary rounded-circle d-flex align-items-center justify-content-center" style="width: 52px; height: 52px; font-size: 22px;">
         <i class="bi bi-file-earmark-text-fill"></i>
       </div>
-      <h2 class="fw-extrabold text-primary mb-1">{{ application_count }}</h2>
+      <h3 class="fw-extrabold text-primary mb-1">{{ application_count }}</h3>
       <span class="text-muted small fw-semibold">Submitted Applications</span>
     </div>
   </div>
 
-  <div class="col-12 col-md-4">
+  <div class="col-12 col-md-3">
     <div class="portal-card text-center p-4">
-      <div class="mx-auto mb-3 bg-info-subtle text-info rounded-circle d-flex align-items-center justify-content-center" style="width: 56px; height: 56px; font-size: 24px;">
+      <div class="mx-auto mb-3 bg-info-subtle text-info rounded-circle d-flex align-items-center justify-content-center" style="width: 52px; height: 52px; font-size: 22px;">
         <i class="bi bi-briefcase-fill"></i>
       </div>
-      <h2 class="fw-extrabold text-dark mb-1">{{ open_jobs }}</h2>
+      <h3 class="fw-extrabold text-dark mb-1">{{ open_jobs }}</h3>
       <span class="text-muted small fw-semibold">Active Job Openings</span>
     </div>
   </div>
 
-  <div class="col-12 col-md-4">
+  <div class="col-12 col-md-3">
     <div class="portal-card text-center p-4">
-      <div class="mx-auto mb-3 bg-success-subtle text-success rounded-circle d-flex align-items-center justify-content-center" style="width: 56px; height: 56px; font-size: 24px;">
-        <i class="bi bi-check-circle-fill"></i>
+      <div class="mx-auto mb-3 bg-success-subtle text-success rounded-circle d-flex align-items-center justify-content-center" style="width: 52px; height: 52px; font-size: 22px;">
+        <i class="bi bi-award-fill"></i>
       </div>
-      <h2 class="fw-extrabold text-success mb-1">
-        {% if candidate.profile_completed %}Complete{% else %}In Progress{% endif %}
-      </h2>
-      <span class="text-muted small fw-semibold">Profile Readiness</span>
+      <h3 class="fw-extrabold text-success mb-1">{{ shortlisted_count }}</h3>
+      <span class="text-muted small fw-semibold">Shortlisted Rounds</span>
+    </div>
+  </div>
+
+  <div class="col-12 col-md-3">
+    <div class="portal-card text-center p-4">
+      <div class="mx-auto mb-3 bg-warning-subtle text-warning rounded-circle d-flex align-items-center justify-content-center" style="width: 52px; height: 52px; font-size: 22px;">
+        <i class="bi bi-calendar-event-fill"></i>
+      </div>
+      <h3 class="fw-extrabold text-dark mb-1">{{ interviews_count }}</h3>
+      <span class="text-muted small fw-semibold">Upcoming Interviews</span>
     </div>
   </div>
 
@@ -137,4 +203,69 @@
     </div>
   </div>
 </div>
+
+<!-- Incomplete Profile Prompt Modal -->
+{% if not is_profile_complete %}
+<div class="modal fade" id="profileCompletionModal" tabindex="-1" aria-labelledby="profileCompletionModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content rounded-4 border-0 shadow-lg">
+      <div class="modal-header border-0 pb-0">
+        <div class="d-flex align-items-center gap-2">
+          <div class="bg-primary-subtle text-primary rounded-circle p-2 d-flex align-items-center justify-content-center" style="width: 40px; height: 40px;">
+            <i class="bi bi-person-lines-fill fs-5"></i>
+          </div>
+          <h5 class="modal-title fw-bold text-dark" id="profileCompletionModalLabel">Complete Your Profile</h5>
+        </div>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body py-4">
+        <p class="text-muted mb-3">
+          Your profile is currently <strong class="text-primary fs-5">{{ profile_percentage }}% complete</strong>.
+        </p>
+        <p class="small text-secondary mb-3">
+          Please complete your profile to apply for job opportunities and allow recruiters to review your qualifications.
+        </p>
+
+        <!-- Dynamic Missing Fields Checklist -->
+        {% if missing_fields %}
+          <div class="p-3 bg-light rounded-3 border mb-3">
+            <div class="small fw-bold text-dark mb-2"><i class="bi bi-exclamation-triangle text-warning me-1"></i> Missing Information:</div>
+            <ul class="mb-0 ps-3 small text-muted">
+              {% for field in missing_fields %}
+                <li>{{ field }}</li>
+              {% endfor %}
+            </ul>
+          </div>
+        {% endif %}
+
+        <!-- Progress bar in modal -->
+        <div class="progress rounded-pill mb-2" style="height: 10px;">
+          <div class="progress-bar {% if profile_percentage >= 60 %}bg-primary{% else %}bg-warning{% endif %} progress-bar-striped progress-bar-animated" style="width: {{ profile_percentage }}%;"></div>
+        </div>
+      </div>
+      <div class="modal-footer border-0 pt-0">
+        <button type="button" class="btn btn-light border px-3" data-bs-dismiss="modal" onclick="sessionStorage.setItem('profile_modal_dismissed', 'true')">
+          Later
+        </button>
+        <a href="{% url 'candidates:profile' %}" class="btn btn-blue-primary px-4">
+          <i class="bi bi-pencil-square me-1"></i> Complete Profile
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    if (!sessionStorage.getItem('profile_modal_dismissed')) {
+      const modalElem = document.getElementById('profileCompletionModal');
+      if (modalElem) {
+        const modal = new bootstrap.Modal(modalElem);
+        modal.show();
+      }
+    }
+  });
+</script>
+{% endif %}
+
 {% endblock content %}
