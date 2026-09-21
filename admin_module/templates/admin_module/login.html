@@ -10,10 +10,10 @@
   <!-- Favicon -->
   <link rel="icon" href="{% static 'images/favicons/favicon.ico' %}" />
 
-  <!-- Google Fonts: Inter -->
+  <!-- Google Fonts: Plus Jakarta Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 
   <!-- Bootstrap 5 CSS -->
   <link rel="stylesheet"
@@ -24,27 +24,263 @@
   <link rel="stylesheet"
         href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
 
-  <!-- Custom Enterprise HRMS CSS -->
-  <link href="{% static 'css/admin_theme.css' %}" rel="stylesheet" />
+  <style>
+    :root {
+      --primary-violet: #7c3aed;
+      --primary-violet-hover: #6d28d9;
+      --lavender-accent: #8b5cf6;
+      --lavender-soft: #a78bfa;
+      --lavender-light: #ede9fe;
+      --lavender-subtle: #f5f3ff;
+      --violet-gradient: linear-gradient(135deg, #7c3aed 0%, #6366f1 100%);
+      --violet-glow: rgba(124, 58, 237, 0.25);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 45%, #e0e7ff 100%);
+      background-attachment: fixed;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow-x: hidden;
+      padding: 24px 16px;
+      color: #1e1b4b;
+    }
+
+    /* Decorative Ambient Background Shapes */
+    .bg-shape-1 {
+      position: absolute;
+      top: -100px;
+      right: -80px;
+      width: 420px;
+      height: 420px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(167, 139, 250, 0.4) 0%, rgba(196, 181, 253, 0.05) 70%);
+      filter: blur(50px);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .bg-shape-2 {
+      position: absolute;
+      bottom: -120px;
+      left: -80px;
+      width: 480px;
+      height: 480px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(124, 58, 237, 0.3) 0%, rgba(99, 102, 241, 0.05) 70%);
+      filter: blur(60px);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .bg-pattern-grid {
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(rgba(124, 58, 237, 0.08) 1.5px, transparent 1.5px);
+      background-size: 28px 28px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Auth Card Container */
+    .auth-card-wrapper {
+      position: relative;
+      z-index: 1;
+      width: 100%;
+      max-width: 460px;
+    }
+
+    .auth-card {
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1.5px solid rgba(139, 92, 246, 0.25);
+      border-radius: 24px;
+      padding: 40px 36px;
+      box-shadow: 0 20px 50px rgba(124, 58, 237, 0.12), 0 4px 16px rgba(0, 0, 0, 0.04);
+      transition: all 0.3s ease;
+    }
+
+    .auth-card:hover {
+      box-shadow: 0 24px 60px rgba(124, 58, 237, 0.18), 0 6px 20px rgba(0, 0, 0, 0.05);
+      border-color: rgba(139, 92, 246, 0.4);
+    }
+
+    /* Brand Header */
+    .brand-icon-box {
+      width: 60px;
+      height: 60px;
+      background: var(--violet-gradient);
+      border-radius: 18px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      font-size: 28px;
+      margin: 0 auto 18px;
+      box-shadow: 0 8px 24px var(--violet-glow);
+    }
+
+    .auth-title {
+      font-size: 24px;
+      font-weight: 800;
+      color: #1e1b4b;
+      letter-spacing: -0.02em;
+      margin-bottom: 6px;
+    }
+
+    .auth-subtitle {
+      font-size: 13.5px;
+      color: #6b7280;
+      font-weight: 500;
+      margin-bottom: 24px;
+    }
+
+    .role-badge-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #f3e8ff;
+      border: 1px solid #d8b4fe;
+      color: #7e22ce;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 12px;
+      border-radius: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 14px;
+    }
+
+    /* Form Fields */
+    .form-label {
+      font-size: 13px;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .form-control {
+      background-color: #fdfcff !important;
+      border: 1.5px solid #e9d5ff !important;
+      color: #1e1b4b !important;
+      border-radius: 14px !important;
+      padding: 11px 16px !important;
+      font-size: 14px !important;
+      transition: all 0.2s ease;
+    }
+
+    .form-control:focus {
+      background-color: #ffffff !important;
+      border-color: var(--primary-violet) !important;
+      box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.15) !important;
+      outline: none !important;
+    }
+
+    .form-control::placeholder {
+      color: #9ca3af;
+      font-size: 13.5px;
+    }
+
+    .form-check-input {
+      border-color: #d8b4fe;
+      cursor: pointer;
+    }
+
+    .form-check-input:checked {
+      background-color: var(--primary-violet);
+      border-color: var(--primary-violet);
+    }
+
+    .form-check-label {
+      font-size: 13px;
+      color: #6b7280;
+      font-weight: 500;
+      cursor: pointer;
+    }
+
+    /* Submit Button */
+    .btn-submit-violet {
+      width: 100%;
+      background: var(--violet-gradient);
+      color: #ffffff !important;
+      padding: 12px 20px;
+      border-radius: 14px;
+      font-weight: 700;
+      font-size: 14.5px;
+      border: none;
+      box-shadow: 0 6px 20px var(--violet-glow);
+      transition: all 0.25s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .btn-submit-violet:hover {
+      background: linear-gradient(135deg, #6d28d9 0%, #4f46e5 100%);
+      box-shadow: 0 8px 26px rgba(124, 58, 237, 0.4);
+      transform: translateY(-1px);
+    }
+
+    /* Back Link */
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #6b7280;
+      text-decoration: none;
+      transition: all 0.2s ease;
+      margin-top: 18px;
+    }
+
+    .back-link:hover {
+      color: var(--primary-violet);
+      transform: translateX(-2px);
+    }
+  </style>
 </head>
-<body class="admin-body">
-  <div class="auth-page-wrapper">
+<body>
+  <!-- Ambient background elements -->
+  <div class="bg-shape-1"></div>
+  <div class="bg-shape-2"></div>
+  <div class="bg-pattern-grid"></div>
+
+  <div class="auth-card-wrapper">
     <div class="auth-card">
       <!-- HRMS Brand / Logo -->
-      <div class="auth-brand">
-        <div class="auth-brand-logo">
+      <div class="text-center">
+        <div class="brand-icon-box">
           <i class="bi bi-shield-lock-fill"></i>
         </div>
+        <span class="role-badge-pill">
+          <i class="bi bi-key-fill"></i> Executive Portal
+        </span>
         <h1 class="auth-title">Admin Sign In</h1>
-        <p class="auth-subtitle">Smart HR Management System Portal</p>
+        <p class="auth-subtitle">Smart HR Management System Governance</p>
       </div>
 
       <!-- Messages / Feedback -->
       {% if messages %}
         <div class="mb-3">
           {% for message in messages %}
-            <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show d-flex align-items-center justify-content-between p-2 px-3" role="alert">
-              <span class="small">{{ message }}</span>
+            <div class="alert alert-{{ message.tags|default:'info' }} alert-dismissible fade show d-flex align-items-center justify-content-between p-2.5 px-3 rounded-3" role="alert">
+              <span class="small font-medium">{{ message }}</span>
               <button type="button" class="btn-close small" data-bs-dismiss="alert" aria-label="Close"></button>
             </div>
           {% endfor %}
@@ -53,7 +289,7 @@
 
       <!-- Non-field Errors -->
       {% if form.non_field_errors %}
-        <div class="alert alert-danger mb-3 p-2 px-3 small">
+        <div class="alert alert-danger mb-3 p-2.5 px-3 small rounded-3">
           {% for error in form.non_field_errors %}
             <div class="d-flex align-items-center gap-2">
               <i class="bi bi-exclamation-circle-fill"></i>
@@ -71,7 +307,7 @@
         <!-- Email Field -->
         <div class="mb-3">
           <label for="{{ form.email.id_for_label }}" class="form-label">
-            <i class="bi bi-envelope-at me-1 text-secondary"></i> Admin Email
+            <i class="bi bi-envelope-at text-primary"></i> Admin Email
           </label>
           {{ form.email }}
           {% if form.email.errors %}
@@ -85,7 +321,7 @@
         <div class="mb-3">
           <div class="d-flex justify-content-between align-items-center">
             <label for="{{ form.password.id_for_label }}" class="form-label">
-              <i class="bi bi-key me-1 text-secondary"></i> Password
+              <i class="bi bi-key text-primary"></i> Password
             </label>
           </div>
           {{ form.password }}
@@ -99,29 +335,25 @@
         <!-- Remember Me Checkbox -->
         <div class="form-check mb-4">
           {{ form.remember_me }}
-          <label class="form-check-label text-secondary small" for="{{ form.remember_me.id_for_label }}">
+          <label class="form-check-label" for="{{ form.remember_me.id_for_label }}">
             Remember this session
           </label>
         </div>
 
         <!-- Submit Button -->
-        <button type="submit" class="btn btn-primary-admin w-100 py-2 mb-3" id="admin-login-btn">
-          <i class="bi bi-box-arrow-in-right me-2"></i> Log In to Admin Portal
+        <button type="submit" class="btn-submit-violet mb-2" id="admin-login-btn">
+          <i class="bi bi-box-arrow-in-right"></i> Log In to Admin Portal
         </button>
       </form>
 
-      <!-- Link to Registration
-      <div class="text-center mt-3 pt-3 border-top" style="border-color: var(--border-color) !important;">
-        <span class="text-secondary small">Need to setup a new Administrator account?</span><br>
-        <a href="{% url 'admin_module:admin_register' %}" class="small fw-semibold text-decoration-none">
-          <i class="bi bi-person-plus me-1"></i> Register New Admin
+      <!-- Navigation Links -->
+      <div class="text-center pt-2 d-flex justify-content-center gap-3">
+        <a href="{% url 'role_select' %}" class="back-link">
+          <i class="bi bi-grid-fill text-primary"></i> Change Role
         </a>
-      </div>
-      -->
-      <!-- Public Site Link -->
-      <div class="text-center mt-3">
-        <a href="{% url 'home' %}" class="text-muted small text-decoration-none">
-          <i class="bi bi-arrow-left me-1"></i> Back to Main Portal
+        <span class="text-muted align-self-center mt-3">&bull;</span>
+        <a href="{% url 'home' %}" class="back-link">
+          <i class="bi bi-house-door"></i> Home
         </a>
       </div>
     </div>

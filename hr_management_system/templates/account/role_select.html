@@ -16,25 +16,90 @@
 
   <style>
     :root {
-      --primary-blue: #0b4f9a;
-      --secondary-blue: #2563eb;
-      --bg-gradient: linear-gradient(135deg, #f0f7ff 0%, #e0f2fe 50%, #ffffff 100%);
-      --card-border: #e2e8f0;
+      --bg-canvas: #0a0e1a;
+      --bg-surface: #121829;
+      --bg-surface-elevated: #182038;
+      --bg-input: #0e1424;
+
+      --primary-violet: #7c3aed;
+      --lavender-accent: #a78bfa;
+      --lavender-soft: #c4b5fd;
+
+      --border-default: rgba(255, 255, 255, 0.08);
+      --border-lavender: rgba(139, 92, 246, 0.25);
+      --border-glow: rgba(124, 58, 237, 0.4);
+
+      --radius-md: 12px;
+      --radius-lg: 18px;
+      --radius-xl: 24px;
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
     }
 
     body {
       font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
-      background: var(--bg-gradient);
+      background-color: var(--bg-canvas);
+      background-image: radial-gradient(circle at 80% 15%, rgba(124, 58, 237, 0.15) 0%, transparent 60%),
+                        radial-gradient(circle at 20% 85%, rgba(99, 102, 241, 0.12) 0%, transparent 60%);
       min-height: 100vh;
-      color: #1e293b;
+      color: #ffffff;
       display: flex;
       flex-direction: column;
+      -webkit-font-smoothing: antialiased;
     }
 
+    /* Top Simple Navigation */
+    header {
+      background: rgba(18, 24, 41, 0.85);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border-default);
+    }
+
+    .brand-icon {
+      width: 38px;
+      height: 38px;
+      background: linear-gradient(135deg, #7c3aed 0%, #6366f1 100%);
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      font-size: 1.15rem;
+      box-shadow: 0 4px 14px rgba(124, 58, 237, 0.35);
+    }
+
+    .btn-back {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border-default);
+      color: #ffffff !important;
+      padding: 6px 18px;
+      border-radius: 30px;
+      font-weight: 600;
+      font-size: 0.85rem;
+      transition: all 0.2s ease;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-back:hover {
+      background: rgba(255, 255, 255, 0.12);
+      border-color: var(--border-lavender);
+      color: #ffffff !important;
+      transform: translateX(-2px);
+    }
+
+    /* Role Cards */
     .role-card {
-      background: #ffffff;
-      border: 1.5px solid var(--card-border);
-      border-radius: 20px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-default);
+      border-radius: var(--radius-xl);
       padding: 32px 24px;
       transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
       display: flex;
@@ -42,74 +107,97 @@
       justify-content: space-between;
       height: 100%;
       text-decoration: none;
-      color: inherit;
+      color: #ffffff !important;
       position: relative;
       overflow: hidden;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
     }
 
     .role-card:hover {
       transform: translateY(-6px);
-      border-color: var(--secondary-blue);
-      box-shadow: 0 16px 36px rgba(11, 79, 154, 0.12);
-      color: inherit;
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.5), 0 0 25px rgba(124, 58, 237, 0.25);
+      color: #ffffff !important;
     }
 
     .role-icon-box {
       width: 64px;
       height: 64px;
-      border-radius: 16px;
+      border-radius: var(--radius-lg);
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 28px;
       margin-bottom: 20px;
-      transition: transform 0.2s ease;
+      transition: transform 0.25s ease;
     }
 
     .role-card:hover .role-icon-box {
       transform: scale(1.08);
     }
 
-    .admin-theme .role-icon-box { background: #fdf4ff; color: #9333ea; }
-    .hr-theme .role-icon-box { background: #eff6ff; color: #2563eb; }
-    .employee-theme .role-icon-box { background: #ecfdf5; color: #059669; }
-    .candidate-theme .role-icon-box { background: #fffbeb; color: #d97706; }
+    /* Role Specific Themes */
+    /* 1. Admin */
+    .admin-theme { border-color: rgba(168, 85, 247, 0.25); }
+    .admin-theme:hover { border-color: #a855f7; }
+    .admin-theme .role-icon-box { background: rgba(168, 85, 247, 0.15); color: #c084fc; border: 1px solid rgba(168, 85, 247, 0.3); }
+    .admin-theme .role-badge { background: rgba(168, 85, 247, 0.15); color: #e9d5ff; border: 1px solid rgba(168, 85, 247, 0.3); }
+    .admin-theme .role-btn { background: linear-gradient(135deg, #9333ea, #7e22ce); color: #ffffff; }
+    .admin-theme .role-btn:hover { background: linear-gradient(135deg, #a855f7, #9333ea); }
+
+    /* 2. HR Manager */
+    .hr-theme { border-color: rgba(99, 102, 241, 0.25); }
+    .hr-theme:hover { border-color: #818cf8; }
+    .hr-theme .role-icon-box { background: rgba(99, 102, 241, 0.15); color: #a5b4fc; border: 1px solid rgba(99, 102, 241, 0.3); }
+    .hr-theme .role-badge { background: rgba(99, 102, 241, 0.15); color: #e0e7ff; border: 1px solid rgba(99, 102, 241, 0.3); }
+    .hr-theme .role-btn { background: linear-gradient(135deg, #6366f1, #4f46e5); color: #ffffff; }
+    .hr-theme .role-btn:hover { background: linear-gradient(135deg, #818cf8, #6366f1); }
+
+    /* 3. Employee */
+    .employee-theme { border-color: rgba(16, 185, 129, 0.25); }
+    .employee-theme:hover { border-color: #34d399; }
+    .employee-theme .role-icon-box { background: rgba(16, 185, 129, 0.15); color: #6ee7b7; border: 1px solid rgba(16, 185, 129, 0.3); }
+    .employee-theme .role-badge { background: rgba(16, 185, 129, 0.15); color: #d1fae5; border: 1px solid rgba(16, 185, 129, 0.3); }
+    .employee-theme .role-btn { background: linear-gradient(135deg, #059669, #047857); color: #ffffff; }
+    .employee-theme .role-btn:hover { background: linear-gradient(135deg, #10b981, #059669); }
+
+    /* 4. Candidate */
+    .candidate-theme { border-color: rgba(245, 158, 11, 0.25); }
+    .candidate-theme:hover { border-color: #fbbf24; }
+    .candidate-theme .role-icon-box { background: rgba(245, 158, 11, 0.15); color: #fcd34d; border: 1px solid rgba(245, 158, 11, 0.3); }
+    .candidate-theme .role-badge { background: rgba(245, 158, 11, 0.15); color: #fef3c7; border: 1px solid rgba(245, 158, 11, 0.3); }
+    .candidate-theme .role-btn { background: linear-gradient(135deg, #d97706, #b45309); color: #ffffff; }
+    .candidate-theme .role-btn:hover { background: linear-gradient(135deg, #f59e0b, #d97706); }
 
     .role-badge {
       font-size: 11px;
       font-weight: 700;
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      padding: 4px 10px;
+      padding: 5px 12px;
       border-radius: 20px;
       display: inline-block;
-      margin-bottom: 12px;
+      margin-bottom: 14px;
     }
 
-    .admin-theme .role-badge { background: #f3e8ff; color: #7e22ce; }
-    .hr-theme .role-badge { background: #dbeafe; color: #1d4ed8; }
-    .employee-theme .role-badge { background: #d1fae5; color: #047857; }
-    .candidate-theme .role-badge { background: #fef3c7; color: #b45309; }
-
     .role-title {
-      font-size: 20px;
+      font-size: 21px;
       font-weight: 800;
-      color: #0f172a;
-      margin-bottom: 8px;
+      color: #ffffff !important;
+      margin-bottom: 10px;
     }
 
     .role-desc {
       font-size: 13.5px;
-      color: #64748b;
-      line-height: 1.55;
+      color: #cbd5e1;
+      line-height: 1.6;
       margin-bottom: 24px;
       flex-grow: 1;
     }
 
     .role-btn {
       width: 100%;
-      padding: 10px 16px;
-      border-radius: 12px;
+      padding: 11px 16px;
+      border-radius: var(--radius-md);
       font-weight: 700;
       font-size: 14px;
       display: flex;
@@ -117,35 +205,66 @@
       justify-content: center;
       gap: 8px;
       transition: all 0.2s ease;
-      border: none;
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.25);
     }
 
-    .admin-theme .role-btn { background: #9333ea; color: #ffffff; }
-    .admin-theme .role-btn:hover { background: #7e22ce; }
+    /* Bottom Quick Action Banner */
+    .candidate-banner {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-lavender);
+      border-radius: var(--radius-lg);
+      padding: 24px 32px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    }
 
-    .hr-theme .role-btn { background: #2563eb; color: #ffffff; }
-    .hr-theme .role-btn:hover { background: #1d4ed8; }
+    .btn-register-candidate {
+      background: rgba(124, 58, 237, 0.15);
+      border: 1px solid var(--border-lavender);
+      color: #ffffff !important;
+      padding: 9px 24px;
+      border-radius: 30px;
+      font-weight: 700;
+      font-size: 0.88rem;
+      transition: all 0.2s ease;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
 
-    .employee-theme .role-btn { background: #059669; color: #ffffff; }
-    .employee-theme .role-btn:hover { background: #047857; }
+    .btn-register-candidate:hover {
+      background: var(--primary-violet);
+      color: #ffffff !important;
+      box-shadow: 0 4px 16px rgba(124, 58, 237, 0.4);
+      transform: translateY(-1px);
+    }
 
-    .candidate-theme .role-btn { background: #d97706; color: #ffffff; }
-    .candidate-theme .role-btn:hover { background: #b45309; }
+    /* Footer */
+    footer {
+      background: var(--bg-surface);
+      border-top: 1px solid var(--border-default);
+      color: #94a3b8;
+      font-size: 13px;
+    }
   </style>
 </head>
 <body>
 
   <!-- Top Simple Navigation -->
-  <header class="py-3 px-4 px-md-5 border-bottom bg-white d-flex justify-content-between align-items-center">
-    <a href="/" class="d-flex align-items-center gap-2 text-decoration-none text-dark">
-      <div class="bg-primary text-white rounded-3 p-2 d-flex align-items-center justify-content-center" style="width: 38px; height: 38px;">
+  <header class="py-3 px-4 px-md-5 d-flex justify-content-between align-items-center">
+    <a href="/" class="d-flex align-items-center gap-2.5 text-decoration-none">
+      <div class="brand-icon">
         <i class="bi bi-diagram-3-fill"></i>
       </div>
-      <span class="fw-extrabold fs-5 tracking-tight text-primary">Smart <span class="text-dark">HRMS</span></span>
+      <div class="d-flex flex-column">
+        <span class="fw-extrabold fs-5 tracking-tight text-white leading-tight">Smart <span style="color: var(--lavender-accent);">HRMS</span></span>
+        <span class="text-muted text-uppercase" style="font-size: 0.65rem; letter-spacing: 0.08em;">People • Process • Progress</span>
+      </div>
     </a>
     <div>
-      <a href="/" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
-        <i class="bi bi-arrow-left me-1"></i> Back to Homepage
+      <a href="/" class="btn-back">
+        <i class="bi bi-arrow-left"></i> Back to Homepage
       </a>
     </div>
   </header>
@@ -153,11 +272,11 @@
   <!-- Main Content Container -->
   <main class="container my-auto py-5">
     <div class="text-center max-w-2xl mx-auto mb-5">
-      <span class="badge bg-primary-subtle text-primary fw-bold text-uppercase px-3 py-2 rounded-pill mb-2">
-        <i class="bi bi-shield-lock-fill me-1"></i> Secure Role-Based Access
+      <span class="badge px-3 py-2 rounded-pill mb-2" style="background: rgba(124, 58, 237, 0.15); border: 1px solid var(--border-lavender); color: var(--lavender-soft); font-size: 0.78rem; text-transform: uppercase; letter-spacing: 0.05em;">
+        <i class="bi bi-shield-lock-fill me-1 text-warning"></i> Secure Role-Based Access
       </span>
-      <h2 class="fw-extrabold text-dark tracking-tight mb-2">Select Your Portal Role</h2>
-      <p class="text-muted fs-6 mb-0">Choose your assigned organizational role below to proceed to your dedicated sign-in portal.</p>
+      <h1 class="fw-extrabold text-white tracking-tight mb-2" style="font-size: 2.3rem;">Select Your Portal Role</h1>
+      <p class="text-white fs-6 mb-0" style="opacity: 0.9;">Choose your assigned organizational role below to proceed to your dedicated sign-in portal.</p>
     </div>
 
     <!-- 4 Role Cards Grid -->
@@ -167,19 +286,19 @@
       <div class="col-12 col-sm-6 col-lg-3">
         <a href="{% url 'admin_module:admin_login' %}" class="role-card admin-theme">
           <div>
-            <div class="role-icon-box shadow-sm">
+            <div class="role-icon-box">
               <i class="bi bi-shield-shaded"></i>
             </div>
             <span class="role-badge">Executive</span>
-            <h3 class="role-title">Administrator</h3>
+            <h2 class="role-title">Administrator</h2>
             <p class="role-desc">
               Organization governance, department structure, staff approvals, announcements, and policy audits.
             </p>
           </div>
-          <button class="role-btn shadow-sm">
+          <div class="role-btn">
             <span>Admin Sign In</span>
             <i class="bi bi-arrow-right"></i>
-          </button>
+          </div>
         </a>
       </div>
 
@@ -187,19 +306,19 @@
       <div class="col-12 col-sm-6 col-lg-3">
         <a href="{% url 'account_login' %}?role=HR" class="role-card hr-theme">
           <div>
-            <div class="role-icon-box shadow-sm">
+            <div class="role-icon-box">
               <i class="bi bi-briefcase-fill"></i>
             </div>
             <span class="role-badge">HR Operations</span>
-            <h3 class="role-title">HR Manager</h3>
+            <h2 class="role-title">HR Manager</h2>
             <p class="role-desc">
               Job vacancies management, applicant ATS tracking, online aptitude tests, interview scheduling, and report evaluations.
             </p>
           </div>
-          <button class="role-btn shadow-sm">
+          <div class="role-btn">
             <span>HR Sign In</span>
             <i class="bi bi-arrow-right"></i>
-          </button>
+          </div>
         </a>
       </div>
 
@@ -207,19 +326,19 @@
       <div class="col-12 col-sm-6 col-lg-3">
         <a href="{% url 'employees:login' %}" class="role-card employee-theme">
           <div>
-            <div class="role-icon-box shadow-sm">
+            <div class="role-icon-box">
               <i class="bi bi-person-workspace"></i>
             </div>
             <span class="role-badge">Self Service</span>
-            <h3 class="role-title">Employee</h3>
+            <h2 class="role-title">Employee</h2>
             <p class="role-desc">
               Daily attendance log, casual & medical leave applications, weekly work report submissions, and personal documents.
             </p>
           </div>
-          <button class="role-btn shadow-sm">
+          <div class="role-btn">
             <span>Employee Sign In</span>
             <i class="bi bi-arrow-right"></i>
-          </button>
+          </div>
         </a>
       </div>
 
@@ -227,43 +346,46 @@
       <div class="col-12 col-sm-6 col-lg-3">
         <a href="{% url 'account_login' %}?role=Candidate" class="role-card candidate-theme">
           <div>
-            <div class="role-icon-box shadow-sm">
+            <div class="role-icon-box">
               <i class="bi bi-person-badge-fill"></i>
             </div>
             <span class="role-badge">Careers</span>
-            <h3 class="role-title">Candidate</h3>
+            <h2 class="role-title">Candidate</h2>
             <p class="role-desc">
               Browse open vacancies, submit resumes, participate in online aptitude assessments, and track interview status.
             </p>
           </div>
-          <button class="role-btn shadow-sm">
+          <div class="role-btn">
             <span>Candidate Sign In</span>
             <i class="bi bi-arrow-right"></i>
-          </button>
+          </div>
         </a>
       </div>
 
     </div>
 
     <!-- Additional Quick Links / Registration Banner -->
-    <div class="mt-5 text-center bg-white p-4 rounded-4 border border-light-subtle shadow-sm max-w-xl mx-auto">
+    <div class="mt-5 candidate-banner max-w-xl mx-auto">
       <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center gap-3">
-        <div class="text-sm-start">
-          <h6 class="fw-bold mb-1">Applying for a new job?</h6>
-          <p class="text-muted small mb-0">Create a candidate profile to apply for vacancies and take online tests.</p>
+        <div class="text-sm-start text-center">
+          <h6 class="fw-bold mb-1 text-white">Applying for a new job?</h6>
+          <p class="text-white small mb-0" style="opacity: 0.85;">Create a candidate profile to apply for vacancies and take online tests.</p>
         </div>
-        <a href="{% url 'candidates:register' %}" class="btn btn-outline-primary rounded-pill px-4 fw-semibold shrink-0">
-          Register as Candidate
+        <a href="{% url 'candidates:register' %}" class="btn-register-candidate shrink-0">
+          <i class="bi bi-person-plus"></i> Register as Candidate
         </a>
       </div>
     </div>
   </main>
 
   <!-- Footer -->
-  <footer class="py-3 text-center text-muted small border-top bg-white">
-    &copy; 2026 Smart HRMS. Role-based enterprise authentication system.
+  <footer class="py-3 text-center text-muted small border-top">
+    <div class="container text-white" style="opacity: 0.85;">
+      &copy; 2026 Smart HRMS. Role-based enterprise authentication system.
+    </div>
   </footer>
 
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  {% include "components/birthday_popup.html" %}
 </body>
 </html>
-

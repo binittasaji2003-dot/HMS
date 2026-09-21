@@ -5,7 +5,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Employee Login - HRMS</title>
+    <title>Employee Login - Smart HRMS</title>
     <link rel="icon" href="{% static 'images/favicons/favicon.ico' %}" />
     <!-- Google Fonts & Tailwind CSS CDN -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -24,12 +24,13 @@
             },
             colors: {
               hrms: {
-                blue: '#1677ff',
-                hover: '#0958d9',
-                bg: '#ebf4ff',
-                light: '#f0f7ff',
-                dark: '#0f172a',
-                muted: '#64748b'
+                violet: '#7c3aed',
+                hover: '#6d28d9',
+                lavender: '#a78bfa',
+                soft: '#ede9fe',
+                subtle: '#f5f3ff',
+                dark: '#1e1b4b',
+                muted: '#6b7280'
               }
             }
           }
@@ -38,113 +39,117 @@
     </script>
     <style>
       body {
-        background-color: #ebf4ff;
-        background-image:
-          radial-gradient(circle at 100% 0%, rgba(219, 234, 254, 0.8) 0%, transparent 50%),
-          radial-gradient(circle at 100% 100%, rgba(191, 219, 254, 0.7) 0%, transparent 60%);
+        background: linear-gradient(135deg, #f5f3ff 0%, #ede9fe 45%, #e0e7ff 100%);
         background-attachment: fixed;
       }
     </style>
   </head>
-  <body class="min-h-screen w-full flex items-center justify-center font-sans antialiased text-slate-800 p-4 lg:p-8">
+  <body class="min-h-screen w-full flex items-center justify-center font-sans antialiased text-slate-800 p-4 lg:p-8 relative overflow-x-hidden">
+    <!-- Decorative Ambient Background Orbs -->
+    <div class="absolute -top-24 -right-24 w-96 h-96 bg-purple-300/40 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute -bottom-24 -left-24 w-96 h-96 bg-indigo-300/40 rounded-full blur-3xl pointer-events-none"></div>
+
     <!-- Main Card Container -->
-    <div class="w-full max-w-[1140px] min-h-[660px] bg-white rounded-3xl shadow-xl shadow-blue-900/5 overflow-hidden grid grid-cols-1 lg:grid-cols-12 border border-blue-100/60">
+    <div class="w-full max-w-[1140px] min-h-[660px] bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl shadow-purple-900/10 overflow-hidden grid grid-cols-1 lg:grid-cols-12 border border-purple-200/80 relative z-10">
       <!-- Left Side: Branding & Illustration (7 columns on desktop) -->
-      <div class="lg:col-span-7 bg-gradient-to-b from-[#f4f9ff] to-[#ebf4ff] p-8 lg:p-12 flex flex-col justify-between relative border-b lg:border-b-0 lg:border-r border-blue-100/80">
+      <div class="lg:col-span-7 bg-gradient-to-br from-[#faf8ff] via-[#f3eeff] to-[#ebe4ff] p-8 lg:p-12 flex flex-col justify-between relative border-b lg:border-b-0 lg:border-r border-purple-100">
         <div>
           <!-- Top Brand Nav -->
           <div class="flex items-center justify-between">
             <a href="{% url 'home' %}" class="flex items-center gap-3 group">
-              <div class="w-11 h-11 bg-hrms-blue group-hover:bg-hrms-hover text-white rounded-xl flex items-center justify-center text-xl shadow-md shadow-blue-500/20 transition-colors">
+              <div class="w-11 h-11 bg-gradient-to-br from-violet-600 to-indigo-600 text-white rounded-xl flex items-center justify-center text-xl shadow-md shadow-violet-500/25 transition-transform group-hover:scale-105">
                 <i class="bi bi-people-fill"></i>
               </div>
               <div>
-                <h1 class="text-2xl font-extrabold text-slate-900 leading-none tracking-tight group-hover:text-hrms-blue transition-colors">HRMS</h1>
+                <h1 class="text-2xl font-extrabold text-slate-900 leading-none tracking-tight group-hover:text-violet-700 transition-colors">Smart HRMS</h1>
                 <p class="text-[11px] font-semibold text-slate-500 mt-1">Human Resource Management System</p>
               </div>
             </a>
             <a href="{% url 'home' %}"
-               class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-bold text-slate-600 hover:text-hrms-blue hover:bg-white rounded-xl border border-slate-200/80 transition-all shadow-sm">
+               class="inline-flex items-center gap-1.5 px-3.5 py-1.5 text-xs font-bold text-slate-700 hover:text-violet-700 hover:bg-white rounded-xl border border-purple-200/80 transition-all shadow-sm bg-white/60">
               <i class="bi bi-arrow-left"></i> Home
             </a>
           </div>
           <!-- Hero Section -->
           <div class="mt-8">
+            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-violet-100 text-violet-800 text-[11px] font-bold uppercase tracking-wider mb-3 border border-violet-200">
+              <i class="bi bi-person-workspace"></i> Employee Workspace Portal
+            </div>
             <h2 class="text-3xl lg:text-4xl font-extrabold text-slate-900 leading-[1.18] tracking-tight">
               Empowering
               <br />
               People, Building
               <br />
-              <span class="text-hrms-blue">Better Workplace</span>
+              <span class="text-transparent bg-clip-text bg-gradient-to-r from-violet-700 to-indigo-600">A Better Workplace</span>
             </h2>
-            <p class="text-sm font-medium text-slate-500 mt-3 max-w-md">
-              A smarter way to manage your work, growth and opportunities.
+            <p class="text-sm font-medium text-slate-600 mt-3 max-w-md">
+              A smarter way to submit work reports, manage leave, and track career performance.
             </p>
           </div>
           <!-- Feature Badges -->
-          <div class="mt-7 flex flex-col gap-4">
+          <div class="mt-7 flex flex-col gap-3.5">
             <div class="flex items-center gap-3.5">
-              <div class="w-10 h-10 rounded-full bg-white text-hrms-blue flex items-center justify-center text-lg shadow-sm border border-blue-100 shrink-0">
+              <div class="w-10 h-10 rounded-full bg-white text-violet-600 flex items-center justify-center text-lg shadow-sm border border-purple-100 shrink-0">
                 <i class="bi bi-graph-up-arrow"></i>
               </div>
               <div class="text-xs text-slate-600">
                 <strong class="text-slate-900 font-bold block text-sm">Grow</strong>
-                Your Career
+                Your Career & Skills
               </div>
             </div>
             <div class="flex items-center gap-3.5">
-              <div class="w-10 h-10 rounded-full bg-white text-hrms-blue flex items-center justify-center text-lg shadow-sm border border-blue-100 shrink-0">
+              <div class="w-10 h-10 rounded-full bg-white text-violet-600 flex items-center justify-center text-lg shadow-sm border border-purple-100 shrink-0">
                 <i class="bi bi-shield-check"></i>
               </div>
               <div class="text-xs text-slate-600">
                 <strong class="text-slate-900 font-bold block text-sm">Stay</strong>
-                Productive
+                Productive & Connected
               </div>
             </div>
             <div class="flex items-center gap-3.5">
-              <div class="w-10 h-10 rounded-full bg-white text-hrms-blue flex items-center justify-center text-lg shadow-sm border border-blue-100 shrink-0">
+              <div class="w-10 h-10 rounded-full bg-white text-violet-600 flex items-center justify-center text-lg shadow-sm border border-purple-100 shrink-0">
                 <i class="bi bi-people"></i>
               </div>
               <div class="text-xs text-slate-600">
                 <strong class="text-slate-900 font-bold block text-sm">Be Part of</strong>
-                a Great Team
+                A Great Organization
               </div>
             </div>
           </div>
         </div>
         <!-- Vector Illustration & Bottom Tagline -->
         <div class="mt-8 pt-4 flex items-end justify-between">
-          <div class="text-[10px] font-extrabold text-slate-400 tracking-[0.18em] uppercase leading-tight">
-            PEOPLE MAKE
+          <div class="text-[10px] font-extrabold text-purple-900/40 tracking-[0.18em] uppercase leading-tight">
+            PEOPLE • PROCESS
             <br />
-            ORGANIZATIONS
-            <br />
-            GREAT
+            • PROGRESS
           </div>
           <img src="{% static 'images/login_hero.png' %}"
                alt="HRMS Office Team"
-               class="w-full max-w-[380px] h-auto object-contain" />
+               class="w-full max-w-[360px] h-auto object-contain drop-shadow-md" />
         </div>
       </div>
+
       <!-- Right Side: Login Form (5 columns on desktop) -->
       <div class="lg:col-span-5 p-8 lg:p-12 flex flex-col justify-center bg-white">
         <!-- Top Navigation Links -->
         <div class="flex items-center justify-between mb-6">
           <a href="{% url 'home' %}"
-             class="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-hrms-blue transition-colors">
+             class="inline-flex items-center gap-1.5 text-xs font-bold text-slate-500 hover:text-violet-700 transition-colors">
             <i class="bi bi-house-door"></i> Back to Home
           </a>
           <a href="{% url 'role_select' %}"
-             class="text-xs font-semibold text-slate-500 hover:text-hrms-blue transition-colors">
-            Change Role
+             class="text-xs font-semibold text-violet-600 hover:text-violet-800 bg-violet-50 px-2.5 py-1 rounded-lg border border-violet-200 transition-colors">
+            <i class="bi bi-arrow-left-right me-1"></i> Change Role
           </a>
         </div>
 
         <div class="text-center mb-6">
           <h3 class="text-2xl lg:text-3xl font-extrabold text-slate-900 tracking-tight">Welcome Back!</h3>
-          <h4 class="text-base font-bold text-slate-700 mt-1">Employee Login</h4>
-          <p class="text-xs font-medium text-slate-500 mt-1">Sign in to access your employee portal</p>
+          <h4 class="text-base font-bold text-violet-700 mt-1">Employee Portal Sign In</h4>
+          <p class="text-xs font-medium text-slate-500 mt-1">Enter your credentials to access your portal</p>
         </div>
+
         <!-- Django Alert Messages -->
         {% if messages %}
           <div class="mb-5 space-y-2">
@@ -156,7 +161,8 @@
             {% endfor %}
           </div>
         {% endif %}
-        <form method="POST" action="{% url 'employees:login' %}" class="space-y-5">
+
+        <form method="POST" action="{% url 'employees:login' %}" class="space-y-4">
           {% csrf_token %}
           <!-- Email / Employee Code Field -->
           <div>
@@ -167,10 +173,9 @@
                      id="email"
                      name="email"
                      required
-                     
                      autofocus
-                     placeholder="Enter email (e.g. binitta.saji@company.com) or EMP1024"
-                     class="w-full h-11 pl-11 pr-4 text-sm bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-hrms-blue focus:ring-4 focus:ring-blue-500/10 outline-none transition-all" />
+                     placeholder="Enter email or employee code (e.g. EMP1024)"
+                     class="w-full h-11 pl-11 pr-4 text-sm bg-purple-50/40 border border-purple-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-violet-600 focus:ring-4 focus:ring-violet-500/15 outline-none transition-all" />
             </div>
           </div>
         
@@ -179,7 +184,7 @@
             <div class="flex items-center justify-between mb-1.5">
               <label for="password" class="block text-xs font-bold text-slate-700">Password</label>
               <a href="{% url 'employees:forgot_password' %}"
-                 class="text-xs font-semibold text-hrms-blue hover:underline">Forgot Password?</a>
+                 class="text-xs font-semibold text-violet-600 hover:underline">Forgot Password?</a>
             </div>
             <div class="relative flex items-center">
               <i class="bi bi-lock absolute left-4 text-slate-400 text-base pointer-events-none"></i>
@@ -188,7 +193,7 @@
                      name="password"
                      required
                      placeholder="Enter your password"
-                     class="w-full h-11 pl-11 pr-11 text-sm bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-hrms-blue focus:ring-4 focus:ring-blue-500/10 outline-none transition-all" />
+                     class="w-full h-11 pl-11 pr-11 text-sm bg-purple-50/40 border border-purple-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-violet-600 focus:ring-4 focus:ring-violet-500/15 outline-none transition-all" />
               <button type="button"
                       id="togglePasswordBtn"
                       class="absolute right-4 text-slate-400 hover:text-slate-700 text-base">
@@ -196,39 +201,32 @@
               </button>
             </div>
           </div>
+
           <!-- Remember Me Checkbox -->
           <div class="flex items-center gap-2 pt-1">
             <input type="checkbox"
                    id="remember_me"
                    name="remember_me"
-                   class="w-4 h-4 rounded border-slate-300 text-hrms-blue focus:ring-hrms-blue cursor-pointer" />
+                   class="w-4 h-4 rounded border-purple-300 text-violet-600 focus:ring-violet-500 cursor-pointer" />
             <label for="remember_me"
-                   class="text-xs font-medium text-slate-600 cursor-pointer select-none">Remember me</label>
+                   class="text-xs font-medium text-slate-600 cursor-pointer select-none">Remember this session</label>
           </div>
+
           <!-- Submit Button -->
           <button type="submit"
-                  class="w-full h-11 bg-hrms-blue hover:bg-hrms-hover text-white text-sm font-bold rounded-xl shadow-md shadow-blue-500/25 flex items-center justify-center gap-2 transition-all active:scale-[0.99]">
-            Login <i class="bi bi-arrow-right"></i>
+                  class="w-full h-11 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white text-sm font-bold rounded-xl shadow-md shadow-violet-500/25 flex items-center justify-center gap-2 transition-all active:scale-[0.99]">
+            <span>Sign In to Dashboard</span>
+            <i class="bi bi-arrow-right"></i>
           </button>
-          <!-- Divider -->
-          <div class="relative flex items-center justify-center my-4">
-            <div class="w-full border-t border-slate-200"></div>
-            <span class="absolute bg-white px-3 text-[10px] font-extrabold text-slate-400 tracking-wider uppercase">OR</span>
-          </div>
-          <!-- SSO Button -->
-          <!-- <button type="button"
-                  onclick="fillCredentials('binitta.saji@company.com', 'password123');"
-                  class="w-full h-11 bg-blue-50/80 hover:bg-blue-100/70 border border-blue-200/80 text-hrms-blue text-xs font-bold rounded-xl flex items-center justify-center gap-2 transition-all">
-            <i class="bi bi-building"></i> Login with Company Email
-          </button> -->
+
           <!-- Contact HR Link -->
           <div class="text-center pt-2 text-xs font-medium text-slate-500">
-            Need help? <a href="mailto:hr@company.com"
-    class="font-bold text-hrms-blue hover:underline">Contact HR</a>
+            Need help? <a href="mailto:hr@company.com" class="font-bold text-violet-600 hover:underline">Contact HR Support</a>
           </div>
         </form>
       </div>
     </div>
+
     <!-- Password Visibility Script -->
     <script>
       document.addEventListener('DOMContentLoaded', function() {
