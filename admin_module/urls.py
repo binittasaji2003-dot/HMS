@@ -15,6 +15,7 @@ urlpatterns = [
     path("employees/<int:employee_id>/", views.admin_employee_profile_view, name="employee_detail"),
     path("employees/<int:employee_id>/edit/", views.admin_employee_edit_view, name="employee_edit"),
     path("employees/<int:employee_id>/delete/", views.admin_employee_delete_view, name="employee_delete"),
+    path("employees/<int:employee_id>/toggle-dept-head/", views.admin_employee_toggle_dept_head_view, name="employee_toggle_dept_head"),
     path("hr-managers/", views.admin_hr_managers_management_view, name="hr_managers_list"),
     path("hr-managers/add/", views.admin_hr_manager_create_view, name="hr_manager_create"),
     path("hr-managers/reports/", views.admin_hr_reports_list_view, name="hr_reports_list"),

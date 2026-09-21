@@ -825,10 +825,14 @@ def ensure_default_leave_types():
 
 
 def get_team_lead_subordinates(user):
-    """Return queryset of active subordinates assigned to this user as Team Lead."""
-    return Employee.objects.filter(
-        Q(team_lead=user) | Q(team__team_lead=user)
-    ).exclude(user=user).distinct()
+    """Return queryset of active subordinates assigned to this user as Team Lead or Department Head."""
+    q_filter = Q(team_lead=user) | Q(team__team_lead=user)
+    
+    employee_profile = getattr(user, "employee_profile", None)
+    if employee_profile and employee_profile.is_department_head:
+        q_filter |= Q(department=employee_profile.department)
+        
+    return Employee.objects.filter(q_filter).exclude(user=user).distinct()
 
 
 def get_team_lead_leave_requests(user):

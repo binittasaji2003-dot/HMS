@@ -536,6 +536,31 @@ def admin_employee_delete_view(request, employee_id):
     return render(request, "admin_module/confirm_delete.html", context)
 
 
+@admin_required
+def admin_employee_toggle_dept_head_view(request, employee_id):
+    """Toggle Department Head status for an employee."""
+    employee = get_object_or_404(
+        Employee.objects.select_related("user", "department"),
+        pk=employee_id,
+    )
+    
+    if not employee.department:
+        messages.error(request, "Employee must be assigned to a department first.")
+        return redirect("admin_module:employees_list")
+
+    if request.method == "POST":
+        department = employee.department
+        if department.department_leader == employee.user:
+            department.department_leader = None
+            messages.success(request, f"{employee.user.name or employee.user.email} is no longer the Department Head of {department.name}.")
+        else:
+            department.department_leader = employee.user
+            messages.success(request, f"{employee.user.name or employee.user.email} is now the Department Head of {department.name}.")
+        department.save(update_fields=["department_leader"])
+        
+    return redirect(request.META.get("HTTP_REFERER", "admin_module:employees_list"))
+
+
 # ============================================================================
 # HR MANAGER MANAGEMENT VIEWS
 # ============================================================================

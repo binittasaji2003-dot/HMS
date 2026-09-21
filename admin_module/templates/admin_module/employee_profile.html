@@ -38,7 +38,12 @@
         </div>
       {% endif %}
       <div>
-        <h2 class="h4 mb-1 text-dark fw-bold">{{ employee.user.name|default:employee.user.email }}</h2>
+        <h2 class="h4 mb-1 text-dark fw-bold">
+          {{ employee.user.name|default:employee.user.email }}
+          {% if employee.is_department_head %}
+            <span class="badge bg-warning text-dark ms-2 align-middle" style="font-size: 0.75rem;">Department Head</span>
+          {% endif %}
+        </h2>
         <div class="d-flex align-items-center gap-2 flex-wrap text-secondary small">
           <span><i class="bi bi-envelope me-1"></i>{{ employee.user.email }}</span>
           <span>&bull;</span>
@@ -76,6 +81,15 @@
         <span class="badge-status badge-status-pending" style="font-size: 0.85rem; padding: 0.35rem 0.85rem;">
           {{ employee.get_employment_status_display|default:employee.employment_status }}
         </span>
+      {% endif %}
+
+      {% if employee.department %}
+      <form action="{% url 'admin_module:employee_toggle_dept_head' employee.pk %}" method="POST" class="d-inline mb-0 me-1">
+        {% csrf_token %}
+        <button type="submit" class="btn-secondary-admin py-1 px-2 text-warning" title="Toggle Department Head" style="font-size: 0.8rem; border-color: rgba(245, 158, 11, 0.3);">
+          <i class="bi {% if employee.is_department_head %}bi-star-fill{% else %}bi-star{% endif %} me-1"></i> Dept Head
+        </button>
+      </form>
       {% endif %}
 
       <a href="{% url 'admin_module:employee_delete' employee.pk %}" class="btn-secondary-admin py-1 px-2 text-danger" title="Deactivate / Terminate" style="font-size: 0.8rem; border-color: rgba(239, 68, 68, 0.3);">

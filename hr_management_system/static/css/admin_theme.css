@@ -17,9 +17,9 @@
 :root {
   /* Core Colors */
   --bg-main: #F8FAFC;
-  --bg-sidebar: #172B4D;
-  --bg-sidebar-hover: rgba(255, 255, 255, 0.08);
-  --bg-sidebar-active: #3B82F6;
+  --bg-sidebar: #FFFFFF;
+  --bg-sidebar-hover: #F1F5F9;
+  --bg-sidebar-active: #EFF6FF;
   --bg-card: #FFFFFF;
   --bg-card-hover: #F8FAFC;
   --bg-input: #FFFFFF;
@@ -30,8 +30,8 @@
   --text-secondary: #64748B;
   --text-muted: #94A3B8;
   --text-inverse: #FFFFFF;
-  --text-sidebar: #E2E8F0;
-  --text-sidebar-muted: #94A3B8;
+  --text-sidebar: #334155;
+  --text-sidebar-muted: #64748B;
 
   /* Brand Accents */
   --primary: #3B82F6;
@@ -178,7 +178,7 @@ a:hover {
   z-index: 1045;
   display: flex;
   flex-direction: column;
-  border-right: 1px solid rgba(255, 255, 255, 0.08);
+  border-right: 1px solid var(--border-color);
   box-shadow: 2px 0 12px rgba(0, 0, 0, 0.15);
   transition: transform 0.25s ease;
 }
@@ -189,8 +189,8 @@ a:hover {
   display: flex;
   align-items: center;
   gap: 0.85rem;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  background-color: rgba(0, 0, 0, 0.12);
+  border-bottom: 1px solid var(--border-color);
+  background-color: var(--bg-card);
   flex-shrink: 0;
 }
 
@@ -210,7 +210,7 @@ a:hover {
 .sidebar-brand-title {
   font-size: 1.05rem;
   font-weight: 700;
-  color: #FFFFFF;
+  color: var(--text-sidebar);
   line-height: 1.2;
   letter-spacing: -0.01em;
 }
@@ -236,7 +236,7 @@ a:hover {
 }
 
 .sidebar-nav-container::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(0, 0, 0, 0.15);
   border-radius: 4px;
 }
 
@@ -252,7 +252,7 @@ a:hover {
   width: 100%;
   padding: 0.65rem 0.85rem;
   border-radius: var(--border-radius-md);
-  color: #CBD5E1;
+  color: var(--text-sidebar);
   background: transparent;
   border: 1px solid transparent;
   font-size: 0.875rem;
@@ -272,28 +272,28 @@ a:hover {
   font-size: 1.1rem;
   width: 20px;
   text-align: center;
-  color: #94A3B8;
+  color: var(--text-sidebar-muted);
   transition: color 0.15s ease;
 }
 
 .sidebar-btn-link:hover {
   background: var(--bg-sidebar-hover);
-  color: #FFFFFF;
+  color: var(--text-sidebar);
 }
 
 .sidebar-btn-link:hover i {
-  color: #FFFFFF;
+  color: var(--text-sidebar);
 }
 
 .sidebar-chevron {
   font-size: 0.75rem;
-  color: #94A3B8;
+  color: var(--text-sidebar-muted);
   transition: transform 0.2s ease;
 }
 
 .sidebar-item.open > .sidebar-btn-link .sidebar-chevron {
   transform: rotate(180deg);
-  color: #FFFFFF;
+  color: var(--text-sidebar);
 }
 
 .sidebar-btn-link.active-main {
@@ -312,7 +312,7 @@ a:hover {
   flex-direction: column;
   padding: 0.25rem 0 0.35rem 1.75rem;
   gap: 0.2rem;
-  border-left: 2px solid rgba(255, 255, 255, 0.1);
+  border-left: 2px solid var(--border-color);
   margin-left: 1.25rem;
   margin-top: 0.2rem;
 }
@@ -327,7 +327,7 @@ a:hover {
   gap: 0.65rem;
   padding: 0.45rem 0.75rem;
   border-radius: var(--border-radius-sm);
-  color: #94A3B8;
+  color: var(--text-sidebar-muted);
   font-size: 0.825rem;
   font-weight: 500;
   text-decoration: none;
@@ -337,32 +337,32 @@ a:hover {
 .sidebar-sublink i {
   font-size: 0.95rem;
   width: 18px;
-  color: #64748B;
+  color: var(--text-sidebar-muted);
 }
 
 .sidebar-sublink:hover {
-  color: #FFFFFF;
-  background: rgba(255, 255, 255, 0.05);
+  color: var(--primary);
+  background: var(--bg-sidebar-hover);
 }
 
 .sidebar-sublink:hover i {
-  color: #60A5FA;
+  color: var(--primary);
 }
 
 .sidebar-sublink.active-sub {
-  color: #60A5FA !important;
-  background: rgba(59, 130, 246, 0.12) !important;
+  color: var(--primary) !important;
+  background: var(--bg-sidebar-active) !important;
   font-weight: 600;
 }
 
 .sidebar-sublink.active-sub i {
-  color: #60A5FA !important;
+  color: var(--primary) !important;
 }
 
 .sidebar-footer-motto {
   padding: 1rem 1.25rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  background-color: rgba(0, 0, 0, 0.15);
+  border-top: 1px solid var(--border-color);
+  background-color: var(--bg-card);
   text-align: center;
   flex-shrink: 0;
 }

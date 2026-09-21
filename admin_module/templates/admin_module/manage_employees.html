@@ -58,7 +58,12 @@
                     {% if employee.user.name %}{{ employee.user.name|slice:":1"|upper }}{% else %}E{% endif %}
                   </div>
                   <div>
-                    <div class="fw-semibold text-dark emp-name">{{ employee.user.name|default:employee.user.email }}</div>
+                    <div class="fw-semibold text-dark emp-name">
+                      {{ employee.user.name|default:employee.user.email }}
+                      {% if employee.is_department_head %}
+                        <span class="badge bg-warning text-dark ms-1" style="font-size: 0.65rem;">Dept Head</span>
+                      {% endif %}
+                    </div>
                     <div class="text-muted small">{{ employee.user.email }}{% if employee.employee_code %} &bull; <span class="fw-medium text-secondary">{{ employee.employee_code }}</span>{% endif %}</div>
                   </div>
                 </div>
@@ -93,6 +98,14 @@
                   <a href="{% url 'admin_module:employee_detail' employee.pk %}" class="table-action-btn btn-action-view" title="View Profile">
                     <i class="bi bi-eye"></i>
                   </a>
+                  {% if employee.department %}
+                  <form action="{% url 'admin_module:employee_toggle_dept_head' employee.pk %}" method="POST" class="d-inline mb-0">
+                    {% csrf_token %}
+                    <button type="submit" class="table-action-btn btn-action-edit" title="Toggle Department Head" style="border:none; background:none;">
+                      <i class="bi {% if employee.is_department_head %}bi-star-fill text-warning{% else %}bi-star{% endif %}"></i>
+                    </button>
+                  </form>
+                  {% endif %}
                   <a href="{% url 'admin_module:employee_edit' employee.pk %}" class="table-action-btn btn-action-edit" title="Edit Employee">
                     <i class="bi bi-pencil-square"></i>
                   </a>

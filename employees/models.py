@@ -238,10 +238,19 @@ class Employee(models.Model):
                 self.save()
 
     @property
+    def is_department_head(self):
+        """Check if this employee is the head of their department."""
+        if not self.user or not self.department:
+            return False
+        return self.department.department_leader == self.user
+
+    @property
     def is_team_lead(self):
-        """Check if this employee leads any active team or active employees."""
+        """Check if this employee leads any active team, active employees, or is department head."""
         if not self.user:
             return False
+        if self.is_department_head:
+            return True
         return (
             self.user.led_employees.filter(employment_status="ACTIVE").exclude(pk=self.pk).exists()
             or self.user.led_teams.filter(is_active=True).exists()
