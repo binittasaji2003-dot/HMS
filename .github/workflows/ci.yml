@@ -23,10 +23,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout Code Repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Set up Python
-        uses: actions/setup-python@v6
+        uses: actions/setup-python@v7
         with:
           python-version-file: '.python-version'
       # Consider using pre-commit.ci for open source project
@@ -39,13 +39,13 @@ jobs:
 
     steps:
       - name: Checkout Code Repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
       - name: Build and cache local backend
-        uses: docker/bake-action@v6
+        uses: docker/bake-action@v7
         with:
           push: false
           load: true
@@ -58,7 +58,7 @@ jobs:
             postgres.cache-to=type=gha,scope=postgres-cached-tests,mode=max
 
       - name: Build and cache docs
-        uses: docker/bake-action@v6
+        uses: docker/bake-action@v7
         with:
           push: false
           load: true
