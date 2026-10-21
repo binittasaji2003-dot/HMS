@@ -25,7 +25,7 @@
 
 {% if booked_interview and application.status == 'INTERVIEW_SCHEDULED' %}
 <!-- Currently Booked Slot Confirmation Card -->
-<div class="card card-custom border-0 shadow-sm p-4 mb-4" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); border-left: 5px solid #22c55e !important;">
+<div class="card card-custom border-0 shadow-sm p-4 mb-4" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.15) 0%, rgba(5, 150, 105, 0.25) 100%); border-left: 5px solid #10B981 !important; border: 1px solid rgba(16, 185, 129, 0.35);">
     <div class="d-flex align-items-start justify-content-between flex-wrap gap-3">
         <div>
             <div class="d-flex align-items-center gap-2 mb-2">
@@ -90,7 +90,7 @@
     <div class="row g-3">
         {% for slot in slots %}
         <div class="col-md-6 col-lg-4">
-            <div class="card h-100 border rounded-4 p-3 hover-shadow transition" style="border-color: #e2e8f0; background: #ffffff;">
+            <div class="card slot-card h-100 p-3 hover-shadow transition">
                 <div class="d-flex justify-content-between align-items-start mb-2">
                     <span class="badge bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-2 py-1">
                         <i class="bi bi-calendar2-event me-1"></i>{{ slot.interview_date|date:"D, M d, Y" }}

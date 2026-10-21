@@ -1,9 +1,11 @@
+import json
 from datetime import timedelta
 
 from django.contrib import messages
 from django.contrib.auth import get_user_model, login, logout
 from django.db import transaction
 from django.db.models import Avg, Count, Q
+from django.db.models.deletion import ProtectedError
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
@@ -24,7 +26,7 @@ from .forms import (
     HRManagerCreateForm,
     HRManagerProfileForm,
 )
-from .models import AdminNotification, Announcement, Department, EmployeeApproval
+from .models import AdminNotification, Announcement, Department, EmployeeApproval, Holiday
 
 from employees.models import (
     Employee,
@@ -125,6 +127,16 @@ def admin_register_view(request):
 
 
 def admin_login_view(request):
+    """Unified login: redirect to the single system login page."""
+    if request.user.is_authenticated:
+        return redirect("users:redirect")
+    next_url = request.GET.get("next")
+    if next_url:
+        return redirect(f"{reverse('account_login')}?next={next_url}")
+    return redirect("account_login")
+
+
+def _legacy_admin_login_view(request):
     """Sign in an existing System Administrator."""
     if request.user.is_authenticated and getattr(request.user, "role", None) == User.RoleChoices.ADMIN:
         return redirect("admin_module:admin_dashboard")
@@ -208,6 +220,20 @@ def admin_dashboard_view(request):
         "employee", "employee__user", "employee__department"
     )[:5]
 
+    holidays = Holiday.objects.filter(is_active=True).order_by("date")
+    holidays_data = [
+        {
+            "id": f"holiday-{h.holiday_id}",
+            "title": h.name,
+            "date": h.date.strftime("%Y-%m-%d"),
+            "category": h.holiday_type,
+            "description": h.description or "Public Holiday",
+            "is_public": (h.holiday_type == "PUBLIC"),
+        }
+        for h in holidays
+    ]
+    holidays_json = json.dumps(holidays_data)
+
     pending_warnings = PerformanceWarning.objects.filter(
         status__in=["OPEN", "SENT_TO_ADMIN"]
     ).select_related("employee", "employee__user", "issued_by")[:5]
@@ -225,6 +251,7 @@ def admin_dashboard_view(request):
         "dept_summary": dept_summary,
         "pending_approvals": pending_approvals,
         "pending_warnings": pending_warnings,
+        "holidays_json": holidays_json,
     })
     return render(request, "admin_module/dashboard.html", context)
 
@@ -330,34 +357,93 @@ def admin_department_edit_view(request, department_id):
 
 @admin_required
 def admin_department_delete_view(request, department_id):
-    """Delete a department with safety checks."""
-    department = get_object_or_404(Department, pk=department_id)
-    employee_count = department.employees.count()
-    hr_manager_count = department.hr_managers.count()
+    """Delete a department with safety checks and record reassignment support."""
+    department = get_object_or_404(
+        Department.objects.prefetch_related("employees__user", "job_vacancies", "teams", "hr_managers__user"),
+        pk=department_id,
+    )
+    employees = department.employees.all()
+    job_vacancies = department.job_vacancies.all()
+    teams = department.teams.all()
+    hr_managers = department.hr_managers.all()
+
+    employee_count = employees.count()
+    vacancy_count = job_vacancies.count()
+    team_count = teams.count()
+    hr_manager_count = hr_managers.count()
+
+    has_blocking_relations = (employee_count > 0 or vacancy_count > 0)
+    other_departments = Department.objects.exclude(pk=department_id).order_by("name")
 
     if request.method == "POST":
+        reassign_to_id = request.POST.get("reassign_to_department")
         name = department.name
-        department.delete()
-        messages.success(request, f"Department '{name}' was deleted.")
-        return redirect("admin_module:departments_list")
+
+        try:
+            with transaction.atomic():
+                if reassign_to_id:
+                    target_dept = get_object_or_404(Department, pk=reassign_to_id)
+                    # Reassign all associated records safely
+                    if employee_count > 0:
+                        department.employees.all().update(department=target_dept)
+                    if vacancy_count > 0:
+                        department.job_vacancies.all().update(department=target_dept)
+                    if team_count > 0:
+                        department.teams.all().update(department=target_dept)
+                    if hr_manager_count > 0:
+                        department.hr_managers.all().update(department=target_dept)
+
+                    department.delete()
+                    messages.success(
+                        request,
+                        f"Department '{name}' was deleted successfully. "
+                        f"All associated records ({employee_count} employee(s), {vacancy_count} vacancy/vacancies) "
+                        f"were safely reassigned to '{target_dept.name}'."
+                    )
+                    return redirect("admin_module:departments_list")
+                else:
+                    if has_blocking_relations:
+                        messages.error(
+                            request,
+                            f"Cannot delete department '{name}' because it contains {employee_count} employee(s) "
+                            f"and {vacancy_count} job vacancy/vacancies. "
+                            f"Please choose a destination department to reassign these records."
+                        )
+                        return redirect("admin_module:department_delete", department_id=department_id)
+
+                    department.delete()
+                    messages.success(request, f"Department '{name}' was deleted successfully.")
+                    return redirect("admin_module:departments_list")
+
+        except ProtectedError as e:
+            messages.error(
+                request,
+                f"Cannot delete department '{name}' because it is still referenced by other protected records. "
+                "Please reassign or delete them first."
+            )
+            return redirect("admin_module:departments_list")
+        except Exception as e:
+            messages.error(request, f"Error deleting department: {str(e)}")
+            return redirect("admin_module:department_delete", department_id=department_id)
 
     context = get_sidebar_context()
     context.update({
         "page_title": f"Delete Department: {department.name}",
         "current_page": "departments",
-        "object_type": "Department",
-        "object_name": department.name,
-        "object_id": department_id,
-        "delete_url": "admin_module:department_delete",
+        "department": department,
+        "employees": employees,
+        "job_vacancies": job_vacancies,
+        "teams": teams,
+        "hr_managers": hr_managers,
+        "employee_count": employee_count,
+        "vacancy_count": vacancy_count,
+        "team_count": team_count,
+        "hr_manager_count": hr_manager_count,
+        "has_blocking_relations": has_blocking_relations,
+        "other_departments": other_departments,
         "back_url": "admin_module:departments_list",
-        "warning_message": (
-            f"This department has {employee_count} employee(s) and {hr_manager_count} HR manager(s). "
-            "Deleting it will remove their department assignments."
-            if employee_count > 0 or hr_manager_count > 0
-            else None
-        ),
     })
-    return render(request, "admin_module/confirm_delete.html", context)
+    return render(request, "admin_module/department_confirm_delete.html", context)
 
 
 # ============================================================================
@@ -2029,24 +2115,77 @@ def admin_notification_mark_read_view(request, notification_id):
 
 @admin_required
 def admin_reports_employee_weekly_view(request):
-    """Employee weekly activity reports."""
+    """Employee weekly activity reports with search, filtering, and review status."""
     reports = EmployeeReport.objects.select_related(
-        "employee", "employee__user", "employee__department", "reviewed_by", "reviewed_by__user"
+        "employee", "employee__user", "employee__department", "reviewed_by", "reviewed_by__user", "performance_review"
     ).order_by("-week_start_date")
+
+    search = request.GET.get("q", "").strip()
+    status_filter = request.GET.get("status", "").strip()
+    from_date = request.GET.get("from", "").strip()
+    to_date = request.GET.get("to", "").strip()
+
+    filtered = reports
+    if search:
+        filtered = filtered.filter(
+            Q(employee__user__name__icontains=search) |
+            Q(employee__user__email__icontains=search) |
+            Q(employee__employee_code__icontains=search) |
+            Q(work_summary__icontains=search) |
+            Q(title__icontains=search)
+        )
+    if status_filter:
+        filtered = filtered.filter(status=status_filter)
+    if from_date:
+        filtered = filtered.filter(week_start_date__gte=from_date)
+    if to_date:
+        filtered = filtered.filter(week_end_date__lte=to_date)
+
+    submitted_count = reports.filter(status__in=["SUBMITTED", "UNDER_REVIEW"]).count()
+    reviewed_count = reports.filter(status="REVIEWED").count()
+    needs_correction_count = reports.filter(status="NEEDS_CORRECTION").count()
 
     context = get_sidebar_context()
     context.update({
         "page_title": "Employee Weekly Reports - Smart HRMS Admin",
         "current_page": "reports",
-        "reports": reports,
+        "reports": filtered,
         "total_reports": reports.count(),
+        "submitted_count": submitted_count,
+        "reviewed_count": reviewed_count,
+        "needs_correction_count": needs_correction_count,
+        "filtered_count": filtered.count(),
+        "search": search,
+        "status_filter": status_filter,
+        "from_date": from_date,
+        "to_date": to_date,
+        "statuses": EmployeeReport.REPORT_STATUS,
     })
     return render(request, "admin_module/reports_employee_weekly.html", context)
 
 
 @admin_required
+def admin_reports_employee_weekly_detail_view(request, report_id):
+    """Admin view to inspect full employee weekly report deliverables and HR review feedback."""
+    report = get_object_or_404(
+        EmployeeReport.objects.select_related(
+            "employee", "employee__user", "employee__department", "reviewed_by", "reviewed_by__user", "performance_review"
+        ),
+        pk=report_id
+    )
+    context = get_sidebar_context()
+    context.update({
+        "page_title": f"Report Review: {report.employee.user.name or report.employee.employee_code} - Smart HRMS Admin",
+        "current_page": "reports",
+        "report": report,
+        "review": getattr(report, "performance_review", None),
+    })
+    return render(request, "admin_module/reports_employee_weekly_detail.html", context)
+
+
+@admin_required
 def admin_reports_recruitment_view(request):
-    """Recruitment analytics report."""
+    """Recruitment analysis and hiring pipeline report."""
     period = request.GET.get("period", "all")
     report_periods = [
         ("all", "All Time"),
@@ -2065,8 +2204,9 @@ def admin_reports_recruitment_view(request):
     vacancies = JobVacancy.objects.select_related("department").all().order_by("-posted_date")
     total_jobs = vacancies.count()
     open_jobs = vacancies.filter(status__iexact="OPEN").count()
+    closed_jobs = vacancies.filter(status__iexact="CLOSED").count()
 
-    apps = JobApplication.objects.all()
+    apps = JobApplication.objects.select_related("candidate__user", "vacancy__department", "screening_result").all()
     if period == "30d":
         cutoff = timezone.now() - timedelta(days=30)
         apps = apps.filter(applied_at__gte=cutoff)
@@ -2077,49 +2217,99 @@ def admin_reports_recruitment_view(request):
         apps = apps.filter(applied_at__year=timezone.now().year)
 
     applications = apps.count()
-    shortlisted = apps.filter(status__in=["SHORTLISTED", "RESUME_REVIEW", "APTITUDE"]).count()
-    selected = apps.filter(status="SELECTED").count()
-    hired = 0
-    rejected = apps.filter(status="REJECTED").count()
+
+    # Milestone tracking across full recruitment pipeline
+    shortlisted_apps = apps.filter(
+        Q(status__in=[
+            "SHORTLISTED", "APTITUDE_TEST_SCHEDULED", "APTITUDE", "APTITUDE_REVIEW",
+            "INTERVIEW_SCHEDULING", "INTERVIEW_SCHEDULED", "INTERVIEW", "INTERVIEW_REVIEW",
+            "SELECTED", "FORWARDED_TO_ADMIN", "HIRED"
+        ])
+        | Q(screening_result__status="SHORTLISTED")
+    ).distinct()
+    shortlisted = shortlisted_apps.count()
+
+    selected_apps = apps.filter(status__in=["SELECTED", "FORWARDED_TO_ADMIN"])
+    selected = selected_apps.count()
+
+    hired_apps = apps.filter(status="HIRED")
+    hired = hired_apps.count()
+
+    rejected_apps = apps.filter(status="REJECTED")
+    rejected = rejected_apps.count()
+
+    # Active Pipeline Stage Distribution
+    pipeline_in_review = apps.filter(status__in=[
+        "APPLIED", "RESUME_REVIEW", "SHORTLISTED", "APTITUDE_TEST_SCHEDULED",
+        "APTITUDE", "APTITUDE_REVIEW", "INTERVIEW_SCHEDULING", "INTERVIEW_SCHEDULED",
+        "INTERVIEW", "INTERVIEW_REVIEW"
+    ]).count()
+    pipeline_selected = selected
+    pipeline_hired = hired
+    pipeline_rejected = rejected
+
+    hire_rate = round((hired / applications * 100), 1) if applications > 0 else 0
+    shortlist_rate = round((shortlisted / applications * 100), 1) if applications > 0 else 0
 
     job_rows = []
     chart_labels = []
     chart_values = []
+    chart_hired_values = []
+
     for v in vacancies:
         v_apps = apps.filter(vacancy=v)
         v_app_count = v_apps.count()
-        v_shortlisted = v_apps.filter(status__in=["SHORTLISTED", "RESUME_REVIEW", "APTITUDE"]).count()
-        v_selected = v_apps.filter(status="SELECTED").count()
+        v_shortlisted = v_apps.filter(
+            Q(status__in=[
+                "SHORTLISTED", "APTITUDE_TEST_SCHEDULED", "APTITUDE", "APTITUDE_REVIEW",
+                "INTERVIEW_SCHEDULING", "INTERVIEW_SCHEDULED", "INTERVIEW", "INTERVIEW_REVIEW",
+                "SELECTED", "FORWARDED_TO_ADMIN", "HIRED"
+            ])
+            | Q(screening_result__status="SHORTLISTED")
+        ).distinct().count()
+        v_selected = v_apps.filter(status__in=["SELECTED", "FORWARDED_TO_ADMIN"]).count()
+        v_hired = v_apps.filter(status="HIRED").count()
         v_rejected = v_apps.filter(status="REJECTED").count()
+        v_hire_rate = round((v_hired / v_app_count * 100), 0) if v_app_count > 0 else 0
 
         job_rows.append({
             "vacancy": v,
             "applicants": v_app_count,
             "shortlisted": v_shortlisted,
             "selected": v_selected,
-            "hired": 0,
+            "hired": v_hired,
             "rejected": v_rejected,
+            "hire_rate": int(v_hire_rate),
         })
-        chart_labels.append(v.title[:20])
+        chart_labels.append(v.title)
         chart_values.append(v_app_count)
+        chart_hired_values.append(v_hired)
 
     context = get_sidebar_context()
     context.update({
-        "page_title": "Recruitment Analytics Report - Smart HRMS Admin",
-        "current_page": "reports",
+        "page_title": "Recruitment Analysis - Smart HRMS Admin",
+        "current_page": "reports_recruitment",
         "total_jobs": total_jobs,
         "open_jobs": open_jobs,
+        "closed_jobs": closed_jobs,
         "applications": applications,
         "shortlisted": shortlisted,
         "selected": selected,
         "hired": hired,
         "rejected": rejected,
+        "hire_rate": hire_rate,
+        "shortlist_rate": shortlist_rate,
+        "pipeline_in_review": pipeline_in_review,
+        "pipeline_selected": pipeline_selected,
+        "pipeline_hired": pipeline_hired,
+        "pipeline_rejected": pipeline_rejected,
         "period": period,
         "period_label": period_label,
         "report_periods": report_periods,
         "job_rows": job_rows,
         "chart_labels": chart_labels,
         "chart_values": chart_values,
+        "chart_hired_values": chart_hired_values,
     })
     return render(request, "admin_module/reports_recruitment.html", context)
 

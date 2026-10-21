@@ -1322,20 +1322,24 @@ document.addEventListener("DOMContentLoaded", function() {
 .source-card {
   cursor: pointer;
   transition: all 0.2s ease-in-out;
+  background-color: var(--cand-bg-subtle) !important;
+  border-color: var(--cand-border) !important;
 }
 .source-card:hover {
   transform: translateY(-2px);
-  border-color: #0d6efd !important;
+  border-color: var(--cand-border-glow) !important;
 }
 .active-source {
-  border-color: #0d6efd !important;
-  box-shadow: 0 4px 12px rgba(13, 110, 253, 0.08);
+  background-color: #1E133C !important;
+  border-color: #8B5CF6 !important;
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.3) !important;
 }
 .step-indicator {
   transition: all 0.2s ease-in-out;
 }
 .step-indicator.active {
-  background-color: #f1f5f9;
+  background-color: rgba(139, 92, 246, 0.20) !important;
+  border: 1px solid var(--cand-primary-border) !important;
 }
 .extra-small {
   font-size: 11px;

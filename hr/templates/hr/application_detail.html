@@ -94,10 +94,10 @@
         <div class="d-flex align-items-center gap-3">
             {% if app.candidate.profile_photo %}
                 <img src="{{ app.candidate.profile_photo.url }}" alt="{{ app.candidate.first_name }} {{ app.candidate.last_name }}"
-                     style="width: 76px; height: 76px; border-radius: 16px; object-fit: cover; border: 2px solid rgba(26, 115, 232, 0.35); box-shadow: 0 4px 12px rgba(26, 115, 232, 0.2);">
+                     style="width: 76px; height: 76px; border-radius: 16px; object-fit: cover; border: 2px solid rgba(192, 132, 252, 0.4); box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);">
             {% else %}
                 <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold text-white fs-3"
-                     style="width: 76px; height: 76px; border-radius: 16px !important; background: linear-gradient(135deg, #1a73e8, #1557b0); box-shadow: 0 4px 12px rgba(26, 115, 232, 0.25);">
+                     style="width: 76px; height: 76px; border-radius: 16px !important; background: linear-gradient(135deg, #7C3AED, #9333EA); box-shadow: 0 4px 12px rgba(124, 58, 237, 0.35);">
                     {{ app.candidate.first_name|default:app.candidate.user.email|slice:":1"|upper }}
                 </div>
             {% endif %}
@@ -330,7 +330,7 @@
         </div>
     {% endif %}
 {% elif app.status == 'SELECTED' %}
-    <div class="card card-custom p-4 mb-4 border-start border-4 border-primary shadow-sm" style="background: #f0f7ff;">
+    <div class="card card-custom p-4 mb-4 border-start border-4 border-primary shadow-sm" style="background: rgba(139, 92, 246, 0.14);">
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
             <div class="d-flex align-items-center gap-3">
                 <div class="rounded-circle p-3 bg-primary bg-opacity-10 text-primary" style="font-size: 1.5rem;">

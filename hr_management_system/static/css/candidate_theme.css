@@ -1,0 +1,816 @@
+/* ==========================================================================
+   SMART HRMS - CANDIDATE PORTAL DARK VIOLET & LUMINOUS LAVENDER THEME
+   Palette Architecture:
+   - Deep Midnight Obsidian Canvas:  #0C0818
+   - Top Navigation Bar:             #100A22
+   - Elevated Card Surfaces:         #170F30 (Hover: #211642)
+   - Inner Containers & Sub-boxes:   #120926
+   - Form Inputs & Textareas:        #110A22
+   - Primary Electric Violet:        #8B5CF6 (Hover: #7C3AED)
+   - Primary Gradient:               linear-gradient(135deg, #7C3AED 0%, #9333EA 100%)
+   - Luminous Lavender Accents:      #C4B5FD / #DDD6FE
+   - Off-White Main Text:            #FFFFFF / #F5F3FF
+   - Muted Slate-Lavender Text:      #9D93BE
+   - Borders & Subtle Glow:          rgba(167, 139, 250, 0.20)
+   ========================================================================== */
+
+:root {
+  --cand-bg-canvas: #0C0818;
+  --cand-bg-nav: #100A22;
+  --cand-bg-card: #170F30;
+  --cand-bg-card-hover: #211642;
+  --cand-bg-subtle: #120926;
+  --cand-bg-input: #110A22;
+  --cand-bg-dropdown: #170F30;
+
+  --cand-primary: #8B5CF6;
+  --cand-primary-hover: #7C3AED;
+  --cand-primary-gradient: linear-gradient(135deg, #7C3AED 0%, #9333EA 100%);
+  --cand-primary-soft: rgba(139, 92, 246, 0.20);
+  --cand-primary-border: rgba(139, 92, 246, 0.40);
+
+  --cand-lavender: #C4B5FD;
+  --cand-lavender-accent: #DDD6FE;
+  --cand-lavender-soft: rgba(192, 132, 252, 0.20);
+  --cand-lavender-border: rgba(192, 132, 252, 0.40);
+
+  --cand-text-main: #FFFFFF;
+  --cand-text-sub: #F5F3FF;
+  --cand-text-secondary: #C4B5FD;
+  --cand-text-muted: #9D93BE;
+
+  --cand-border: rgba(167, 139, 250, 0.20);
+  --cand-border-subtle: rgba(167, 139, 250, 0.12);
+  --cand-border-glow: rgba(167, 139, 250, 0.35);
+
+  --cand-success: #10B981;
+  --cand-success-soft: rgba(16, 185, 129, 0.20);
+  --cand-success-border: rgba(16, 185, 129, 0.40);
+
+  --cand-warning: #F59E0B;
+  --cand-warning-soft: rgba(245, 158, 11, 0.20);
+  --cand-warning-border: rgba(245, 158, 11, 0.40);
+
+  --cand-danger: #EF4444;
+  --cand-danger-soft: rgba(239, 68, 68, 0.20);
+  --cand-danger-border: rgba(239, 68, 68, 0.40);
+
+  --cand-info: #06B6D4;
+  --cand-info-soft: rgba(6, 182, 212, 0.20);
+  --cand-info-border: rgba(6, 182, 212, 0.40);
+
+  --cand-shadow-card: 0 4px 20px -2px rgba(6, 3, 14, 0.6), 0 0 1px 1px rgba(167, 139, 250, 0.16);
+  --cand-shadow-elevated: 0 8px 32px rgba(6, 3, 14, 0.8), 0 0 2px 1px rgba(139, 92, 246, 0.3);
+}
+
+/* ==========================================================================
+   Global Base & Typography
+   ========================================================================== */
+html,
+body {
+  background-color: var(--cand-bg-canvas) !important;
+  color: var(--cand-text-sub) !important;
+  font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif !important;
+  min-height: 100vh;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--cand-text-main) !important;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+
+.text-dark {
+  color: var(--cand-text-main) !important;
+}
+
+.text-muted {
+  color: var(--cand-text-muted) !important;
+}
+
+.text-secondary {
+  color: var(--cand-text-secondary) !important;
+}
+
+.text-primary {
+  color: #C084FC !important;
+}
+
+.text-success {
+  color: #34D399 !important;
+}
+
+.text-warning {
+  color: #FBBF24 !important;
+}
+
+.text-danger {
+  color: #F87171 !important;
+}
+
+.text-info {
+  color: #22D3EE !important;
+}
+
+/* Links */
+a {
+  color: var(--cand-lavender);
+  transition: all 0.2s ease;
+}
+
+a:hover {
+  color: var(--cand-text-main);
+}
+
+a.text-dark {
+  color: var(--cand-text-sub) !important;
+}
+
+a.text-dark:hover,
+a.hover-primary:hover {
+  color: #DDD6FE !important;
+}
+
+/* Custom Lavender Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: var(--cand-bg-canvas);
+}
+::-webkit-scrollbar-thumb {
+  background: #3B2464;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #5B359B;
+}
+
+/* ==========================================================================
+   Candidate Top Navigation Bar
+   ========================================================================== */
+.candidate-navbar {
+  background: var(--cand-bg-nav) !important;
+  border-bottom: 1px solid var(--cand-border) !important;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5) !important;
+  padding: 12px 0;
+  backdrop-filter: blur(12px);
+}
+
+.brand-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+  color: #FFFFFF !important;
+  font-weight: 800;
+  font-size: 20px;
+  letter-spacing: -0.5px;
+}
+
+.brand-logo span.text-primary {
+  color: var(--cand-lavender) !important;
+  text-shadow: 0 0 12px rgba(196, 181, 253, 0.4);
+}
+
+.brand-icon {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: var(--cand-primary-gradient) !important;
+  color: #FFFFFF !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  box-shadow: 0 0 15px rgba(139, 92, 246, 0.5) !important;
+}
+
+/* Nav items */
+.nav-link-custom {
+  color: var(--cand-lavender) !important;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.nav-link-custom:hover {
+  color: #FFFFFF !important;
+  background: rgba(139, 92, 246, 0.18) !important;
+}
+
+.nav-link-custom.active {
+  color: #FFFFFF !important;
+  background: var(--cand-primary-gradient) !important;
+  box-shadow: 0 2px 12px rgba(124, 58, 237, 0.45) !important;
+  border: 1px solid rgba(192, 132, 252, 0.35) !important;
+  font-weight: 700;
+}
+
+/* User pill & Notifications trigger button */
+.candidate-navbar .btn-light.border {
+  background: var(--cand-bg-card) !important;
+  border-color: var(--cand-border) !important;
+  color: var(--cand-text-sub) !important;
+  transition: all 0.2s ease;
+}
+
+.candidate-navbar .btn-light.border:hover {
+  background: var(--cand-bg-card-hover) !important;
+  border-color: var(--cand-border-glow) !important;
+  color: #FFFFFF !important;
+}
+
+.candidate-navbar .btn-light.border i {
+  color: var(--cand-lavender) !important;
+}
+
+/* Dropdown Menus */
+.dropdown-menu {
+  background: var(--cand-bg-dropdown) !important;
+  border: 1px solid var(--cand-border) !important;
+  box-shadow: var(--cand-shadow-elevated) !important;
+  color: var(--cand-text-sub) !important;
+}
+
+.dropdown-menu .dropdown-item {
+  color: var(--cand-text-sub) !important;
+  transition: all 0.2s ease;
+}
+
+.dropdown-menu .dropdown-item:hover,
+.dropdown-menu .dropdown-item:focus {
+  background: var(--cand-bg-card-hover) !important;
+  color: var(--cand-lavender-accent) !important;
+}
+
+.dropdown-menu .dropdown-divider {
+  border-color: var(--cand-border) !important;
+}
+
+.dropdown-menu .bg-light,
+.dropdown-menu .rounded-top-4.bg-light,
+.dropdown-menu .rounded-bottom-4.bg-light {
+  background: var(--cand-bg-subtle) !important;
+  border-color: var(--cand-border) !important;
+}
+
+.dropdown-menu .border-bottom,
+.dropdown-menu .border-top {
+  border-color: var(--cand-border) !important;
+}
+
+.dropdown-menu .list-group-item {
+  background: var(--cand-bg-card) !important;
+  border-color: var(--cand-border-subtle) !important;
+  color: var(--cand-text-sub) !important;
+  transition: all 0.2s ease;
+}
+
+.dropdown-menu .list-group-item:hover {
+  background: var(--cand-bg-card-hover) !important;
+}
+
+.dropdown-menu .list-group-item.bg-light.bg-opacity-75 {
+  background: rgba(139, 92, 246, 0.15) !important;
+}
+
+/* ==========================================================================
+   Cards & Elevated Surfaces
+   ========================================================================== */
+.portal-card,
+.card {
+  background: var(--cand-bg-card) !important;
+  border: 1px solid var(--cand-border) !important;
+  border-radius: 16px !important;
+  box-shadow: var(--cand-shadow-card) !important;
+  color: var(--cand-text-sub) !important;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.portal-card:hover,
+.card:hover {
+  border-color: var(--cand-border-glow) !important;
+  box-shadow: var(--cand-shadow-elevated) !important;
+}
+
+/* Welcome Banner special accent */
+.portal-card.border-start.border-4.border-primary {
+  border-left: 4px solid var(--cand-primary) !important;
+}
+
+/* Inner sub-containers & boxes */
+.portal-card .bg-light,
+.portal-card .bg-light-subtle,
+.card .bg-light,
+.bg-light.rounded-3,
+.bg-light.rounded-4,
+.p-3.bg-light,
+.p-4.bg-light,
+.portal-card .border-light-subtle,
+.hover-shadow {
+  background-color: var(--cand-bg-subtle) !important;
+  border-color: var(--cand-border-subtle) !important;
+  color: var(--cand-text-sub) !important;
+}
+
+.portal-card .bg-white {
+  background-color: var(--cand-bg-subtle) !important;
+  color: var(--cand-text-sub) !important;
+}
+
+.border-bottom,
+.border-top,
+.border-start,
+.border-end,
+.border {
+  border-color: var(--cand-border) !important;
+}
+
+/* ==========================================================================
+   Buttons
+   ========================================================================== */
+.btn-blue-primary,
+.btn-primary {
+  background: var(--cand-primary-gradient) !important;
+  color: #FFFFFF !important;
+  border: 1px solid rgba(192, 132, 252, 0.35) !important;
+  font-weight: 600;
+  border-radius: 10px;
+  padding: 10px 20px;
+  box-shadow: 0 4px 15px rgba(124, 58, 237, 0.4) !important;
+  transition: all 0.25s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-decoration: none;
+}
+
+.btn-blue-primary:hover,
+.btn-primary:hover {
+  background: linear-gradient(135deg, #6D28D9 0%, #7E22CE 100%) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 20px rgba(124, 58, 237, 0.55) !important;
+  color: #FFFFFF !important;
+}
+
+.btn-blue-outline,
+.btn-outline-primary {
+  background: rgba(139, 92, 246, 0.08) !important;
+  color: var(--cand-lavender-accent) !important;
+  border: 1.5px solid rgba(167, 139, 250, 0.45) !important;
+  font-weight: 600;
+  border-radius: 10px;
+  padding: 9px 18px;
+  transition: all 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  text-decoration: none;
+}
+
+.btn-blue-outline:hover,
+.btn-outline-primary:hover {
+  background: rgba(139, 92, 246, 0.22) !important;
+  border-color: var(--cand-lavender) !important;
+  color: #FFFFFF !important;
+  transform: translateY(-1px);
+}
+
+.btn-light,
+.btn-outline-secondary {
+  background: #1A1236 !important;
+  border: 1px solid var(--cand-border) !important;
+  color: var(--cand-lavender) !important;
+  font-weight: 500;
+}
+
+.btn-light:hover,
+.btn-outline-secondary:hover {
+  background: #251A4C !important;
+  border-color: var(--cand-border-glow) !important;
+  color: #FFFFFF !important;
+}
+
+.btn-secondary {
+  background: #2A1E48 !important;
+  border: 1px solid var(--cand-border) !important;
+  color: var(--cand-lavender-accent) !important;
+}
+
+.btn-secondary:hover {
+  background: #382860 !important;
+  color: #FFFFFF !important;
+}
+
+.btn-outline-success {
+  background: rgba(16, 185, 129, 0.1) !important;
+  border: 1.5px solid rgba(16, 185, 129, 0.4) !important;
+  color: #34D399 !important;
+}
+
+.btn-outline-success:hover {
+  background: rgba(16, 185, 129, 0.25) !important;
+  border-color: #10B981 !important;
+  color: #FFFFFF !important;
+}
+
+.btn-success {
+  background: linear-gradient(135deg, #059669 0%, #10B981 100%) !important;
+  border: 1px solid rgba(16, 185, 129, 0.35) !important;
+  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.35) !important;
+  color: #FFFFFF !important;
+}
+
+.btn-warning {
+  background: linear-gradient(135deg, #D97706 0%, #F59E0B 100%) !important;
+  border: 1px solid rgba(245, 158, 11, 0.35) !important;
+  box-shadow: 0 4px 15px rgba(245, 158, 11, 0.35) !important;
+  color: #1A0D00 !important;
+  font-weight: 700 !important;
+}
+
+/* ==========================================================================
+   Badges & Metric Indicators
+   ========================================================================== */
+.portal-badge-blue,
+.badge.bg-primary-subtle {
+  background: var(--cand-primary-soft) !important;
+  color: var(--cand-lavender-accent) !important;
+  border: 1px solid var(--cand-primary-border) !important;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 6px;
+  display: inline-block;
+}
+
+.portal-badge-gray,
+.badge.bg-light.text-secondary,
+.badge.bg-light.text-dark {
+  background: rgba(167, 139, 250, 0.12) !important;
+  color: var(--cand-lavender) !important;
+  border: 1px solid var(--cand-border) !important;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 6px;
+  display: inline-block;
+}
+
+.portal-badge-green,
+.badge.bg-success-subtle {
+  background: var(--cand-success-soft) !important;
+  color: #34D399 !important;
+  border: 1px solid var(--cand-success-border) !important;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 6px;
+  display: inline-block;
+}
+
+.badge.bg-warning-subtle {
+  background: var(--cand-warning-soft) !important;
+  color: #FBBF24 !important;
+  border: 1px solid var(--cand-warning-border) !important;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 6px;
+  display: inline-block;
+}
+
+.badge.bg-danger-subtle {
+  background: var(--cand-danger-soft) !important;
+  color: #F87171 !important;
+  border: 1px solid var(--cand-danger-border) !important;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 6px;
+  display: inline-block;
+}
+
+.badge.bg-info-subtle {
+  background: var(--cand-info-soft) !important;
+  color: #22D3EE !important;
+  border: 1px solid var(--cand-info-border) !important;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 6px;
+  display: inline-block;
+}
+
+/* Metric Round Icon Surrounds */
+.portal-card .rounded-circle.bg-primary-subtle {
+  background: rgba(139, 92, 246, 0.22) !important;
+  color: #C084FC !important;
+  box-shadow: 0 0 12px rgba(139, 92, 246, 0.25);
+}
+
+.portal-card .rounded-circle.bg-info-subtle {
+  background: rgba(6, 182, 212, 0.22) !important;
+  color: #22D3EE !important;
+  box-shadow: 0 0 12px rgba(6, 182, 212, 0.25);
+}
+
+.portal-card .rounded-circle.bg-success-subtle {
+  background: rgba(16, 185, 129, 0.22) !important;
+  color: #34D399 !important;
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.25);
+}
+
+.portal-card .rounded-circle.bg-warning-subtle {
+  background: rgba(245, 158, 11, 0.22) !important;
+  color: #FBBF24 !important;
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.25);
+}
+
+/* ==========================================================================
+   Form Inputs & Selects
+   ========================================================================== */
+.form-control,
+.form-select,
+textarea.form-control {
+  border: 1px solid var(--cand-border) !important;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-size: 14px;
+  background-color: var(--cand-bg-input) !important;
+  color: var(--cand-text-sub) !important;
+  transition: all 0.2s ease;
+}
+
+.form-control:focus,
+.form-select:focus,
+textarea.form-control:focus {
+  border-color: rgba(192, 132, 252, 0.6) !important;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.25) !important;
+  outline: none;
+  background-color: #140C2A !important;
+  color: #FFFFFF !important;
+}
+
+.form-control::placeholder {
+  color: var(--cand-text-muted) !important;
+}
+
+.form-label {
+  font-weight: 600;
+  font-size: 13.5px;
+  color: var(--cand-lavender-accent) !important;
+  margin-bottom: 6px;
+}
+
+.input-group-text {
+  background-color: var(--cand-bg-input) !important;
+  border-color: var(--cand-border) !important;
+  color: var(--cand-lavender) !important;
+}
+
+select option {
+  background-color: var(--cand-bg-card) !important;
+  color: var(--cand-text-sub) !important;
+}
+
+/* ==========================================================================
+   Progress Bar
+   ========================================================================== */
+.progress {
+  background-color: var(--cand-bg-subtle) !important;
+  border: 1px solid var(--cand-border) !important;
+}
+
+.progress-bar.bg-primary {
+  background: var(--cand-primary-gradient) !important;
+  box-shadow: 0 0 12px rgba(139, 92, 246, 0.6) !important;
+}
+
+.progress-bar.bg-success {
+  background: linear-gradient(90deg, #059669, #10B981) !important;
+  box-shadow: 0 0 12px rgba(16, 185, 129, 0.6) !important;
+}
+
+.progress-bar.bg-warning {
+  background: linear-gradient(90deg, #D97706, #F59E0B) !important;
+  box-shadow: 0 0 12px rgba(245, 158, 11, 0.6) !important;
+}
+
+/* ==========================================================================
+   Alerts & Notifications
+   ========================================================================== */
+.alert-primary {
+  background-color: var(--cand-primary-soft) !important;
+  border: 1px solid var(--cand-primary-border) !important;
+  color: var(--cand-lavender-accent) !important;
+}
+
+.alert-success {
+  background-color: var(--cand-success-soft) !important;
+  border: 1px solid var(--cand-success-border) !important;
+  color: #6EE7B7 !important;
+}
+
+.alert-warning {
+  background-color: var(--cand-warning-soft) !important;
+  border: 1px solid var(--cand-warning-border) !important;
+  color: #FCD34D !important;
+}
+
+.alert-danger {
+  background-color: var(--cand-danger-soft) !important;
+  border: 1px solid var(--cand-danger-border) !important;
+  color: #FCA5A5 !important;
+}
+
+/* Dismiss close button */
+.btn-close {
+  filter: invert(1) grayscale(100%) brightness(200%);
+  opacity: 0.75;
+}
+
+.btn-close:hover {
+  opacity: 1;
+}
+
+/* ==========================================================================
+   Modals & Popups
+   ========================================================================== */
+.modal-content {
+  background-color: var(--cand-bg-card) !important;
+  color: var(--cand-text-sub) !important;
+  border: 1px solid var(--cand-border-glow) !important;
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8) !important;
+}
+
+.modal-header,
+.modal-footer {
+  background-color: #130C27 !important;
+  border-color: var(--cand-border) !important;
+}
+
+.modal-body .bg-light,
+.modal-body .border {
+  background-color: var(--cand-bg-subtle) !important;
+  border-color: var(--cand-border) !important;
+}
+
+/* ==========================================================================
+   Job Application Steppers & Options (apply.html)
+   ========================================================================== */
+.step-indicator {
+  transition: all 0.2s ease;
+}
+
+.step-indicator.active {
+  background: rgba(139, 92, 246, 0.20) !important;
+  border: 1px solid var(--cand-primary-border) !important;
+}
+
+.step-indicator.active .step-title {
+  color: #FFFFFF !important;
+}
+
+.step-indicator .step-num.bg-primary {
+  background: var(--cand-primary-gradient) !important;
+}
+
+.step-indicator .step-num.bg-light {
+  background: rgba(167, 139, 250, 0.15) !important;
+  color: var(--cand-lavender) !important;
+  border-color: var(--cand-border) !important;
+}
+
+.source-card {
+  background-color: var(--cand-bg-subtle) !important;
+  border: 2px solid var(--cand-border) !important;
+  transition: all 0.25s ease;
+}
+
+.source-card:hover {
+  border-color: var(--cand-border-glow) !important;
+  transform: translateY(-2px);
+}
+
+.source-card.active-source {
+  background-color: #1E133C !important;
+  border-color: #8B5CF6 !important;
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.3) !important;
+}
+
+/* ==========================================================================
+   Aptitude Assessment Page (aptitude_test.html)
+   ========================================================================== */
+.sticky-top.portal-card {
+  background-color: #130C27 !important;
+  border-bottom: 2px solid var(--cand-border) !important;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.6) !important;
+}
+
+#countdown-timer {
+  color: #F87171 !important;
+  text-shadow: 0 0 10px rgba(239, 68, 68, 0.4);
+}
+
+.question-option-label {
+  background-color: var(--cand-bg-subtle) !important;
+  border: 1.5px solid var(--cand-border) !important;
+  color: var(--cand-text-sub) !important;
+  border-radius: 12px;
+  padding: 14px 18px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.question-option-label:hover {
+  background-color: #1B1138 !important;
+  border-color: var(--cand-lavender) !important;
+}
+
+.question-option-label.selected,
+input[type="radio"]:checked + .question-option-label {
+  background-color: rgba(139, 92, 246, 0.25) !important;
+  border-color: #A78BFA !important;
+  box-shadow: 0 0 12px rgba(139, 92, 246, 0.3) !important;
+}
+
+/* ==========================================================================
+   Interview Booking (interview_booking.html)
+   ========================================================================== */
+.breadcrumb-item a {
+  color: var(--cand-lavender) !important;
+}
+
+.breadcrumb-item.active {
+  color: var(--cand-text-muted) !important;
+}
+
+.slot-card {
+  background-color: var(--cand-bg-card) !important;
+  border: 1.5px solid var(--cand-border) !important;
+  border-radius: 14px;
+  transition: all 0.25s ease;
+}
+
+.slot-card:hover {
+  border-color: #A78BFA !important;
+  box-shadow: 0 6px 20px rgba(139, 92, 246, 0.3) !important;
+  transform: translateY(-2px);
+}
+
+/* ==========================================================================
+   Tables inside Candidate Portal
+   ========================================================================== */
+.table {
+  color: var(--cand-text-sub) !important;
+  border-color: var(--cand-border) !important;
+}
+
+.table > :not(caption) > * > * {
+  background-color: transparent !important;
+  color: var(--cand-text-sub) !important;
+  border-bottom-color: var(--cand-border) !important;
+}
+
+.table thead th {
+  background-color: #100A22 !important;
+  color: var(--cand-lavender-accent) !important;
+  font-weight: 700;
+  border-bottom: 2px solid var(--cand-border) !important;
+}
+
+.table tbody tr:hover td {
+  background-color: rgba(139, 92, 246, 0.08) !important;
+}
+
+/* ==========================================================================
+   Candidate Footer
+   ========================================================================== */
+.candidate-footer {
+  background: var(--cand-bg-nav) !important;
+  border-top: 1px solid var(--cand-border) !important;
+  padding: 24px 0;
+  margin-top: auto;
+  color: var(--cand-text-muted) !important;
+  font-size: 13.5px;
+}
+
+.candidate-footer a {
+  color: var(--cand-lavender) !important;
+}
+
+.candidate-footer a:hover {
+  color: #FFFFFF !important;
+}
+

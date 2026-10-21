@@ -1,0 +1,553 @@
+/* ==========================================================================
+   SMART HRMS - EMPLOYEE PORTAL DARK VIOLET & LAVENDER THEME
+   Deep obsidian violet, luminous lavender, radiant multi-color accents
+   ========================================================================== */
+
+:root {
+  --emp-bg: #0C0818;
+  --emp-sidebar-bg: #100A22;
+  --emp-card-bg: #170F30;
+  --emp-card-inner: #120926;
+  --emp-border: rgba(139, 92, 246, 0.2);
+  --emp-border-glow: rgba(167, 139, 250, 0.35);
+
+  --emp-primary: #8B5CF6;
+  --emp-primary-hover: #7C3AED;
+  --emp-primary-gradient: linear-gradient(135deg, #7C3AED 0%, #9333EA 100%);
+  --emp-lavender: #C4B5FD;
+  --emp-lavender-light: #F5F3FF;
+  --emp-text-muted: #8B81A8;
+
+  /* Radiant Accents */
+  --emp-amber: #F59E0B;
+  --emp-emerald: #10B981;
+  --emp-cyan: #06B6D4;
+  --emp-rose: #EC4899;
+  --emp-indigo: #6366F1;
+}
+
+/* ==========================================================================
+   Global Base & Layout
+   ========================================================================== */
+html,
+body,
+body.bg-slate-50,
+.employee-body {
+  background-color: #0C0818 !important;
+  color: #F5F3FF !important;
+  font-family: 'Plus Jakarta Sans', sans-serif !important;
+  min-height: 100vh;
+}
+
+/* ==========================================================================
+   Left Sidebar
+   ========================================================================== */
+aside,
+aside.w-64,
+aside.bg-white {
+  background-color: #100A22 !important;
+  border-right: 1px solid rgba(139, 92, 246, 0.2) !important;
+}
+
+aside .border-slate-100,
+aside .border-slate-200,
+aside .border-slate-200\/80 {
+  border-color: rgba(139, 92, 246, 0.15) !important;
+}
+
+/* Logo Brand */
+aside a[class*="text-hrms-blue"] .bg-hrms-blue,
+aside .bg-hrms-blue {
+  background: var(--emp-primary-gradient) !important;
+  box-shadow: 0 0 15px rgba(139, 92, 246, 0.45) !important;
+  color: #FFFFFF !important;
+}
+
+aside span.text-slate-900,
+aside .text-xl.font-extrabold {
+  color: #FFFFFF !important;
+  text-shadow: 0 0 12px rgba(167, 139, 250, 0.25);
+}
+
+/* Navigation Links */
+aside nav a {
+  color: #C4B5FD !important;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+aside nav a:hover {
+  background-color: rgba(139, 92, 246, 0.12) !important;
+  color: #FFFFFF !important;
+  transform: translateX(3px);
+}
+
+/* Active Navigation Item */
+aside nav a.bg-hrms-blue,
+aside nav a[class*="bg-hrms-blue"] {
+  background: var(--emp-primary-gradient) !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 4px 18px rgba(124, 58, 237, 0.4) !important;
+  border: 1px solid rgba(192, 132, 252, 0.3) !important;
+}
+
+aside nav a.bg-hrms-blue span,
+aside nav a.bg-hrms-blue i {
+  color: #FFFFFF !important;
+}
+
+/* Team Approvals (Team Lead) Pill */
+aside nav a[href*="team_lead"],
+aside nav a.bg-amber-50\/80 {
+  background: rgba(245, 158, 11, 0.12) !important;
+  border: 1px solid rgba(245, 158, 11, 0.3) !important;
+  color: #FCD34D !important;
+}
+
+aside nav a[href*="team_lead"]:hover {
+  background: rgba(245, 158, 11, 0.22) !important;
+  color: #FFFFFF !important;
+}
+
+/* Sidebar Logout */
+aside .p-4.border-t a,
+aside a[href*="logout"] {
+  color: #F87171 !important;
+}
+
+aside a[href*="logout"]:hover {
+  background-color: rgba(239, 68, 68, 0.15) !important;
+  color: #FCA5A5 !important;
+}
+
+/* ==========================================================================
+   Top Header Bar
+   ========================================================================== */
+header,
+header.bg-white {
+  background-color: #100A22 !important;
+  border-bottom: 1px solid rgba(139, 92, 246, 0.2) !important;
+}
+
+/* Search Input */
+header input[type="text"],
+header .bg-slate-100\/80 {
+  background-color: #160D2E !important;
+  border: 1px solid rgba(139, 92, 246, 0.25) !important;
+  color: #FFFFFF !important;
+}
+
+header input[type="text"]::placeholder {
+  color: #8B81A8 !important;
+}
+
+header input[type="text"]:focus {
+  background-color: #1C103B !important;
+  border-color: #8B5CF6 !important;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.3) !important;
+  color: #FFFFFF !important;
+}
+
+header i.bi-search {
+  color: #8B81A8 !important;
+}
+
+/* Top Notification Bell */
+header a[href*="notifications"] i.bi-bell {
+  color: #C4B5FD !important;
+}
+
+header a[href*="notifications"]:hover i.bi-bell {
+  color: #FFFFFF !important;
+  filter: drop-shadow(0 0 6px rgba(139, 92, 246, 0.6));
+}
+
+header a[href*="notifications"] span[class*="bg-hrms-blue"] {
+  background: #EC4899 !important;
+  border-color: #100A22 !important;
+  box-shadow: 0 0 8px rgba(236, 72, 153, 0.6);
+}
+
+/* Header Vertical Divider */
+header .h-8.w-px.bg-slate-200 {
+  background-color: rgba(139, 92, 246, 0.2) !important;
+}
+
+/* Profile Info in Header */
+header a[href*="profile"] .text-slate-900 {
+  color: #FFFFFF !important;
+}
+
+header a[href*="profile"] .text-slate-500 {
+  color: #C4B5FD !important;
+}
+
+header a[href*="profile"]:hover .text-slate-900 {
+  color: #C084FC !important;
+}
+
+header img.rounded-full,
+header div.rounded-full.bg-blue-100 {
+  border: 2px solid #8B5CF6 !important;
+  box-shadow: 0 0 10px rgba(139, 92, 246, 0.35) !important;
+}
+
+/* ==========================================================================
+   Cards, Surfaces & Containers
+   ========================================================================== */
+.bg-white,
+div.bg-white,
+section.bg-white,
+article.bg-white {
+  background-color: #170F30 !important;
+  border-color: rgba(139, 92, 246, 0.2) !important;
+  color: #F5F3FF !important;
+  box-shadow: 0 4px 20px rgba(12, 8, 24, 0.45) !important;
+}
+
+/* Hero Greeting Banner Gradient */
+.bg-gradient-to-r.from-\[\#edf4ff\],
+[class*="bg-gradient-to-r"] {
+  background: linear-gradient(135deg, #1C0F38 0%, #2A1254 50%, #170933 100%) !important;
+  border: 1px solid rgba(167, 139, 250, 0.3) !important;
+  box-shadow: 0 10px 30px rgba(12, 8, 24, 0.6) !important;
+}
+
+/* Hero details sub-boxes */
+.bg-gradient-to-r .bg-white\/80,
+.bg-gradient-to-r div[class*="bg-white"] {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+  border-color: rgba(139, 92, 246, 0.25) !important;
+  color: #C084FC !important;
+}
+
+/* Inner Sub-Cards / Capsules / Wells */
+.bg-slate-50,
+.bg-slate-50\/60,
+.bg-slate-100,
+.bg-blue-50,
+.bg-blue-50\/60,
+.bg-indigo-50,
+.bg-purple-50,
+.bg-amber-50 {
+  background-color: rgba(255, 255, 255, 0.035) !important;
+  border-color: rgba(139, 92, 246, 0.18) !important;
+}
+
+/* ==========================================================================
+   Typography & Colors
+   ========================================================================== */
+.text-slate-900,
+.text-slate-800,
+h1, h2, h3, h4, h5, h6 {
+  color: #FFFFFF !important;
+}
+
+.text-slate-700,
+.text-slate-600,
+p, label, span {
+  color: #F5F3FF;
+}
+
+.text-slate-500,
+.text-slate-400,
+small, .text-muted {
+  color: #C4B5FD !important;
+}
+
+/* Primary Blue Text replacements -> Radiant Lavender */
+.text-hrms-blue {
+  color: #C084FC !important;
+}
+
+/* Universal Borders */
+.border-slate-100,
+.border-slate-200,
+.border-slate-200\/80,
+.border-slate-300,
+.border-blue-100,
+.border-blue-200 {
+  border-color: rgba(139, 92, 246, 0.18) !important;
+}
+
+.divide-slate-100 > * + *,
+.divide-slate-200 > * + * {
+  border-color: rgba(139, 92, 246, 0.15) !important;
+}
+
+/* ==========================================================================
+   Tables
+   ========================================================================== */
+table {
+  color: #F5F3FF !important;
+}
+
+thead tr {
+  border-bottom: 1px solid rgba(139, 92, 246, 0.25) !important;
+}
+
+thead th {
+  color: #C4B5FD !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.05em !important;
+}
+
+tbody tr {
+  border-bottom: 1px solid rgba(139, 92, 246, 0.12) !important;
+  transition: background-color 0.15s ease !important;
+}
+
+tbody tr:hover,
+tr.hover\:bg-slate-50\/60:hover {
+  background-color: rgba(139, 92, 246, 0.1) !important;
+}
+
+tbody td {
+  color: #F5F3FF !important;
+}
+
+tbody td.font-bold,
+tbody td .font-bold {
+  color: #FFFFFF !important;
+}
+
+/* ==========================================================================
+   Buttons & Links
+   ========================================================================== */
+.bg-hrms-blue,
+button.bg-hrms-blue,
+a.bg-hrms-blue,
+.btn-primary {
+  background: var(--emp-primary-gradient) !important;
+  color: #FFFFFF !important;
+  border: 1px solid rgba(192, 132, 252, 0.25) !important;
+  box-shadow: 0 4px 14px rgba(124, 58, 237, 0.35) !important;
+}
+
+.bg-hrms-blue:hover,
+button.bg-hrms-blue:hover,
+a.bg-hrms-blue:hover,
+.btn-primary:hover {
+  background: linear-gradient(135deg, #6D28D9 0%, #7E22CE 100%) !important;
+  box-shadow: 0 6px 20px rgba(124, 58, 237, 0.5) !important;
+  color: #FFFFFF !important;
+  transform: translateY(-1px);
+}
+
+a.text-hrms-blue {
+  color: #C084FC !important;
+}
+
+a.text-hrms-blue:hover {
+  color: #E9D5FF !important;
+  text-decoration: underline !important;
+}
+
+/* Action Eye / Edit Icon Buttons */
+a.w-7.h-7.bg-blue-50,
+button.w-7.h-7.bg-blue-50,
+.bg-blue-50.text-hrms-blue {
+  background: rgba(139, 92, 246, 0.15) !important;
+  color: #C084FC !important;
+  border: 1px solid rgba(139, 92, 246, 0.25) !important;
+}
+
+a.w-7.h-7.bg-blue-50:hover,
+button.w-7.h-7.bg-blue-50:hover {
+  background: rgba(139, 92, 246, 0.3) !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 0 10px rgba(139, 92, 246, 0.4) !important;
+}
+
+/* ==========================================================================
+   Badges & Status Pills
+   ========================================================================== */
+.bg-emerald-50,
+span.text-emerald-700.bg-emerald-50,
+span[class*="text-emerald"] {
+  background: rgba(16, 185, 129, 0.18) !important;
+  color: #34D399 !important;
+  border: 1px solid rgba(16, 185, 129, 0.35) !important;
+}
+
+.bg-blue-50,
+span.text-blue-700.bg-blue-50,
+span[class*="text-blue-700"] {
+  background: rgba(139, 92, 246, 0.18) !important;
+  color: #C4B5FD !important;
+  border: 1px solid rgba(139, 92, 246, 0.35) !important;
+}
+
+.bg-amber-50,
+span.text-amber-700.bg-amber-50,
+span[class*="text-amber"] {
+  background: rgba(245, 158, 11, 0.18) !important;
+  color: #FCD34D !important;
+  border: 1px solid rgba(245, 158, 11, 0.35) !important;
+}
+
+.bg-rose-50,
+.bg-red-50,
+span[class*="text-rose"],
+span[class*="text-red"] {
+  background: rgba(239, 68, 68, 0.18) !important;
+  color: #F87171 !important;
+  border: 1px solid rgba(239, 68, 68, 0.35) !important;
+}
+
+/* ==========================================================================
+   Form Controls, Inputs, Selects, Textareas
+   ========================================================================== */
+input:not([type="checkbox"]):not([type="radio"]):not([type="submit"]):not([type="button"]):not([type="reset"]),
+select,
+textarea {
+  background-color: #120926 !important;
+  border: 1px solid rgba(139, 92, 246, 0.3) !important;
+  color: #FFFFFF !important;
+  border-radius: 0.75rem !important;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  background-color: #170C30 !important;
+  border-color: #8B5CF6 !important;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.3) !important;
+  color: #FFFFFF !important;
+  outline: none !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #8B81A8 !important;
+}
+
+/* ==========================================================================
+   Calendar & Holidays Dark Theme Integration
+   ========================================================================== */
+#employeeDashboardCalendar,
+.hrms-cal-card {
+  background: #170F30 !important;
+  border: 1px solid rgba(139, 92, 246, 0.22) !important;
+  box-shadow: 0 4px 20px rgba(12, 8, 24, 0.45) !important;
+}
+
+.hrms-cal-header {
+  border-bottom: 1px solid rgba(139, 92, 246, 0.18) !important;
+}
+
+.hrms-cal-month-label {
+  color: #FFFFFF !important;
+}
+
+.hrms-cal-nav-btn,
+.hrms-cal-today-btn {
+  background-color: #120926 !important;
+  color: #C4B5FD !important;
+  border: 1px solid rgba(139, 92, 246, 0.25) !important;
+}
+
+.hrms-cal-nav-btn:hover,
+.hrms-cal-today-btn:hover {
+  background-color: rgba(139, 92, 246, 0.25) !important;
+  color: #FFFFFF !important;
+  border-color: #8B5CF6 !important;
+}
+
+.hrms-cal-weekdays {
+  color: #C4B5FD !important;
+}
+
+.hrms-cal-day-cell {
+  color: #F5F3FF !important;
+}
+
+.hrms-cal-day-cell:hover:not(:disabled) {
+  background-color: rgba(139, 92, 246, 0.2) !important;
+  color: #FFFFFF !important;
+}
+
+.hrms-cal-day-cell.is-muted {
+  color: #4C4468 !important;
+}
+
+.hrms-cal-day-cell.is-today,
+.hrms-cal-today-day {
+  background: linear-gradient(135deg, #7C3AED 0%, #9333EA 100%) !important;
+  color: #FFFFFF !important;
+  font-weight: 700 !important;
+  box-shadow: 0 0 12px rgba(139, 92, 246, 0.55) !important;
+}
+
+/* Radiant Holiday Styling */
+.hrms-cal-holiday-day,
+.hrms-cal-day-cell.is-holiday {
+  background-color: rgba(244, 63, 94, 0.22) !important;
+  color: #FDA4AF !important;
+  border: 1px solid rgba(244, 63, 94, 0.55) !important;
+  font-weight: 700 !important;
+}
+
+.hrms-cal-holiday-day:hover,
+.hrms-cal-day-cell.is-holiday:hover {
+  background-color: rgba(244, 63, 94, 0.35) !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 0 12px rgba(244, 63, 94, 0.45) !important;
+}
+
+.hrms-cal-today-holiday,
+.hrms-cal-day-cell.is-today.is-holiday {
+  background: linear-gradient(135deg, #7C3AED 0%, #F43F5E 100%) !important;
+  color: #FFFFFF !important;
+  font-weight: 800 !important;
+  box-shadow: 0 0 0 2px #F43F5E, 0 0 14px rgba(244, 63, 94, 0.5) !important;
+}
+
+.hrms-cal-holiday-item {
+  background: rgba(244, 63, 94, 0.08) !important;
+  border: 1px solid rgba(244, 63, 94, 0.35) !important;
+  border-left: 4px solid #F43F5E !important;
+}
+
+.hrms-cal-holiday-item:hover {
+  background: rgba(244, 63, 94, 0.16) !important;
+  border-color: rgba(244, 63, 94, 0.55) !important;
+  box-shadow: 0 4px 15px rgba(244, 63, 94, 0.15) !important;
+}
+
+.hrms-cal-holidays-list::-webkit-scrollbar-thumb {
+  background-color: rgba(139, 92, 246, 0.35) !important;
+}
+
+/* ==========================================================================
+   Modals, Dropdowns & Popups
+   ========================================================================== */
+.modal-content,
+div[role="dialog"] > div,
+.dropdown-menu {
+  background-color: #170F30 !important;
+  border: 1px solid rgba(139, 92, 246, 0.3) !important;
+  color: #F5F3FF !important;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.7) !important;
+}
+
+/* Custom Sleek Dark Scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0C0818;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(139, 92, 246, 0.35);
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(167, 139, 250, 0.65);
+}
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(139, 92, 246, 0.35) #0C0818;
+}
+

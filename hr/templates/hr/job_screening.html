@@ -156,7 +156,7 @@
 <!-- Screening Results Table -->
 <div class="card card-custom shadow-sm">
     <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
+        <table class="table table-hover align-middle mb-0" style="min-width: 1050px;">
             <thead class="table-light">
                 <tr>
                     <th style="min-width: 200px;">Candidate</th>
@@ -166,7 +166,7 @@
                     <th>Experience</th>
                     <th class="text-center">Match Score</th>
                     <th>Screening Result</th>
-                    <th class="text-end" style="min-width: 150px;">Actions</th>
+                    <th class="text-end" style="min-width: 180px; white-space: nowrap;">Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -235,7 +235,7 @@
                             <div class="small text-info mt-1"><i class="bi bi-pencil-fill me-1"></i>Manual Override</div>
                         {% endif %}
                     </td>
-                    <td class="text-end">
+                    <td class="text-end" style="white-space: nowrap;">
                         <div class="btn-group btn-group-sm">
                             <a href="{% url 'hr:application_screening_detail' app.pk %}" class="btn btn-primary" title="View Full Screening Analysis">
                                 <i class="bi bi-file-earmark-medical me-1"></i> View Screening

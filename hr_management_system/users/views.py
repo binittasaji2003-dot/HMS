@@ -47,8 +47,8 @@ class UserRedirectView(LoginRequiredMixin, RedirectView):
 
     def get_redirect_url(self) -> str:
         user = self.request.user
-        if user.is_superuser or user.is_staff or getattr(user, "role", "") == User.RoleChoices.ADMIN:
-            return reverse("admin:index")
+        if (user.is_superuser or user.is_staff or getattr(user, "role", "") == User.RoleChoices.ADMIN) and getattr(user, "role", "") != User.RoleChoices.HR:
+            return reverse("admin_module:admin_dashboard")
         if getattr(user, "role", "") == User.RoleChoices.HR or hasattr(user, "hr_profile"):
             return reverse("hr:dashboard")
         if getattr(user, "role", "") == User.RoleChoices.EMPLOYEE or (hasattr(user, "employee_profile") and getattr(user, "role", "") != User.RoleChoices.CANDIDATE):

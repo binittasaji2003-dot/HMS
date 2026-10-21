@@ -158,38 +158,18 @@
         </div>
 
         <!-- 5. Recruitment Monitoring (Expandable Dropdown) -->
-        <div class="sidebar-item {% if current_page in 'job_vacancies,candidates,recruitment,recruitment_status,recruitment_selected,reports_recruitment' %}open{% endif %}">
-          <button type="button" class="sidebar-btn-link sidebar-toggle" aria-expanded="{% if current_page in 'job_vacancies,candidates,recruitment,recruitment_status,recruitment_selected,reports_recruitment' %}true{% else %}false{% endif %}">
+        <div class="sidebar-item {% if current_page in 'recruitment,reports_recruitment' %}open{% endif %}">
+          <button type="button" class="sidebar-btn-link sidebar-toggle" aria-expanded="{% if current_page in 'recruitment,reports_recruitment' %}true{% else %}false{% endif %}">
             <div class="link-left">
               <i class="bi bi-person-workspace"></i>
               <span>Recruitment Monitoring</span>
             </div>
             <i class="bi bi-chevron-down sidebar-chevron"></i>
           </button>
-
-          
           <div class="sidebar-submenu">
-            <!-- Submenu 
-            <a href="{% url 'admin_module:job_vacancies_list' %}" class="sidebar-sublink {% if current_page == 'job_vacancies' %}active-sub{% endif %}">
-              <i class="bi bi-briefcase"></i>
-              <span>Job Vacancies</span>
-            </a>
-            items -->
-            <a href="{% url 'admin_module:recruitment_status' %}" class="sidebar-sublink {% if current_page == 'recruitment_status' %}active-sub{% endif %}">
-              <i class="bi bi-kanban"></i>
-              <span>Recruitment Status</span>
-            </a>
-            <a href="{% url 'admin_module:candidates_list' %}" class="sidebar-sublink {% if current_page == 'candidates' %}active-sub{% endif %}">
-              <i class="bi bi-person-lines-fill"></i>
-              <span>All Candidates</span>
-            </a>
-            <a href="{% url 'admin_module:recruitment_selected' %}" class="sidebar-sublink {% if current_page == 'recruitment_selected' %}active-sub{% endif %}">
-              <i class="bi bi-award"></i>
-              <span>Selected Candidates</span>
-            </a>
             <a href="{% url 'admin_module:reports_recruitment' %}" class="sidebar-sublink {% if current_page == 'reports_recruitment' %}active-sub{% endif %}">
-              <i class="bi bi-file-earmark-bar-graph"></i>
-              <span>Recruitment Analytics</span>
+              <i class="bi bi-bar-chart-line-fill"></i>
+              <span>Recruitment Analysis</span>
             </a>
           </div>
         </div>
@@ -235,7 +215,7 @@
             </a>
             <a href="{% url 'admin_module:reports_recruitment' %}" class="sidebar-sublink {% if current_page == 'reports_recruitment' %}active-sub{% endif %}">
               <i class="bi bi-briefcase"></i>
-              <span>Recruitment Reports</span>
+              <span>Recruitment Analysis</span>
             </a>
             <a href="{% url 'admin_module:reports_departments' %}" class="sidebar-sublink {% if current_page == 'reports_departments' %}active-sub{% endif %}">
               <i class="bi bi-pie-chart"></i>
@@ -462,6 +442,6 @@
   </script>
 
   {% block extra_js %}{% endblock extra_js %}
-  {% include "components/birthday_popup.html" %}
+
 </body>
 </html>

@@ -21,6 +21,11 @@ urlpatterns = [
         name="about",
     ),
     path(
+        "login/",
+        TemplateView.as_view(template_name="account/role_select.html"),
+        name="unified_login",
+    ),
+    path(
         "accounts/role-select/",
         TemplateView.as_view(template_name="account/role_select.html"),
         name="role_select",

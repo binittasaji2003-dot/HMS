@@ -1,17 +1,18 @@
 {% extends "hr/base.html" %}
+{% load static %}
 
-{% block title %}HR Dashboard | Smart HRMS{% endblock %}
+{% block title %}HR Dashboard | Smart HRMS{% endblock title %}
 
 {% block content %}
 <!-- Profile Incomplete Non-blocking Reminder -->
 {% if is_profile_incomplete %}
-<div class="alert alert-custom p-3 mb-4 d-flex align-items-center justify-content-between flex-wrap gap-3" style="background: #fff8e6; border: 1px solid #fed7aa; border-left: 5px solid #f59e0b; border-radius: 12px;">
+<div class="alert alert-custom p-3 mb-4 d-flex align-items-center justify-content-between flex-wrap gap-3" style="background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35); border-left: 5px solid #f59e0b; border-radius: 14px;">
     <div class="d-flex align-items-center gap-3">
-        <div class="rounded-circle d-flex align-items-center justify-content-center text-warning bg-white shadow-sm" style="width: 44px; height: 44px; min-width: 44px; border: 1px solid #fde68a;">
+        <div class="rounded-circle d-flex align-items-center justify-content-center text-warning bg-white shadow-sm" style="width: 44px; height: 44px; min-width: 44px; background: rgba(245, 158, 11, 0.2) !important; border: 1px solid rgba(245, 158, 11, 0.4);">
             <i class="bi bi-person-exclamation fs-4"></i>
         </div>
         <div>
-            <h6 class="fw-bold mb-1 text-dark">
+            <h6 class="fw-bold mb-1 text-white">
                 Please complete your profile
                 <span class="badge bg-warning bg-opacity-25 text-dark ms-2 fw-normal" style="font-size: 0.75rem;">{{ profile_completion_percentage }}% Complete</span>
             </h6>
@@ -27,11 +28,11 @@
 {% endif %}
 
 <!-- 1. Top Welcome Banner Card -->
-<div class="card card-custom p-4 mb-4" style="background: linear-gradient(135deg, #eef5ff 0%, #ffffff 100%); border: 1px solid #dbeafe;">
+<div class="card card-custom p-4 mb-4" style="background: linear-gradient(135deg, #1E1238 0%, #170F30 100%); border: 1px solid rgba(192, 132, 252, 0.35); box-shadow: 0 4px 24px rgba(124, 58, 237, 0.25);">
     <div class="row align-items-center">
         <div class="col-lg-8">
             <div class="d-flex align-items-center gap-2 mb-2">
-                <h3 class="fw-bold mb-0 text-dark">
+                <h3 class="fw-bold mb-0 text-white">
                     Good Day, {{ request.user.name|default:request.user.email }}! 👋
                 </h3>
             </div>
@@ -227,4 +228,99 @@
         </div>
     </div>
 </div>
+<!-- 4. HR Calendar & Public Holidays -->
+<div class="row g-4 mt-1" id="hrDashboardCalendar">
+    <div class="col-12">
+        <div class="card card-custom p-4">
+            <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom flex-wrap gap-2">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="brand-icon-box bg-light text-primary border" style="width: 38px; height: 38px;">
+                        <i class="bi bi-calendar-event fs-5"></i>
+                    </div>
+                    <div>
+                        <h6 class="fw-bold mb-0 text-dark">HR Calendar & Public Holidays</h6>
+                        <span class="text-muted small">Company work schedule and official public holidays</span>
+                    </div>
+                </div>
+                <div class="d-flex align-items-center gap-2">
+                    <button type="button" class="btn btn-sm btn-outline-secondary hrms-cal-today-btn px-2.5 py-1">Today</button>
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-sm btn-outline-secondary hrms-cal-prev-btn" title="Previous Month">
+                            <i class="bi bi-chevron-left"></i>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary hrms-cal-next-btn" title="Next Month">
+                            <i class="bi bi-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-4 align-items-start">
+                <!-- Left side: Normal sized monthly calendar -->
+                <div class="col-12 col-lg-6 col-xl-5">
+                    <div class="border rounded-3 p-3 bg-white shadow-sm">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="hrms-cal-month-label fw-bold text-dark mb-0">Loading...</h6>
+                            <div class="d-flex align-items-center gap-2 small text-muted">
+                                <span class="d-inline-flex align-items-center gap-1">
+                                    <span class="hrms-cal-legend-dot bg-danger"></span> Public Holiday
+                                </span>
+                                <span class="d-inline-flex align-items-center gap-1">
+                                    <span class="hrms-cal-legend-dot bg-primary"></span> Today
+                                </span>
+                            </div>
+                        </div>
+
+                        <div class="hrms-cal-weekdays">
+                            <span>Su</span>
+                            <span>Mo</span>
+                            <span>Tu</span>
+                            <span>We</span>
+                            <span>Th</span>
+                            <span>Fr</span>
+                            <span>Sa</span>
+                        </div>
+
+                        <div class="hrms-cal-grid">
+                            <!-- Dynamically populated by hrms_calendar.js -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right side: Monthly Public Holidays list -->
+                <div class="col-12 col-lg-6 col-xl-7">
+                    <div class="border rounded-3 p-3 bg-white shadow-sm h-100">
+                        <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                            <h6 class="fw-bold text-dark mb-0">
+                                <i class="bi bi-flag-fill text-danger me-1"></i> Public Holidays This Month
+                            </h6>
+                            <span class="badge bg-danger-subtle text-danger rounded-pill hrms-cal-holiday-count">0 Holidays</span>
+                        </div>
+                        <div class="hrms-cal-holidays-list pe-1">
+                            <!-- Dynamically populated by hrms_calendar.js -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/hrms_calendar.js' %}"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        try {
+            const holidaysData = {{ holidays_json|safe|default:"[]" }};
+            initHRMSDashboardCalendar({
+                containerId: 'hrDashboardCalendar',
+                theme: 'bootstrap',
+                initialHolidays: holidaysData
+            });
+        } catch (e) {
+            console.error("HR Calendar init error:", e);
+        }
+    });
+</script>
 {% endblock %}

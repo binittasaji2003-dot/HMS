@@ -4,176 +4,241 @@
 
 {% block content %}
 <div class="container-fluid px-0">
-    <!-- Header with Breadcrumbs and Back link -->
+    <!-- Header with Back Link & Status Badge -->
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
         <div>
-            <a href="{% url 'admin_module:hr_reports_list' %}" class="text-decoration-none text-muted small mb-1 d-inline-block">
-                <i class="bi bi-arrow-left me-1"></i> Back to HR Reports
+            <a href="{% url 'admin_module:reports_hr_weekly' %}" class="btn-secondary-admin mb-2 d-inline-flex align-items-center gap-1" style="font-size: 0.85rem; padding: 0.4rem 0.85rem;">
+                <i class="bi bi-arrow-left"></i> Back to HR Reports
             </a>
-            <div class="d-flex align-items-center gap-3">
-                <h3 class="fw-bold text-dark mb-0">Review HR Performance: {{ report.hr_manager.full_name }}</h3>
+            <div class="d-flex align-items-center gap-3 flex-wrap mt-1">
+                <h1 class="page-title-saas mb-0">Review HR Performance: {{ report.hr_manager.full_name }}</h1>
                 {% if report.status == 'DRAFT' %}
-                    <span class="badge bg-secondary-subtle text-secondary px-3 py-2 rounded-pill">Draft</span>
+                    <span class="badge-status-saas badge-neutral-saas px-3 py-1">Draft</span>
                 {% elif report.status == 'SUBMITTED' %}
-                    <span class="badge bg-primary-subtle text-primary px-3 py-2 rounded-pill">Submitted</span>
+                    <span class="badge-status-saas badge-info-saas px-3 py-1">Submitted</span>
                 {% elif report.status == 'UNDER_REVIEW' %}
-                    <span class="badge bg-warning-subtle text-warning-emphasis px-3 py-2 rounded-pill">Under Review</span>
+                    <span class="badge-status-saas badge-warning-saas px-3 py-1"><i class="bi bi-hourglass-split me-1"></i>Under Review</span>
                 {% elif report.status == 'REVIEWED' %}
-                    <span class="badge bg-success-subtle text-success px-3 py-2 rounded-pill"><i class="bi bi-check-circle me-1"></i>Reviewed</span>
+                    <span class="badge-status-saas badge-success-saas px-3 py-1"><i class="bi bi-check-circle me-1"></i>Reviewed</span>
                 {% elif report.status == 'NEEDS_IMPROVEMENT' %}
-                    <span class="badge bg-danger-subtle text-danger px-3 py-2 rounded-pill">Needs Improvement</span>
+                    <span class="badge px-3 py-1 rounded-pill" style="background: rgba(239, 68, 68, 0.2); color: #F87171; border: 1px solid rgba(239, 68, 68, 0.4);">
+                        <i class="bi bi-exclamation-triangle me-1"></i>Needs Improvement
+                    </span>
                 {% endif %}
             </div>
         </div>
         <div class="d-flex gap-2">
-            <a href="{% url 'admin_module:hr_manager_detail' report.hr_manager.pk %}" class="btn btn-outline-secondary rounded-3 px-3">
+            <a href="{% url 'admin_module:hr_manager_detail' report.hr_manager.pk %}" class="btn-secondary-admin">
                 <i class="bi bi-person-badge me-1"></i> HR Profile
             </a>
         </div>
     </div>
 
-    <!-- SECTION 1 & 2: HR Information & Report Period Banner -->
-    <div class="card card-custom border-0 mb-4 shadow-sm">
-        <div class="card-body p-4">
-            <div class="row g-3 align-items-center">
-                <div class="col-md-3 border-end">
-                    <div class="text-muted small fw-bold">HR MANAGER</div>
-                    <div class="fw-bold fs-5 text-dark">{{ report.hr_manager.full_name }}</div>
-                    <div class="text-muted small">{{ report.hr_manager.employee_code }} • {{ report.hr_manager.designation|default:"HR Manager" }}</div>
+    <!-- HR Information & Report Period Hero Banner -->
+    <div class="saas-card mb-4 p-4">
+        <div class="row g-3 align-items-center">
+            <div class="col-12 col-md-3 border-end border-light-subtle">
+                <div class="text-secondary small fw-bold text-uppercase" style="letter-spacing: 0.05em; font-size: 0.72rem;">HR Manager</div>
+                <div class="fw-bold fs-5 text-white mt-1">{{ report.hr_manager.full_name }}</div>
+                <div class="text-secondary small mt-1">
+                    <span class="badge" style="background: rgba(139, 92, 246, 0.2); color: #C4B5FD;">{{ report.hr_manager.employee_code }}</span>
+                    {{ report.hr_manager.designation|default:"HR Manager" }}
                 </div>
-                <div class="col-md-3 border-end">
-                    <div class="text-muted small fw-bold">DEPARTMENT</div>
-                    <div class="fw-semibold text-dark">{{ report.hr_manager.department.name|default:"General HR" }}</div>
-                    <div class="text-muted small">{{ report.hr_manager.user.email }}</div>
+            </div>
+            <div class="col-12 col-md-3 border-end border-light-subtle">
+                <div class="text-secondary small fw-bold text-uppercase" style="letter-spacing: 0.05em; font-size: 0.72rem;">Department</div>
+                <div class="fw-semibold text-white mt-1 fs-6">
+                    <i class="bi bi-building me-1 text-primary"></i>{{ report.hr_manager.department.name|default:"General HR" }}
                 </div>
-                <div class="col-md-3 border-end">
-                    <div class="text-muted small fw-bold">REPORT PERIOD</div>
-                    <div class="fw-bold text-primary">{{ report.week_display }}</div>
-                    <div class="text-muted small">Report #{{ report.report_id }}</div>
+                <div class="text-secondary small mt-1">{{ report.hr_manager.user.email }}</div>
+            </div>
+            <div class="col-12 col-md-3 border-end border-light-subtle">
+                <div class="text-secondary small fw-bold text-uppercase" style="letter-spacing: 0.05em; font-size: 0.72rem;">Report Period</div>
+                <div class="fw-bold mt-1 fs-6" style="color: #A78BFA;">
+                    <i class="bi bi-calendar3 me-1"></i>{{ report.week_display }}
                 </div>
-                <div class="col-md-3">
-                    <div class="text-muted small fw-bold">SUBMISSION AUDIT</div>
-                    <div class="fw-semibold text-dark">{{ report.submitted_at|date:"M d, Y, h:i A"|default:"Not Submitted" }}</div>
-                    <div class="text-muted small">Status: <strong>{{ report.get_status_display }}</strong></div>
+                <div class="text-secondary small mt-1">Report #{{ report.report_id }}</div>
+            </div>
+            <div class="col-12 col-md-3">
+                <div class="text-secondary small fw-bold text-uppercase" style="letter-spacing: 0.05em; font-size: 0.72rem;">Submission Audit</div>
+                <div class="fw-semibold text-white mt-1 fs-6">
+                    {{ report.submitted_at|date:"M d, Y, h:i A"|default:"Not Submitted" }}
+                </div>
+                <div class="text-secondary small mt-1">
+                    Status: <strong class="text-white">{{ report.get_status_display }}</strong>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- SECTION 3: Weekly Work Summary & Tasks -->
+    <!-- Main Content Row: Left Deliverables & Right Recruitment Numbers -->
     <div class="row g-4 mb-4">
-        <div class="col-lg-8">
-            <div class="card card-custom border-0 h-100 shadow-sm">
-                <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
-                    <div class="d-flex align-items-center gap-2">
-                        <span class="badge bg-primary rounded-circle p-2"><i class="bi bi-file-earmark-text"></i></span>
-                        <h5 class="fw-bold text-dark mb-0">Weekly Work Summary & Core Deliverables</h5>
+        <!-- Left Column: Weekly Work Summary & Tasks (col-lg-8) -->
+        <div class="col-12 col-lg-8">
+            <div class="saas-card p-4 h-100" style="border-left: 3px solid #6366F1;">
+                <div class="d-flex align-items-center gap-3 mb-4">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="background: rgba(99, 102, 241, 0.15); color: #818CF8; width: 42px; height: 42px; font-size: 1.25rem; border: 1px solid rgba(99, 102, 241, 0.3);">
+                        <i class="bi bi-file-earmark-text-fill"></i>
+                    </div>
+                    <div>
+                        <h2 class="h5 fw-bold text-white mb-0">Weekly Work Summary & Core Deliverables</h2>
+                        <p class="text-secondary small mb-0" style="font-size: 0.75rem;">Summary of activities submitted by the HR Manager</p>
                     </div>
                 </div>
-                <div class="card-body p-4">
-                    <h6 class="text-muted small fw-bold mb-2 text-uppercase">Summary of Responsibilities:</h6>
-                    <div class="p-3 bg-light rounded-3 text-dark mb-4 lead" style="font-size: 0.95rem;">
+
+                <div class="mb-4">
+                    <h6 class="text-secondary small fw-bold mb-2 text-uppercase" style="letter-spacing: 0.05em;">Summary of Responsibilities:</h6>
+                    <div class="p-3 rounded-3" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(139, 92, 246, 0.15); color: #F5F3FF; font-size: 0.95rem; line-height: 1.6;">
                         {{ report.work_summary }}
                     </div>
+                </div>
 
-                    <h6 class="text-muted small fw-bold mb-2 text-uppercase">Major Tasks Completed:</h6>
-                    <div class="p-3 bg-light rounded-3 text-dark mb-4" style="white-space: pre-line; font-size: 0.92rem;">
+                <div class="mb-4">
+                    <h6 class="text-secondary small fw-bold mb-2 text-uppercase" style="letter-spacing: 0.05em;">Major Tasks Completed:</h6>
+                    <div class="p-3 rounded-3" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(139, 92, 246, 0.15); color: #F5F3FF; white-space: pre-line; font-size: 0.92rem; line-height: 1.6;">
                         {{ report.tasks_completed }}
                     </div>
+                </div>
 
-                    <div class="row g-3">
-                        {% if report.achievements %}
-                            <div class="col-md-6">
-                                <h6 class="text-success small fw-bold mb-1 text-uppercase"><i class="bi bi-trophy me-1"></i>Key Achievements:</h6>
-                                <div class="p-3 bg-success-subtle text-success-emphasis rounded-3 small" style="white-space: pre-line;">
-                                    {{ report.achievements }}
-                                </div>
+                <div class="row g-3">
+                    {% if report.achievements %}
+                        <div class="col-12 col-md-6">
+                            <h6 class="small fw-bold mb-2 text-uppercase" style="color: #34D399; letter-spacing: 0.05em;">
+                                <i class="bi bi-trophy-fill me-1"></i>Key Achievements:
+                            </h6>
+                            <div class="p-3 rounded-3" style="background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.25); color: #A7F3D0; white-space: pre-line; font-size: 0.88rem; line-height: 1.5;">
+                                {{ report.achievements }}
                             </div>
-                        {% endif %}
-                        {% if report.challenges %}
-                            <div class="col-md-6">
-                                <h6 class="text-danger small fw-bold mb-1 text-uppercase"><i class="bi bi-exclamation-triangle me-1"></i>Challenges & Blockers:</h6>
-                                <div class="p-3 bg-danger-subtle text-danger-emphasis rounded-3 small" style="white-space: pre-line;">
-                                    {{ report.challenges }}
-                                </div>
+                        </div>
+                    {% endif %}
+
+                    {% if report.challenges %}
+                        <div class="col-12 col-md-6">
+                            <h6 class="small fw-bold mb-2 text-uppercase" style="color: #F87171; letter-spacing: 0.05em;">
+                                <i class="bi bi-exclamation-triangle-fill me-1"></i>Challenges & Blockers:
+                            </h6>
+                            <div class="p-3 rounded-3" style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.25); color: #FECDD3; white-space: pre-line; font-size: 0.88rem; line-height: 1.5;">
+                                {{ report.challenges }}
                             </div>
-                        {% endif %}
-                        {% if report.pending_tasks %}
-                            <div class="col-md-6">
-                                <h6 class="text-warning-emphasis small fw-bold mb-1 text-uppercase"><i class="bi bi-clock-history me-1"></i>Pending / Ongoing:</h6>
-                                <div class="p-3 bg-warning-subtle text-warning-emphasis rounded-3 small" style="white-space: pre-line;">
-                                    {{ report.pending_tasks }}
-                                </div>
+                        </div>
+                    {% endif %}
+
+                    {% if report.pending_tasks %}
+                        <div class="col-12 col-md-6">
+                            <h6 class="small fw-bold mb-2 text-uppercase" style="color: #FBBF24; letter-spacing: 0.05em;">
+                                <i class="bi bi-clock-history me-1"></i>Pending / Ongoing:
+                            </h6>
+                            <div class="p-3 rounded-3" style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.25); color: #FDE68A; white-space: pre-line; font-size: 0.88rem; line-height: 1.5;">
+                                {{ report.pending_tasks }}
                             </div>
-                        {% endif %}
-                        {% if report.next_week_plan %}
-                            <div class="col-md-6">
-                                <h6 class="text-primary small fw-bold mb-1 text-uppercase"><i class="bi bi-calendar-check me-1"></i>Next Week Plan:</h6>
-                                <div class="p-3 bg-primary-subtle text-primary-emphasis rounded-3 small" style="white-space: pre-line;">
-                                    {{ report.next_week_plan }}
-                                </div>
+                        </div>
+                    {% endif %}
+
+                    {% if report.next_week_plan %}
+                        <div class="col-12 col-md-6">
+                            <h6 class="small fw-bold mb-2 text-uppercase" style="color: #60A5FA; letter-spacing: 0.05em;">
+                                <i class="bi bi-calendar-check-fill me-1"></i>Next Week Plan:
+                            </h6>
+                            <div class="p-3 rounded-3" style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.25); color: #BFDBFE; white-space: pre-line; font-size: 0.88rem; line-height: 1.5;">
+                                {{ report.next_week_plan }}
                             </div>
-                        {% endif %}
-                    </div>
+                        </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
 
-        <!-- SECTION 4: Supporting Recruitment Pipeline Activity -->
-        <div class="col-lg-4">
-            <div class="card card-custom border-0 h-100 shadow-sm">
-                <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
-                    <div class="d-flex align-items-center gap-2">
-                        <span class="badge bg-info rounded-circle p-2 text-white"><i class="bi bi-bar-chart-line"></i></span>
-                        <h5 class="fw-bold text-dark mb-0">Recruitment Activity Numbers</h5>
+        <!-- Right Column: Recruitment Activity Numbers (col-lg-4) -->
+        <div class="col-12 col-lg-4">
+            <div class="saas-card p-4 h-100" style="border-left: 3px solid #8B5CF6;">
+                <div class="d-flex align-items-center gap-3 mb-4">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="background: rgba(139, 92, 246, 0.15); color: #C084FC; width: 42px; height: 42px; font-size: 1.25rem; border: 1px solid rgba(139, 92, 246, 0.3);">
+                        <i class="bi bi-bar-chart-line-fill"></i>
                     </div>
-                    <p class="text-muted small mt-1 mb-0">Supporting metrics for the week (not scored in isolation).</p>
+                    <div>
+                        <h2 class="h5 fw-bold text-white mb-0" style="font-size: 1.05rem;">Recruitment Activity Numbers</h2>
+                        <p class="text-secondary small mb-0" style="font-size: 0.75rem;">Supporting metrics for the week (not scored in isolation).</p>
+                    </div>
                 </div>
-                <div class="card-body p-4">
-                    <ul class="list-group list-group-flush">
-                        <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-3 border-bottom">
-                            <div>
-                                <i class="bi bi-briefcase text-primary me-2"></i>
-                                <span class="fw-medium text-dark">Vacancies Worked</span>
+
+                <div class="d-flex flex-column gap-3">
+                    <!-- Metric 1: Vacancies Worked -->
+                    <div class="d-flex justify-content-between align-items-center p-3 rounded-3" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(139, 92, 246, 0.15);">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center" style="background: rgba(245, 158, 11, 0.15); width: 34px; height: 34px;">
+                                <i class="bi bi-briefcase-fill" style="color: #F59E0B; font-size: 1rem;"></i>
                             </div>
-                            <span class="badge bg-primary-subtle text-primary rounded-pill fs-6">{{ report.vacancies_worked }}</span>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-3 border-bottom">
-                            <div>
-                                <i class="bi bi-file-earmark-person text-info me-2"></i>
-                                <span class="fw-medium text-dark">Resumes Screened</span>
+                            <span class="fw-semibold text-white" style="font-size: 0.92rem;">Vacancies Worked</span>
+                        </div>
+                        <span class="badge rounded-pill fs-6 px-3 py-1" style="background: rgba(245, 158, 11, 0.2); color: #FCD34D; border: 1px solid rgba(245, 158, 11, 0.4); font-weight: 700;">
+                            {{ report.vacancies_worked }}
+                        </span>
+                    </div>
+
+                    <!-- Metric 2: Resumes Screened -->
+                    <div class="d-flex justify-content-between align-items-center p-3 rounded-3" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(139, 92, 246, 0.15);">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center" style="background: rgba(6, 182, 212, 0.15); width: 34px; height: 34px;">
+                                <i class="bi bi-file-earmark-person-fill" style="color: #06B6D4; font-size: 1rem;"></i>
                             </div>
-                            <span class="badge bg-info-subtle text-info rounded-pill fs-6">{{ report.candidates_screened }}</span>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-3 border-bottom">
-                            <div>
-                                <i class="bi bi-check2-circle text-primary me-2"></i>
-                                <span class="fw-medium text-dark">Candidates Shortlisted</span>
+                            <span class="fw-semibold text-white" style="font-size: 0.92rem;">Resumes Screened</span>
+                        </div>
+                        <span class="badge rounded-pill fs-6 px-3 py-1" style="background: rgba(6, 182, 212, 0.2); color: #67E8F9; border: 1px solid rgba(6, 182, 212, 0.4); font-weight: 700;">
+                            {{ report.candidates_screened }}
+                        </span>
+                    </div>
+
+                    <!-- Metric 3: Candidates Shortlisted -->
+                    <div class="d-flex justify-content-between align-items-center p-3 rounded-3" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(139, 92, 246, 0.15);">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center" style="background: rgba(168, 85, 247, 0.15); width: 34px; height: 34px;">
+                                <i class="bi bi-patch-check-fill" style="color: #A855F7; font-size: 1rem;"></i>
                             </div>
-                            <span class="badge bg-primary-subtle text-primary rounded-pill fs-6">{{ report.candidates_shortlisted }}</span>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-3 border-bottom">
-                            <div>
-                                <i class="bi bi-patch-question text-warning me-2"></i>
-                                <span class="fw-medium text-dark">Aptitude Tests Coordinated</span>
+                            <span class="fw-semibold text-white" style="font-size: 0.92rem;">Candidates Shortlisted</span>
+                        </div>
+                        <span class="badge rounded-pill fs-6 px-3 py-1" style="background: rgba(168, 85, 247, 0.2); color: #D8B4FE; border: 1px solid rgba(168, 85, 247, 0.4); font-weight: 700;">
+                            {{ report.candidates_shortlisted }}
+                        </span>
+                    </div>
+
+                    <!-- Metric 4: Aptitude Tests Coordinated -->
+                    <div class="d-flex justify-content-between align-items-center p-3 rounded-3" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(139, 92, 246, 0.15);">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center" style="background: rgba(234, 179, 8, 0.15); width: 34px; height: 34px;">
+                                <i class="bi bi-patch-question-fill" style="color: #EAB308; font-size: 1rem;"></i>
                             </div>
-                            <span class="badge bg-warning-subtle text-warning-emphasis rounded-pill fs-6">{{ report.aptitude_tests }}</span>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-3 border-bottom">
-                            <div>
-                                <i class="bi bi-calendar-event text-secondary me-2"></i>
-                                <span class="fw-medium text-dark">Interviews Scheduled/Conducted</span>
+                            <span class="fw-semibold text-white" style="font-size: 0.92rem;">Aptitude Tests Coordinated</span>
+                        </div>
+                        <span class="badge rounded-pill fs-6 px-3 py-1" style="background: rgba(234, 179, 8, 0.2); color: #FDE047; border: 1px solid rgba(234, 179, 8, 0.4); font-weight: 700;">
+                            {{ report.aptitude_tests }}
+                        </span>
+                    </div>
+
+                    <!-- Metric 5: Interviews Scheduled/Conducted -->
+                    <div class="d-flex justify-content-between align-items-center p-3 rounded-3" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(139, 92, 246, 0.15);">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center" style="background: rgba(59, 130, 246, 0.15); width: 34px; height: 34px;">
+                                <i class="bi bi-calendar2-event-fill" style="color: #3B82F6; font-size: 1rem;"></i>
                             </div>
-                            <span class="badge bg-secondary-subtle text-secondary rounded-pill fs-6">{{ report.interviews }}</span>
-                        </li>
-                        <li class="list-group-item d-flex justify-content-between align-items-center px-0 py-3">
-                            <div>
-                                <i class="bi bi-award text-success me-2"></i>
-                                <span class="fw-medium text-dark">Candidates Selected</span>
+                            <span class="fw-semibold text-white" style="font-size: 0.92rem;">Interviews Scheduled/Conducted</span>
+                        </div>
+                        <span class="badge rounded-pill fs-6 px-3 py-1" style="background: rgba(59, 130, 246, 0.2); color: #93C5FD; border: 1px solid rgba(59, 130, 246, 0.4); font-weight: 700;">
+                            {{ report.interviews }}
+                        </span>
+                    </div>
+
+                    <!-- Metric 6: Candidates Selected -->
+                    <div class="d-flex justify-content-between align-items-center p-3 rounded-3" style="background: rgba(255, 255, 255, 0.03); border: 1px solid rgba(139, 92, 246, 0.15);">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center" style="background: rgba(16, 185, 129, 0.15); width: 34px; height: 34px;">
+                                <i class="bi bi-trophy-fill" style="color: #10B981; font-size: 1rem;"></i>
                             </div>
-                            <span class="badge bg-success-subtle text-success rounded-pill fs-6">{{ report.candidates_selected }}</span>
-                        </li>
-                    </ul>
+                            <span class="fw-semibold text-white" style="font-size: 0.92rem;">Candidates Selected</span>
+                        </div>
+                        <span class="badge rounded-pill fs-6 px-3 py-1" style="background: rgba(16, 185, 129, 0.2); color: #6EE7B7; border: 1px solid rgba(16, 185, 129, 0.4); font-weight: 700;">
+                            {{ report.candidates_selected }}
+                        </span>
+                    </div>
                 </div>
             </div>
         </div>
@@ -183,175 +248,176 @@
     <form method="post" id="performanceReviewForm">
         {% csrf_token %}
 
-        <div class="card card-custom border-0 mb-4 shadow-sm">
-            <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
-                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3">
-                    <div class="d-flex align-items-center gap-2">
-                        <span class="badge bg-primary rounded-circle p-2"><i class="bi bi-grid-3x3-gap"></i></span>
-                        <div>
-                            <h5 class="fw-bold text-dark mb-0">Performance Analysis Matrix Evaluation</h5>
-                            <p class="text-muted small mb-0">Evaluate performance across the 8 standard measurable criteria (Scale: 1 = Needs Significant Improvement to 5 = Excellent).</p>
-                        </div>
+        <div class="saas-card mb-4 p-4" style="border-left: 3px solid #A855F7;">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4 pb-3 border-bottom border-light-subtle">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="rounded-circle d-flex align-items-center justify-content-center" style="background: rgba(168, 85, 247, 0.15); color: #C084FC; width: 42px; height: 42px; font-size: 1.25rem; border: 1px solid rgba(168, 85, 247, 0.3);">
+                        <i class="bi bi-grid-3x3-gap-fill"></i>
                     </div>
-                    <!-- Live Dynamic Calculation Scorebox -->
-                    <div class="d-flex align-items-center gap-3 bg-light border rounded-3 p-2 px-3">
-                        <div class="text-center">
-                            <div class="text-muted small" style="font-size: 0.7rem; font-weight: 700;">TOTAL SCORE</div>
-                            <div class="fw-bold text-dark fs-5" id="liveTotalScore">-- / 40</div>
-                        </div>
-                        <div class="vr"></div>
-                        <div class="text-center">
-                            <div class="text-muted small" style="font-size: 0.7rem; font-weight: 700;">AVG RATING</div>
-                            <div class="fw-bold text-dark fs-5" id="liveAvgRating">-- / 5</div>
-                        </div>
-                        <div class="vr"></div>
-                        <div class="text-center">
-                            <div class="text-muted small" style="font-size: 0.7rem; font-weight: 700;">PERFORMANCE %</div>
-                            <div class="fw-bold text-primary fs-5" id="livePercentage">--%</div>
-                        </div>
-                        <div class="vr"></div>
-                        <div class="text-center">
-                            <div class="text-muted small" style="font-size: 0.7rem; font-weight: 700;">RESULT TIER</div>
-                            <span class="badge bg-primary rounded-pill px-2" id="liveTierBadge">Good</span>
-                        </div>
+                    <div>
+                        <h2 class="h5 fw-bold text-white mb-0">Performance Analysis Matrix Evaluation</h2>
+                        <p class="text-secondary small mb-0" style="font-size: 0.75rem;">Evaluate performance across the 8 standard measurable criteria (Scale: 1 = Needs Significant Improvement to 5 = Excellent).</p>
+                    </div>
+                </div>
+
+                <!-- Live Dynamic Calculation Scorebox -->
+                <div class="d-flex align-items-center gap-3 p-2 px-3 rounded-3" style="background: #0C0818; border: 1px solid rgba(139, 92, 246, 0.25);">
+                    <div class="text-center">
+                        <div class="text-secondary small" style="font-size: 0.68rem; font-weight: 700;">TOTAL SCORE</div>
+                        <div class="fw-bold text-white fs-5" id="liveTotalScore">-- / 40</div>
+                    </div>
+                    <div class="vr" style="background-color: rgba(139, 92, 246, 0.3);"></div>
+                    <div class="text-center">
+                        <div class="text-secondary small" style="font-size: 0.68rem; font-weight: 700;">AVG RATING</div>
+                        <div class="fw-bold text-white fs-5" id="liveAvgRating">-- / 5</div>
+                    </div>
+                    <div class="vr" style="background-color: rgba(139, 92, 246, 0.3);"></div>
+                    <div class="text-center">
+                        <div class="text-secondary small" style="font-size: 0.68rem; font-weight: 700;">PERFORMANCE %</div>
+                        <div class="fw-bold fs-5" style="color: #A78BFA;" id="livePercentage">--%</div>
+                    </div>
+                    <div class="vr" style="background-color: rgba(139, 92, 246, 0.3);"></div>
+                    <div class="text-center">
+                        <div class="text-secondary small" style="font-size: 0.68rem; font-weight: 700;">RESULT TIER</div>
+                        <span class="badge rounded-pill px-3 py-1" id="liveTierBadge" style="background: rgba(139, 92, 246, 0.2); color: #C4B5FD;">Good</span>
                     </div>
                 </div>
             </div>
 
-            <div class="card-body p-4">
-                <div class="table-responsive">
-                    <table class="table table-bordered align-middle mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th style="width: 25%;">Performance Criterion</th>
-                                <th style="width: 28%;">Admin Rating (1 to 5)</th>
-                                <th style="width: 47%;">Admin Remarks & Specific Observations</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <!-- 1. Task Completion -->
-                            <tr>
-                                <td class="fw-semibold">
-                                    <div class="text-dark">1. Task Completion</div>
-                                    <small class="text-muted">Execution of assigned weekly tasks & duties</small>
-                                </td>
-                                <td>{{ form.task_completion }}</td>
-                                <td>{{ form.task_completion_remarks }}</td>
-                            </tr>
-                            <!-- 2. Quality of Work -->
-                            <tr>
-                                <td class="fw-semibold">
-                                    <div class="text-dark">2. Quality of Work</div>
-                                    <small class="text-muted">Accuracy, thoroughness, and attention to detail</small>
-                                </td>
-                                <td>{{ form.quality_of_work }}</td>
-                                <td>{{ form.quality_of_work_remarks }}</td>
-                            </tr>
-                            <!-- 3. Recruitment Coordination -->
-                            <tr>
-                                <td class="fw-semibold">
-                                    <div class="text-dark">3. Recruitment Coordination</div>
-                                    <small class="text-muted">Candidate outreach, testing & interview scheduling</small>
-                                </td>
-                                <td>{{ form.recruitment_coordination }}</td>
-                                <td>{{ form.recruitment_coordination_remarks }}</td>
-                            </tr>
-                            <!-- 4. Timeliness -->
-                            <tr>
-                                <td class="fw-semibold">
-                                    <div class="text-dark">4. Timeliness</div>
-                                    <small class="text-muted">Adherence to deadlines, response speed & punctuality</small>
-                                </td>
-                                <td>{{ form.timeliness }}</td>
-                                <td>{{ form.timeliness_remarks }}</td>
-                            </tr>
-                            <!-- 5. Documentation -->
-                            <tr>
-                                <td class="fw-semibold">
-                                    <div class="text-dark">5. Documentation & Records</div>
-                                    <small class="text-muted">Maintenance of ATS logs, profiles & HR records</small>
-                                </td>
-                                <td>{{ form.documentation }}</td>
-                                <td>{{ form.documentation_remarks }}</td>
-                            </tr>
-                            <!-- 6. Communication -->
-                            <tr>
-                                <td class="fw-semibold">
-                                    <div class="text-dark">6. Communication & Coordination</div>
-                                    <small class="text-muted">Interdepartmental collaboration & candidate relations</small>
-                                </td>
-                                <td>{{ form.communication }}</td>
-                                <td>{{ form.communication_remarks }}</td>
-                            </tr>
-                            <!-- 7. Problem Solving -->
-                            <tr>
-                                <td class="fw-semibold">
-                                    <div class="text-dark">7. Problem Solving</div>
-                                    <small class="text-muted">Resolving operational roadblocks & scheduling conflicts</small>
-                                </td>
-                                <td>{{ form.problem_solving }}</td>
-                                <td>{{ form.problem_solving_remarks }}</td>
-                            </tr>
-                            <!-- 8. Weekly Goals -->
-                            <tr>
-                                <td class="fw-semibold">
-                                    <div class="text-dark">8. Achievement of Goals</div>
-                                    <small class="text-muted">Attainment of weekly milestone targets</small>
-                                </td>
-                                <td>{{ form.weekly_goal_achievement }}</td>
-                                <td>{{ form.weekly_goal_achievement_remarks }}</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+            <div class="table-responsive">
+                <table class="table-saas mb-0 w-100">
+                    <thead>
+                        <tr>
+                            <th style="width: 25%;">Performance Criterion</th>
+                            <th style="width: 28%;">Admin Rating (1 to 5)</th>
+                            <th style="width: 47%;">Admin Remarks & Specific Observations</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- 1. Task Completion -->
+                        <tr>
+                            <td>
+                                <div class="fw-semibold text-white">1. Task Completion</div>
+                                <small class="text-secondary">Execution of assigned weekly tasks & duties</small>
+                            </td>
+                            <td>{{ form.task_completion }}</td>
+                            <td>{{ form.task_completion_remarks }}</td>
+                        </tr>
+                        <!-- 2. Quality of Work -->
+                        <tr>
+                            <td>
+                                <div class="fw-semibold text-white">2. Quality of Work</div>
+                                <small class="text-secondary">Accuracy, thoroughness, and attention to detail</small>
+                            </td>
+                            <td>{{ form.quality_of_work }}</td>
+                            <td>{{ form.quality_of_work_remarks }}</td>
+                        </tr>
+                        <!-- 3. Recruitment Coordination -->
+                        <tr>
+                            <td>
+                                <div class="fw-semibold text-white">3. Recruitment Coordination</div>
+                                <small class="text-secondary">Candidate outreach, testing & interview scheduling</small>
+                            </td>
+                            <td>{{ form.recruitment_coordination }}</td>
+                            <td>{{ form.recruitment_coordination_remarks }}</td>
+                        </tr>
+                        <!-- 4. Timeliness -->
+                        <tr>
+                            <td>
+                                <div class="fw-semibold text-white">4. Timeliness</div>
+                                <small class="text-secondary">Adherence to deadlines, response speed & punctuality</small>
+                            </td>
+                            <td>{{ form.timeliness }}</td>
+                            <td>{{ form.timeliness_remarks }}</td>
+                        </tr>
+                        <!-- 5. Documentation -->
+                        <tr>
+                            <td>
+                                <div class="fw-semibold text-white">5. Documentation & Records</div>
+                                <small class="text-secondary">Maintenance of ATS logs, profiles & HR records</small>
+                            </td>
+                            <td>{{ form.documentation }}</td>
+                            <td>{{ form.documentation_remarks }}</td>
+                        </tr>
+                        <!-- 6. Communication -->
+                        <tr>
+                            <td>
+                                <div class="fw-semibold text-white">6. Communication & Coordination</div>
+                                <small class="text-secondary">Interdepartmental collaboration & candidate relations</small>
+                            </td>
+                            <td>{{ form.communication }}</td>
+                            <td>{{ form.communication_remarks }}</td>
+                        </tr>
+                        <!-- 7. Problem Solving -->
+                        <tr>
+                            <td>
+                                <div class="fw-semibold text-white">7. Problem Solving</div>
+                                <small class="text-secondary">Resolving operational roadblocks & scheduling conflicts</small>
+                            </td>
+                            <td>{{ form.problem_solving }}</td>
+                            <td>{{ form.problem_solving_remarks }}</td>
+                        </tr>
+                        <!-- 8. Weekly Goals -->
+                        <tr>
+                            <td>
+                                <div class="fw-semibold text-white">8. Achievement of Goals</div>
+                                <small class="text-secondary">Attainment of weekly milestone targets</small>
+                            </td>
+                            <td>{{ form.weekly_goal_achievement }}</td>
+                            <td>{{ form.weekly_goal_achievement_remarks }}</td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
 
         <!-- ADMIN QUALITATIVE FEEDBACK & DECISION -->
-        <div class="card card-custom border-0 mb-4 shadow-sm">
-            <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
-                <div class="d-flex align-items-center gap-2">
-                    <span class="badge bg-primary rounded-circle p-2"><i class="bi bi-chat-left-quote"></i></span>
-                    <h5 class="fw-bold text-dark mb-0">Admin Qualitative Feedback & Guidance</h5>
+        <div class="saas-card mb-4 p-4" style="border-left: 3px solid #10B981;">
+            <div class="d-flex align-items-center gap-3 mb-4 pb-3 border-bottom border-light-subtle">
+                <div class="rounded-circle d-flex align-items-center justify-content-center" style="background: rgba(16, 185, 129, 0.15); color: #34D399; width: 42px; height: 42px; font-size: 1.25rem; border: 1px solid rgba(16, 185, 129, 0.3);">
+                    <i class="bi bi-chat-left-quote-fill"></i>
+                </div>
+                <div>
+                    <h2 class="h5 fw-bold text-white mb-0">Admin Qualitative Feedback & Guidance</h2>
+                    <p class="text-secondary small mb-0" style="font-size: 0.75rem;">Provide detailed evaluation notes, coaching recommendations, and final status decision.</p>
                 </div>
             </div>
-            <div class="card-body p-4">
-                <div class="row g-4">
-                    <div class="col-12">
-                        <label class="form-label text-dark fw-semibold">Overall Feedback & Performance Summary</label>
-                        {{ form.overall_feedback }}
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label text-success-emphasis fw-semibold"><i class="bi bi-star-fill text-warning me-1"></i>Observed Strengths</label>
-                        {{ form.strengths }}
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label text-warning-emphasis fw-semibold"><i class="bi bi-exclamation-triangle text-warning me-1"></i>Areas for Improvement</label>
-                        {{ form.areas_for_improvement }}
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label text-info-emphasis fw-semibold"><i class="bi bi-lightbulb text-info me-1"></i>Recommendations & Action Points</label>
-                        {{ form.recommendations }}
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label text-dark fw-semibold"><i class="bi bi-bullseye text-secondary me-1"></i>Next Week Target Expectations</label>
-                        {{ form.next_week_expectations }}
-                    </div>
+
+            <div class="row g-4">
+                <div class="col-12">
+                    <label class="form-label text-white fw-semibold">Overall Feedback & Performance Summary</label>
+                    {{ form.overall_feedback }}
                 </div>
+                <div class="col-12 col-md-6">
+                    <label class="form-label fw-semibold" style="color: #34D399;"><i class="bi bi-star-fill text-warning me-1"></i>Observed Strengths</label>
+                    {{ form.strengths }}
+                </div>
+                <div class="col-12 col-md-6">
+                    <label class="form-label fw-semibold" style="color: #F87171;"><i class="bi bi-exclamation-triangle-fill text-warning me-1"></i>Areas for Improvement</label>
+                    {{ form.areas_for_improvement }}
+                </div>
+                <div class="col-12 col-md-6">
+                    <label class="form-label fw-semibold" style="color: #67E8F9;"><i class="bi bi-lightbulb-fill text-info me-1"></i>Recommendations & Action Points</label>
+                    {{ form.recommendations }}
+                </div>
+                <div class="col-12 col-md-6">
+                    <label class="form-label text-white fw-semibold"><i class="bi bi-bullseye text-primary me-1"></i>Next Week Target Expectations</label>
+                    {{ form.next_week_expectations }}
+                </div>
+            </div>
 
-                <hr class="my-4">
+            <hr class="my-4" style="border-color: rgba(139, 92, 246, 0.2);">
 
-                <div class="row align-items-center g-3">
-                    <div class="col-md-6">
-                        <label class="form-label text-dark fw-bold mb-1">Status Decision</label>
-                        {{ form.status_decision }}
-                        <div class="form-text">Marking as Reviewed completes evaluation and dispatches notification to HR.</div>
-                    </div>
-                    <div class="col-md-6 text-md-end pt-3">
-                        <button type="submit" class="btn btn-primary rounded-3 px-4 py-2 fw-semibold shadow-sm" onclick="return confirm('Save this performance evaluation and send review feedback to HR?');">
-                            <i class="bi bi-check2-circle me-1"></i> Save Performance Review
-                        </button>
-                    </div>
+            <div class="row align-items-center g-3">
+                <div class="col-12 col-md-6">
+                    <label class="form-label text-white fw-bold mb-1">Status Decision</label>
+                    {{ form.status_decision }}
+                    <div class="form-text text-secondary">Marking as Reviewed completes evaluation and dispatches notification to HR.</div>
+                </div>
+                <div class="col-12 col-md-6 text-md-end pt-3">
+                    <button type="submit" class="btn btn-primary rounded-3 px-4 py-2 fw-semibold shadow-sm" onclick="return confirm('Save this performance evaluation and send review feedback to HR?');">
+                        <i class="bi bi-check2-circle me-1"></i> Save Performance Review
+                    </button>
                 </div>
             </div>
         </div>
@@ -359,53 +425,51 @@
 
     <!-- SECTION 6: HR Performance History -->
     {% if history_reviews %}
-        <div class="card card-custom border-0 mb-4 shadow-sm">
-            <div class="card-header bg-transparent border-0 pt-4 px-4 pb-0">
-                <h6 class="fw-bold text-dark mb-1">Previous Performance Reviews for {{ report.hr_manager.full_name }}</h6>
+        <div class="saas-card mb-4 overflow-hidden">
+            <div class="p-3 border-bottom border-light-subtle">
+                <h2 class="h6 fw-bold text-white mb-0">Previous Performance Reviews for {{ report.hr_manager.full_name }}</h2>
             </div>
-            <div class="card-body p-0 pt-3">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="bg-light">
+            <div class="table-responsive">
+                <table class="table-saas mb-0 w-100">
+                    <thead>
+                        <tr>
+                            <th class="ps-4">Report Week</th>
+                            <th>Total Score</th>
+                            <th>Average Rating</th>
+                            <th>Performance %</th>
+                            <th>Performance Tier</th>
+                            <th>Reviewed On</th>
+                            <th class="pe-4 text-end">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for prev in history_reviews %}
                             <tr>
-                                <th class="ps-4">Report Week</th>
-                                <th>Total Score</th>
-                                <th>Average Rating</th>
-                                <th>Performance %</th>
-                                <th>Performance Tier</th>
-                                <th>Reviewed On</th>
-                                <th class="pe-4 text-end">Action</th>
+                                <td class="ps-4 fw-semibold text-white">{{ prev.week_display }}</td>
+                                <td>{{ prev.performance_review.total_score }} / 40</td>
+                                <td>{{ prev.performance_review.average_score }} / 5</td>
+                                <td><strong class="text-primary">{{ prev.performance_review.performance_percentage }}%</strong></td>
+                                <td>
+                                    {% if prev.performance_review.performance_percentage >= 85 %}
+                                        <span class="badge-status-saas badge-success-saas px-2">Excellent</span>
+                                    {% elif prev.performance_review.performance_percentage >= 70 %}
+                                        <span class="badge-status-saas badge-info-saas px-2">Good</span>
+                                    {% elif prev.performance_review.performance_percentage >= 50 %}
+                                        <span class="badge-status-saas badge-warning-saas px-2">Needs Improvement</span>
+                                    {% else %}
+                                        <span class="badge rounded-pill px-2" style="background: rgba(239, 68, 68, 0.2); color: #F87171;">Unsatisfactory</span>
+                                    {% endif %}
+                                </td>
+                                <td class="text-secondary small">{{ prev.reviewed_at|date:"M d, Y" }}</td>
+                                <td class="pe-4 text-end">
+                                    <a href="{% url 'admin_module:hr_report_detail' prev.pk %}" class="btn-secondary-admin py-1 px-3" style="font-size: 0.8rem;">
+                                        View
+                                    </a>
+                                </td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            {% for prev in history_reviews %}
-                                <tr>
-                                    <td class="ps-4 fw-semibold text-dark">{{ prev.week_display }}</td>
-                                    <td>{{ prev.performance_review.total_score }} / 40</td>
-                                    <td>{{ prev.performance_review.average_score }} / 5</td>
-                                    <td><strong class="text-primary">{{ prev.performance_review.performance_percentage }}%</strong></td>
-                                    <td>
-                                        {% if prev.performance_review.performance_percentage >= 85 %}
-                                            <span class="badge bg-success-subtle text-success rounded-pill px-2">Excellent</span>
-                                        {% elif prev.performance_review.performance_percentage >= 70 %}
-                                            <span class="badge bg-primary-subtle text-primary rounded-pill px-2">Good</span>
-                                        {% elif prev.performance_review.performance_percentage >= 50 %}
-                                            <span class="badge bg-warning-subtle text-warning-emphasis rounded-pill px-2">Needs Improvement</span>
-                                        {% else %}
-                                            <span class="badge bg-danger-subtle text-danger rounded-pill px-2">Unsatisfactory</span>
-                                        {% endif %}
-                                    </td>
-                                    <td class="text-muted small">{{ prev.reviewed_at|date:"M d, Y" }}</td>
-                                    <td class="pe-4 text-end">
-                                        <a href="{% url 'admin_module:hr_report_detail' prev.pk %}" class="btn btn-sm btn-outline-secondary rounded-2">
-                                            View
-                                        </a>
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
     {% endif %}
@@ -440,16 +504,16 @@ document.addEventListener("DOMContentLoaded", function() {
         if (tierBadge) {
             const pctNum = parseFloat(pct);
             if (pctNum >= 85) {
-                tierBadge.className = "badge bg-success rounded-pill px-2";
+                tierBadge.className = "badge bg-success rounded-pill px-3 py-1";
                 tierBadge.textContent = "Excellent";
             } else if (pctNum >= 70) {
-                tierBadge.className = "badge bg-primary rounded-pill px-2";
+                tierBadge.className = "badge bg-primary rounded-pill px-3 py-1";
                 tierBadge.textContent = "Good";
             } else if (pctNum >= 50) {
-                tierBadge.className = "badge bg-warning text-dark rounded-pill px-2";
+                tierBadge.className = "badge bg-warning text-dark rounded-pill px-3 py-1";
                 tierBadge.textContent = "Needs Improvement";
             } else {
-                tierBadge.className = "badge bg-danger rounded-pill px-2";
+                tierBadge.className = "badge bg-danger rounded-pill px-3 py-1";
                 tierBadge.textContent = "Unsatisfactory";
             }
         }
@@ -463,4 +527,3 @@ document.addEventListener("DOMContentLoaded", function() {
 });
 </script>
 {% endblock %}
-

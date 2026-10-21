@@ -21,66 +21,66 @@
   </div>
 </div>
 
-<!-- Summary KPI Cards -->
+<!-- Summary KPI Cards (Vibrant & Colorful) -->
 <div class="row g-3 mb-4">
   <div class="col-12 col-sm-6 col-lg">
-    <div class="saas-card p-3 h-100">
+    <div class="kpi-stat-card kpi-violet p-3 h-100">
       <div class="d-flex align-items-center justify-content-between mb-2">
-        <span class="text-secondary small text-uppercase fw-semibold" style="font-size: 0.72rem;">HR Managers</span>
-        <div class="avatar-saas rounded-circle" style="background: rgba(139, 92, 246, 0.12); color: #8b5cf6; width: 34px; height: 34px; font-size: 1rem; display: flex; align-items: center; justify-content: center;">
+        <span class="small text-uppercase fw-bold" style="font-size: 0.72rem; color: #C4B5FD; letter-spacing: 0.05em;">HR Managers</span>
+        <div class="avatar-saas icon-badge-violet rounded-3" style="width: 36px; height: 36px; font-size: 1.05rem;">
           <i class="bi bi-person-badge-fill"></i>
         </div>
       </div>
-      <div class="h3 fw-bold text-dark mb-1">{{ total_managers|default:"0" }}</div>
-      <div class="text-secondary small" style="font-size: 0.75rem;">Reporting team</div>
+      <div class="h3 fw-bold text-white mb-1">{{ total_managers|default:"0" }}</div>
+      <div class="small" style="font-size: 0.75rem; color: #8B81A8;">Reporting team</div>
     </div>
   </div>
   <div class="col-12 col-sm-6 col-lg">
-    <div class="saas-card p-3 h-100">
+    <div class="kpi-stat-card kpi-amber p-3 h-100">
       <div class="d-flex align-items-center justify-content-between mb-2">
-        <span class="text-secondary small text-uppercase fw-semibold" style="font-size: 0.72rem;">Jobs Posted</span>
-        <div class="avatar-saas rounded-circle" style="background: rgba(245, 158, 11, 0.12); color: #f59e0b; width: 34px; height: 34px; font-size: 1rem; display: flex; align-items: center; justify-content: center;">
+        <span class="small text-uppercase fw-bold" style="font-size: 0.72rem; color: #FCD34D; letter-spacing: 0.05em;">Jobs Posted</span>
+        <div class="avatar-saas icon-badge-amber rounded-3" style="width: 36px; height: 36px; font-size: 1.05rem;">
           <i class="bi bi-briefcase-fill"></i>
         </div>
       </div>
-      <div class="h3 fw-bold text-dark mb-1">{{ total_jobs_posted|default:"0" }}</div>
-      <div class="text-secondary small" style="font-size: 0.75rem;">{{ period_label }}</div>
+      <div class="h3 fw-bold mb-1" style="color: #FBBF24;">{{ total_jobs_posted|default:"0" }}</div>
+      <div class="small" style="font-size: 0.75rem; color: #8B81A8;">{{ period_label }}</div>
     </div>
   </div>
   <div class="col-12 col-sm-6 col-lg">
-    <div class="saas-card p-3 h-100">
+    <div class="kpi-stat-card kpi-cyan p-3 h-100">
       <div class="d-flex align-items-center justify-content-between mb-2">
-        <span class="text-secondary small text-uppercase fw-semibold" style="font-size: 0.72rem;">Applications</span>
-        <div class="avatar-saas rounded-circle" style="background: rgba(59, 130, 246, 0.12); color: #3b82f6; width: 34px; height: 34px; font-size: 1rem; display: flex; align-items: center; justify-content: center;">
+        <span class="small text-uppercase fw-bold" style="font-size: 0.72rem; color: #67E8F9; letter-spacing: 0.05em;">Applications</span>
+        <div class="avatar-saas icon-badge-cyan rounded-3" style="width: 36px; height: 36px; font-size: 1.05rem;">
           <i class="bi bi-person-lines-fill"></i>
         </div>
       </div>
-      <div class="h3 fw-bold text-dark mb-1">{{ total_applications|default:"0" }}</div>
-      <div class="text-secondary small" style="font-size: 0.75rem;">{{ period_label }}</div>
+      <div class="h3 fw-bold mb-1" style="color: #22D3EE;">{{ total_applications|default:"0" }}</div>
+      <div class="small" style="font-size: 0.75rem; color: #8B81A8;">{{ period_label }}</div>
     </div>
   </div>
   <div class="col-12 col-sm-6 col-lg">
-    <div class="saas-card p-3 h-100">
+    <div class="kpi-stat-card kpi-emerald p-3 h-100">
       <div class="d-flex align-items-center justify-content-between mb-2">
-        <span class="text-secondary small text-uppercase fw-semibold" style="font-size: 0.72rem;">Selections</span>
-        <div class="avatar-saas rounded-circle" style="background: rgba(16, 185, 129, 0.12); color: #10b981; width: 34px; height: 34px; font-size: 1rem; display: flex; align-items: center; justify-content: center;">
+        <span class="small text-uppercase fw-bold" style="font-size: 0.72rem; color: #6EE7B7; letter-spacing: 0.05em;">Selections</span>
+        <div class="avatar-saas icon-badge-emerald rounded-3" style="width: 36px; height: 36px; font-size: 1.05rem;">
           <i class="bi bi-person-check-fill"></i>
         </div>
       </div>
-      <div class="h3 fw-bold text-dark mb-1">{{ total_selections|default:"0" }}</div>
-      <div class="text-success small fw-semibold" style="font-size: 0.75rem;"><i class="bi bi-check-circle me-1"></i>Selected + hired</div>
+      <div class="h3 fw-bold mb-1" style="color: #34D399;">{{ total_selections|default:"0" }}</div>
+      <div class="small fw-semibold" style="font-size: 0.75rem; color: #34D399;"><i class="bi bi-check-circle me-1"></i>Selected + hired</div>
     </div>
   </div>
   <div class="col-12 col-sm-6 col-lg">
-    <div class="saas-card p-3 h-100">
+    <div class="kpi-stat-card kpi-pink p-3 h-100">
       <div class="d-flex align-items-center justify-content-between mb-2">
-        <span class="text-secondary small text-uppercase fw-semibold" style="font-size: 0.72rem;">Reporting Period</span>
-        <div class="avatar-saas rounded-circle" style="background: rgba(6, 182, 212, 0.12); color: #06b6d4; width: 34px; height: 34px; font-size: 1rem; display: flex; align-items: center; justify-content: center;">
+        <span class="small text-uppercase fw-bold" style="font-size: 0.72rem; color: #F472B6; letter-spacing: 0.05em;">Reporting Period</span>
+        <div class="avatar-saas icon-badge-pink rounded-3" style="width: 36px; height: 36px; font-size: 1.05rem;">
           <i class="bi bi-calendar-week"></i>
         </div>
       </div>
-      <div class="h5 fw-bold text-dark mb-1 text-truncate" title="{{ period_label }}">{{ period_label }}</div>
-      <div class="text-secondary small" style="font-size: 0.75rem;">Active filter</div>
+      <div class="h5 fw-bold mb-1 text-truncate" style="color: #EC4899;" title="{{ period_label }}">{{ period_label }}</div>
+      <div class="small" style="font-size: 0.75rem; color: #8B81A8;">Active filter</div>
     </div>
   </div>
 </div>

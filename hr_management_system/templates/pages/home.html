@@ -500,7 +500,7 @@
                 </a>
               </li>
               <li class="nav-item ms-lg-1">
-                <a class="btn btn-primary-lavender" href="{% url 'role_select' %}">
+                <a class="btn btn-primary-lavender" href="{% url 'account_login' %}">
                   <i class="bi bi-person-circle text-white"></i> Sign In
                 </a>
               </li>
@@ -533,7 +533,7 @@
                   <i class="bi bi-grid-1x2-fill text-white"></i> Access Dashboard
                 </a>
               {% else %}
-                <a href="{% url 'role_select' %}" class="btn btn-primary-lavender btn-lg px-4">
+                <a href="{% url 'account_login' %}" class="btn btn-primary-lavender btn-lg px-4">
                   <i class="bi bi-box-arrow-in-right text-white"></i> Sign In to Portal
                 </a>
                 <a href="#vacancies" class="btn btn-outline-lavender btn-lg px-4">
@@ -693,7 +693,7 @@
             <a href="/" class="me-3 text-white">Home</a>
             <a href="{% url 'candidates:job_list' %}" class="me-3 text-white">Jobs</a>
             <a href="/about/" class="me-3 text-white">About</a>
-            <a href="{% url 'role_select' %}" class="text-white">Portal Sign In</a>
+            <a href="{% url 'account_login' %}" class="text-white">Portal Sign In</a>
           </div>
         </div>
       </div>

@@ -52,6 +52,7 @@ urlpatterns = [
     # Admin Reports (view & analyze only)
     path("reports/hr-weekly/", views.admin_reports_hr_weekly_view, name="reports_hr_weekly"),
     path("reports/employee-weekly/", views.admin_reports_employee_weekly_view, name="reports_employee_weekly"),
+    path("reports/employee-weekly/<int:report_id>/", views.admin_reports_employee_weekly_detail_view, name="reports_employee_weekly_detail"),
     path("reports/recruitment/", views.admin_reports_recruitment_view, name="reports_recruitment"),
     path("reports/departments/", views.admin_reports_departments_view, name="reports_departments"),
     path("reports/performance/", views.admin_reports_performance_view, name="reports_performance"),

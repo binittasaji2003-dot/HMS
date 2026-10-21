@@ -23,7 +23,8 @@
       }
     }
   </script>
-</head>
+    <link rel="stylesheet" href="{% static 'css/employee_theme.css' %}" />
+  </head>
 <body class="bg-slate-50 font-sans antialiased text-slate-800 min-h-screen">
   <header class="h-20 bg-white border-b border-slate-200/80 px-6 lg:px-10 flex items-center justify-between sticky top-0 z-30 shadow-sm">
     <div class="flex items-center gap-3">
@@ -171,8 +172,8 @@
             <p class="text-xs text-slate-500 mt-0.5">Reviewed by: <strong class="text-slate-800">{{ evaluation.reviewed_by.full_name|default:"HR Department" }}</strong> on {{ evaluation.reviewed_at|date:"M d, Y" }}</p>
           </div>
           <div class="flex items-center gap-2">
-            <span class="px-3 py-1 bg-blue-50 text-blue-700 font-black text-xs rounded-full">
-              Total Score: {{ evaluation.total_score }}/40
+            <span class="px-3 py-1 font-black text-xs rounded-full" style="background: rgba(245, 158, 11, 0.2); color: #FCD34D; border: 1px solid rgba(245, 158, 11, 0.35);">
+              Rating Score: ★ {{ evaluation.average_score }} / 5.0
             </span>
             <span class="px-3 py-1 bg-emerald-50 text-emerald-700 font-black text-xs rounded-full">
               {{ evaluation.performance_percentage }}% Rating

@@ -63,6 +63,36 @@ class User(AbstractUser):
         ]
 
     @property
+    def is_birthday_today(self) -> bool:
+        """Check if today is the user's birthday.
+        - Strictly excluded for Admin.
+        - Applicable only for Employee and HR roles with date_of_birth set.
+        - True only on their actual birthday.
+        """
+        if not self.is_authenticated:
+            return False
+        if self.role == self.RoleChoices.ADMIN or self.is_superuser or self.is_staff:
+            return False
+        if self.role not in [self.RoleChoices.EMPLOYEE, self.RoleChoices.HR]:
+            return False
+
+        dob = None
+        if self.role == self.RoleChoices.EMPLOYEE:
+            emp = getattr(self, "employee_profile", None)
+            if emp:
+                dob = emp.date_of_birth or (getattr(emp, "candidate", None) and emp.candidate.date_of_birth)
+        elif self.role == self.RoleChoices.HR:
+            hr = getattr(self, "hr_profile", None)
+            if hr:
+                dob = hr.date_of_birth
+
+        if not dob:
+            return False
+
+        from django.utils import timezone
+        today = timezone.localdate()
+        return bool(dob.month == today.month and dob.day == today.day)
+
     def is_admin_role(self) -> bool:
         return self.role == self.RoleChoices.ADMIN and self.status == self.StatusChoices.ACTIVE
 

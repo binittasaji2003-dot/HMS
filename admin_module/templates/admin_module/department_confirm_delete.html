@@ -1,0 +1,193 @@
+{% extends "admin_module/base_admin.html" %}
+
+{% block title %}Delete Department: {{ department.name }} - Smart HRMS Admin{% endblock title %}
+
+{% block content %}
+<div class="row justify-content-center pt-3 pb-5">
+  <div class="col-12 col-md-10 col-lg-8" style="max-width: 680px;">
+    <div class="saas-card overflow-hidden shadow-lg">
+      <!-- Card Header -->
+      <div class="p-3 border-bottom d-flex align-items-center justify-content-between" style="background-color: var(--bg-card-header); border-color: rgba(167, 139, 250, 0.18) !important;">
+        <h2 class="h6 mb-0 fw-bold text-danger d-flex align-items-center gap-2">
+          <i class="bi bi-shield-exclamation text-danger fs-5"></i>
+          <span>Confirm Department Deletion</span>
+        </h2>
+        <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill px-2.5 py-1" style="font-size: 0.72rem;">
+          Irreversible Action
+        </span>
+      </div>
+
+      <!-- Card Body -->
+      <div class="p-4">
+        <div class="text-center mb-4">
+          <div class="mx-auto mb-3" style="width: 60px; height: 60px; border-radius: 50%; background: rgba(239, 68, 68, 0.16); border: 1px solid rgba(239, 68, 68, 0.4); display: flex; align-items: center; justify-content: center; color: #F87171; font-size: 1.6rem; box-shadow: 0 0 16px rgba(239, 68, 68, 0.25);">
+            <i class="bi bi-diagram-3-fill"></i>
+          </div>
+          <h1 class="h4 text-white fw-bold mb-1">Delete "{{ department.name }}"?</h1>
+          <p class="small mb-0" style="color: #C4B5FD;">
+            Review the attached records below before deleting this department from the HRMS database.
+          </p>
+        </div>
+
+        <!-- Target Department Summary Card -->
+        <div class="p-3 mb-4 rounded-3" style="background: #110A22; border: 1px solid rgba(167, 139, 250, 0.2);">
+          <div class="d-flex align-items-center justify-content-between mb-2">
+            <span class="small text-uppercase fw-bold" style="font-size: 0.7rem; letter-spacing: 0.5px; color: #A78BFA;">Target Department</span>
+            <span class="badge bg-secondary-subtle rounded-pill px-2 py-0.5" style="font-size: 0.7rem;">ID #{{ department.department_id }}</span>
+          </div>
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <div class="avatar-saas icon-badge-violet rounded-3" style="width: 38px; height: 38px; font-size: 1.05rem;">
+              <i class="bi bi-building"></i>
+            </div>
+            <div>
+              <div class="text-white fw-bold fs-6">{{ department.name }}</div>
+              <div class="small" style="color: #C4B5FD;">{{ department.description|default:"No description provided." }}</div>
+            </div>
+          </div>
+          {% if department.department_leader %}
+            <div class="small pt-2 border-top" style="color: #C4B5FD; border-color: rgba(167, 139, 250, 0.15) !important;">
+              <i class="bi bi-person-badge text-primary me-1"></i> Leader: <strong class="text-white">{{ department.department_leader.name|default:department.department_leader.email }}</strong>
+            </div>
+          {% endif %}
+        </div>
+
+        <!-- Attached Records Analysis -->
+        <div class="mb-4">
+          <label class="form-label text-uppercase fw-bold mb-2" style="font-size: 0.72rem; letter-spacing: 0.5px; color: #C4B5FD;">
+            Attached System Records
+          </label>
+          <div class="row g-2">
+            <div class="col-6 col-sm-3">
+              <div class="p-2.5 rounded-2 border text-center {% if employee_count > 0 %}bg-danger-subtle text-danger{% else %}" style="background: #110A22; border-color: rgba(167, 139, 250, 0.18); color: #C4B5FD;{% endif %}">
+                <div class="fs-5 fw-bold">{{ employee_count }}</div>
+                <div class="small fw-semibold" style="font-size: 0.75rem;">Employee{{ employee_count|pluralize }}</div>
+              </div>
+            </div>
+            <div class="col-6 col-sm-3">
+              <div class="p-2.5 rounded-2 border text-center {% if vacancy_count > 0 %}bg-warning-subtle text-warning-emphasis{% else %}" style="background: #110A22; border-color: rgba(167, 139, 250, 0.18); color: #C4B5FD;{% endif %}">
+                <div class="fs-5 fw-bold">{{ vacancy_count }}</div>
+                <div class="small fw-semibold" style="font-size: 0.75rem;">Vacanc{{ vacancy_count|pluralize:"y,ies" }}</div>
+              </div>
+            </div>
+            <div class="col-6 col-sm-3">
+              <div class="p-2.5 rounded-2 border text-center" style="background: #110A22; border-color: rgba(167, 139, 250, 0.18); color: #C4B5FD;">
+                <div class="fs-5 fw-bold">{{ team_count }}</div>
+                <div class="small fw-semibold" style="font-size: 0.75rem;">Team{{ team_count|pluralize }}</div>
+              </div>
+            </div>
+            <div class="col-6 col-sm-3">
+              <div class="p-2.5 rounded-2 border text-center" style="background: #110A22; border-color: rgba(167, 139, 250, 0.18); color: #C4B5FD;">
+                <div class="fs-5 fw-bold">{{ hr_manager_count }}</div>
+                <div class="small fw-semibold" style="font-size: 0.75rem;">HR Manager{{ hr_manager_count|pluralize }}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Records Details Accordion/List if blocking relations exist -->
+        {% if has_blocking_relations %}
+          <div class="mb-4 p-3 rounded-3" style="background: #110A22; border: 1px solid rgba(167, 139, 250, 0.2);">
+            <div class="fw-bold small mb-2 d-flex align-items-center gap-1.5" style="color: #FBBF24;">
+              <i class="bi bi-list-check"></i> Records that must be reassigned:
+            </div>
+            
+            {% if employee_count > 0 %}
+              <div class="mb-2">
+                <span class="small fw-semibold d-block mb-1" style="color: #C4B5FD;">Employees:</span>
+                <div class="d-flex flex-wrap gap-1.5">
+                  {% for emp in employees %}
+                    <span class="badge bg-light rounded-pill px-2.5 py-1 small">
+                      <i class="bi bi-person text-primary me-1"></i>{{ emp.employee_code }} - {{ emp.user.name|default:emp.user.email }}
+                    </span>
+                  {% endfor %}
+                </div>
+              </div>
+            {% endif %}
+
+            {% if vacancy_count > 0 %}
+              <div class="mt-2">
+                <span class="small fw-semibold d-block mb-1" style="color: #C4B5FD;">Job Vacancies:</span>
+                <div class="d-flex flex-wrap gap-1.5">
+                  {% for vac in job_vacancies %}
+                    <span class="badge bg-light rounded-pill px-2.5 py-1 small">
+                      <i class="bi bi-briefcase text-warning me-1"></i>{{ vac.title }} ({{ vac.get_status_display|default:vac.status }})
+                    </span>
+                  {% endfor %}
+                </div>
+              </div>
+            {% endif %}
+          </div>
+        {% endif %}
+
+        <!-- Deletion / Reassignment Form -->
+        <form method="post" class="m-0 p-0" id="departmentDeleteForm">
+          {% csrf_token %}
+
+          {% if has_blocking_relations %}
+            <!-- Protected Relations Reassignment Card -->
+            <div class="p-3 mb-4 rounded-3" style="background: linear-gradient(135deg, rgba(124, 58, 237, 0.16) 0%, rgba(59, 130, 246, 0.12) 100%); border: 1px solid rgba(167, 139, 250, 0.35);">
+              <div class="d-flex align-items-start gap-2 mb-2">
+                <i class="bi bi-arrow-left-right text-primary fs-5 mt-0.5" style="color: #C084FC !important;"></i>
+                <div>
+                  <h3 class="h6 fw-bold text-white mb-1">Reassign Associated Records</h3>
+                  <p class="small mb-3" style="color: #C4B5FD;">
+                    To prevent database errors and maintain system integrity, choose a destination department to transfer all employees and job vacancies to before deleting.
+                  </p>
+                </div>
+              </div>
+
+              {% if other_departments %}
+                <div class="mb-2">
+                  <label for="reassign_to_department" class="form-label fw-bold text-white small">
+                    Destination Department <span class="text-danger">*</span>
+                  </label>
+                  <select name="reassign_to_department" id="reassign_to_department" class="form-select" required>
+                    <option value="" disabled selected>-- Choose Destination Department --</option>
+                    {% for other in other_departments %}
+                      <option value="{{ other.department_id }}">
+                        {{ other.name }} ({{ other.employees.count }} current employees)
+                      </option>
+                    {% endfor %}
+                  </select>
+                  <div class="form-text small mt-1.5" style="color: #A78BFA;">
+                    <i class="bi bi-info-circle me-1"></i> All employees, vacancies, and teams will be safely transferred to this department.
+                  </div>
+                </div>
+              {% else %}
+                <div class="alert alert-danger mb-0 small">
+                  <i class="bi bi-exclamation-triangle-fill me-1"></i> There are no other departments available to transfer records to. Please create another department or manually reassign records before deleting.
+                </div>
+              {% endif %}
+            </div>
+          {% else %}
+            <!-- Safe to Delete Notice -->
+            <div class="alert alert-success d-flex align-items-center gap-2 mb-4 p-3 rounded-3 small">
+              <i class="bi bi-check-circle-fill text-success fs-5"></i>
+              <div>
+                <strong>Safe to delete:</strong> This department has no employees or active job vacancies attached.
+              </div>
+            </div>
+          {% endif %}
+
+          <!-- Form Action Footer -->
+          <div class="d-flex justify-content-end align-items-center gap-2 pt-3 border-top" style="border-color: rgba(167, 139, 250, 0.18) !important;">
+            <a href="{% url 'admin_module:departments_list' %}" class="btn px-3" style="background: #1A1236; border: 1px solid rgba(167, 139, 250, 0.3); color: #C4B5FD;">
+              <i class="bi bi-x-lg me-1"></i> Cancel
+            </a>
+
+            {% if has_blocking_relations %}
+              <button type="submit" class="btn btn-danger px-4 fw-semibold" {% if not other_departments %}disabled{% endif %} style="background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%); border: none; box-shadow: 0 4px 14px rgba(239, 68, 68, 0.4); color: #FFFFFF;">
+                <i class="bi bi-arrow-left-right me-1"></i> Reassign & Delete Department
+              </button>
+            {% else %}
+              <button type="submit" class="btn btn-danger px-4 fw-semibold" style="background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%); border: none; box-shadow: 0 4px 14px rgba(239, 68, 68, 0.4); color: #FFFFFF;">
+                <i class="bi bi-trash me-1"></i> Permanently Delete Department
+              </button>
+            {% endif %}
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock content %}

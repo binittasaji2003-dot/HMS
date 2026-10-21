@@ -86,18 +86,18 @@
 <!-- Vacancies Table Card -->
 <div class="card card-custom shadow-sm">
     <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
+        <table class="table table-hover align-middle mb-0" style="min-width: 1080px;">
             <thead class="table-light">
                 <tr>
-                    <th style="min-width: 220px;">Job Title & Designation</th>
+                    <th style="min-width: 190px;">Job Title & Designation</th>
                     <th>Department</th>
                     <th>Qualification & Exp</th>
                     <th>Type & Work Mode</th>
-                    <th>Openings</th>
-                    <th>Deadline</th>
-                    <th>Status</th>
+                    <th class="text-center">Openings</th>
+                    <th class="text-center">Deadline</th>
+                    <th class="text-center">Status</th>
                     <th class="text-center">Applicants</th>
-                    <th class="text-end" style="min-width: 160px;">Actions</th>
+                    <th class="text-end" style="min-width: 270px; white-space: nowrap;">Actions</th>
                 </tr>
             </thead>
             <tbody>
@@ -125,7 +125,7 @@
                         <span class="badge bg-light text-primary border me-1">{{ job.get_employment_type_display }}</span>
                         <span class="badge bg-light text-secondary border">{{ job.get_work_mode_display }}</span>
                     </td>
-                    <td>
+                    <td class="text-center">
                         <span class="badge bg-secondary-subtle text-dark px-2">{{ job.number_of_openings }}</span>
                     </td>
                     <td>
@@ -142,7 +142,7 @@
                             <span class="text-muted small">No Deadline (Open)</span>
                         {% endif %}
                     </td>
-                    <td>
+                    <td class="text-center">
                         {% if job.status == 'OPEN' %}
                             <span class="badge bg-success px-2 py-1"><i class="bi bi-check-circle me-1"></i>Open</span>
                         {% elif job.status == 'CLOSED' %}
@@ -164,19 +164,22 @@
                             {{ job.applicant_count|default:0 }} applied
                         </a>
                     </td>
-                    <td class="text-end">
-                        <div class="btn-group btn-group-sm">
-                            <a href="{% url 'hr:job_screening' job.pk %}" class="btn btn-outline-success" title="Resume Screening">
-                                <i class="bi bi-person-check-fill"></i> Screening
+                    <td class="text-end" style="white-space: nowrap;">
+                        <div class="d-inline-flex align-items-center gap-1">
+                            <a href="{% url 'hr:job_screening' job.pk %}" class="btn btn-sm btn-outline-success py-1 px-2 fw-semibold" title="Resume Screening (All Applicants)" style="font-size: 0.78rem;">
+                                <i class="bi bi-person-check-fill me-1"></i>Screening
                             </a>
-                            <a href="{% url 'hr:job_detail' job.pk %}" class="btn btn-outline-secondary" title="View Details">
+                            <a href="{% url 'hr:job_shortlisted' job.pk %}" class="btn btn-sm btn-outline-info py-1 px-2 fw-semibold" title="View Shortlisted Candidates" style="font-size: 0.78rem;">
+                                <i class="bi bi-check2-circle me-1"></i>Shortlisted
+                            </a>
+                            <a href="{% url 'hr:job_detail' job.pk %}" class="btn btn-sm btn-outline-secondary py-1 px-2" title="View Job Details" style="font-size: 0.78rem;">
                                 <i class="bi bi-eye"></i>
                             </a>
-                            <a href="{% url 'hr:job_edit' job.pk %}" class="btn btn-outline-primary" title="Edit Vacancy">
+                            <a href="{% url 'hr:job_edit' job.pk %}" class="btn btn-sm btn-outline-primary py-1 px-2" title="Edit Vacancy" style="font-size: 0.78rem;">
                                 <i class="bi bi-pencil"></i>
                             </a>
                             {% if job.status == 'OPEN' %}
-                            <button type="button" class="btn btn-outline-danger" title="Close Job" data-bs-toggle="modal" data-bs-target="#closeModal{{ job.pk }}">
+                            <button type="button" class="btn btn-sm btn-outline-danger py-1 px-2" title="Close Job" data-bs-toggle="modal" data-bs-target="#closeModal{{ job.pk }}" style="font-size: 0.78rem;">
                                 <i class="bi bi-slash-circle"></i>
                             </button>
                             {% endif %}

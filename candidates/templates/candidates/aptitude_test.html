@@ -109,14 +109,30 @@
 
 <style>
     .cursor-pointer { cursor: pointer; }
+    .option-label {
+        background-color: var(--cand-bg-subtle) !important;
+        border-color: var(--cand-border) !important;
+        transition: all 0.2s ease;
+    }
     .option-label:hover {
-        background-color: #f0f4f8 !important;
-        border-color: #0d6efd !important;
+        background-color: #1E133C !important;
+        border-color: var(--cand-lavender) !important;
+    }
+    .option-label.checked-option,
+    .option-label:has(input[type="radio"]:checked) {
+        background-color: rgba(139, 92, 246, 0.25) !important;
+        border-color: #A78BFA !important;
+        box-shadow: 0 0 15px rgba(139, 92, 246, 0.3) !important;
     }
     .option-label input[type="radio"]:checked ~ span.badge {
-        background-color: #0d6efd !important;
+        background: var(--cand-primary-gradient) !important;
         color: #ffffff !important;
-        border-color: #0d6efd !important;
+        border-color: rgba(192, 132, 252, 0.4) !important;
+    }
+    .option-label span.badge {
+        background-color: #170F30 !important;
+        color: var(--cand-lavender-accent) !important;
+        border-color: var(--cand-border) !important;
     }
 </style>
 

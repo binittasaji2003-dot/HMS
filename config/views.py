@@ -63,7 +63,8 @@ def calendar_events_api(request):
         if c.date_of_birth:
             bday_this_year = f"{current_year}-{c.date_of_birth.month:02d}-{c.date_of_birth.day:02d}"
             name = (
-                c.full_name
+                getattr(c, "full_name", None)
+                or f"{c.first_name} {c.last_name}".strip()
                 or getattr(c.user, "name", "")
                 or (c.user.email.split("@")[0] if c.user else "Employee")
             )
@@ -80,5 +81,8 @@ def calendar_events_api(request):
 
 
 def dismiss_birthday_popup(request):
+    from django.utils import timezone
+    today_str = timezone.localdate().isoformat()
+    request.session["birthday_dismissed_date"] = today_str
     request.session["birthday_greeted"] = True
     return JsonResponse({"status": "success"})

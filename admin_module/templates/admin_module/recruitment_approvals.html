@@ -6,8 +6,8 @@
 <!-- Page Header -->
 <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-3">
   <div>
-    <h1 class="h3 mb-1 fw-bold">New Employee Approvals</h1>
-    <p class="text-secondary mb-0 small">
+    <h1 class="page-title-saas mb-1">New Employee Approvals</h1>
+    <p class="page-subtitle-saas mb-0">
       Employee records raised by HR for selected candidates that are awaiting your approval.
       Approving moves the record to the Active workforce.
     </p>
@@ -22,72 +22,91 @@
   </div>
 </div>
 
-<!-- Summary KPI Cards -->
-<div class="kpi-grid-5 mb-4">
-  <div class="kpi-card kpi-card-compact">
-    <div class="kpi-header">
-      <span class="kpi-title">Pending Reviews</span>
-      <div class="kpi-icon-circle icon-circle-amber"><i class="bi bi-hourglass-split"></i></div>
+<!-- Summary KPI Cards (Horizontal 3-Column Layout with Vibrant Accents) -->
+<div class="row g-3 mb-4">
+  <div class="col-12 col-md-4">
+    <div class="kpi-stat-card kpi-amber p-3 h-100">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <span class="small text-uppercase fw-bold" style="font-size: 0.72rem; color: #FCD34D; letter-spacing: 0.05em;">Pending Reviews</span>
+        <div class="avatar-saas icon-badge-amber rounded-3" style="width: 38px; height: 38px; font-size: 1.1rem;">
+          <i class="bi bi-hourglass-split"></i>
+        </div>
+      </div>
+      <div class="h3 fw-bold mb-1" style="color: #FBBF24;">{{ pending_count|default:"0" }}</div>
+      <div class="small fw-semibold" style="font-size: 0.75rem; color: #FBBF24;"><i class="bi bi-clock me-1"></i>Awaiting approval</div>
     </div>
-    <div class="kpi-value">{{ pending_count|default:"0" }}</div>
-    <div class="kpi-trend trend-warning"><i class="bi bi-clock"></i><span>Awaiting approval</span></div>
   </div>
-  <div class="kpi-card kpi-card-compact">
-    <div class="kpi-header">
-      <span class="kpi-title">Active Employees</span>
-      <div class="kpi-icon-circle icon-circle-emerald"><i class="bi bi-people-fill"></i></div>
+
+  <div class="col-12 col-md-4">
+    <div class="kpi-stat-card kpi-emerald p-3 h-100">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <span class="small text-uppercase fw-bold" style="font-size: 0.72rem; color: #6EE7B7; letter-spacing: 0.05em;">Active Employees</span>
+        <div class="avatar-saas icon-badge-emerald rounded-3" style="width: 38px; height: 38px; font-size: 1.1rem;">
+          <i class="bi bi-people-fill"></i>
+        </div>
+      </div>
+      <div class="h3 fw-bold mb-1" style="color: #34D399;">{{ active_employees|default:"0" }}</div>
+      <div class="small fw-semibold" style="font-size: 0.75rem; color: #34D399;"><i class="bi bi-person-check-fill me-1"></i>Approved workforce</div>
     </div>
-    <div class="kpi-value">{{ active_employees|default:"0" }}</div>
-    <div class="kpi-trend trend-positive"><i class="bi bi-person-check-fill"></i><span>Approved workforce</span></div>
   </div>
-  <div class="kpi-card kpi-card-compact">
-    <div class="kpi-header">
-      <span class="kpi-title">Employee Records</span>
-      <div class="kpi-icon-circle icon-circle-blue"><i class="bi bi-person-vcard-fill"></i></div>
+
+  <div class="col-12 col-md-4">
+    <div class="kpi-stat-card kpi-cyan p-3 h-100">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <span class="small text-uppercase fw-bold" style="font-size: 0.72rem; color: #67E8F9; letter-spacing: 0.05em;">Employee Records</span>
+        <div class="avatar-saas icon-badge-cyan rounded-3" style="width: 38px; height: 38px; font-size: 1.1rem;">
+          <i class="bi bi-person-vcard-fill"></i>
+        </div>
+      </div>
+      <div class="h3 fw-bold text-white mb-1">{{ total_employees|default:"0" }}</div>
+      <div class="small" style="font-size: 0.75rem; color: #8B81A8;">Total on file</div>
     </div>
-    <div class="kpi-value">{{ total_employees|default:"0" }}</div>
-    <div class="kpi-trend trend-subtext"><span>Total on file</span></div>
   </div>
 </div>
 
 <!-- Pending Approvals Card -->
 <div class="saas-card mb-4">
-  <div class="card-header flex-wrap gap-3">
-    <div class="d-flex align-items-center gap-2 flex-wrap">
-      <h2 class="card-title mb-0">
-        <i class="bi bi-clipboard-check-fill text-primary"></i> Employee Approval Requests
+  <div class="p-3 border-bottom d-flex align-items-center justify-content-between flex-wrap gap-3" style="background-color: var(--bg-card-header); border-color: rgba(167, 139, 250, 0.18) !important;">
+    <div class="d-flex align-items-center gap-3 flex-wrap">
+      <h2 class="h6 mb-0 fw-bold text-white d-flex align-items-center gap-2">
+        <i class="bi bi-clipboard-check-fill text-primary"></i>
+        <span>Employee Approval Requests</span>
       </h2>
-      <div class="btn-group btn-group-sm ms-2">
-        <a href="?status=PENDING" class="btn btn-sm {% if status_filter == 'PENDING' %}btn-primary text-white{% else %}btn-outline-secondary{% endif %}">
+      <div class="d-flex align-items-center gap-1.5 flex-wrap">
+        <a href="?status=PENDING" class="btn-pill-action {% if status_filter == 'PENDING' %}active{% endif %}">
           Pending ({{ pending_count }})
         </a>
-        <a href="?status=APPROVED" class="btn btn-sm {% if status_filter == 'APPROVED' %}btn-primary text-white{% else %}btn-outline-secondary{% endif %}">
+        <a href="?status=APPROVED" class="btn-pill-action {% if status_filter == 'APPROVED' %}active{% endif %}">
           Approved ({{ approved_count }})
         </a>
-        <a href="?status=REJECTED" class="btn btn-sm {% if status_filter == 'REJECTED' %}btn-primary text-white{% else %}btn-outline-secondary{% endif %}">
+        <a href="?status=REJECTED" class="btn-pill-action {% if status_filter == 'REJECTED' %}active{% endif %}">
           Rejected ({{ rejected_count }})
         </a>
-        <a href="?status=ALL" class="btn btn-sm {% if status_filter == 'ALL' %}btn-primary text-white{% else %}btn-outline-secondary{% endif %}">
+        <a href="?status=ALL" class="btn-pill-action {% if status_filter == 'ALL' %}active{% endif %}">
           All
         </a>
       </div>
     </div>
 
-    <form method="get" class="d-flex align-items-center gap-2 flex-wrap">
+    <form method="get" class="d-flex align-items-center gap-2 flex-wrap mb-0">
       <input type="hidden" name="status" value="{{ status_filter }}">
-      <div class="topbar-search-box" style="width: 240px;">
-        <i class="bi bi-search"></i>
-        <input type="text" name="q" value="{{ search }}" placeholder="Search name, role, dept...">
+      <div class="input-group" style="width: 260px;">
+        <span class="input-group-text"><i class="bi bi-search" style="color: #C4B5FD;"></i></span>
+        <input type="text" name="q" value="{{ search }}" class="form-control" placeholder="Search name, role, dept...">
       </div>
-      <button type="submit" class="btn-pill-action"><i class="bi bi-funnel me-1"></i>Filter</button>
+      <button type="submit" class="btn btn-sm btn-primary px-3 fw-semibold" style="background: linear-gradient(135deg, #7C3AED 0%, #9333EA 100%); border: none; box-shadow: 0 2px 8px rgba(124, 58, 237, 0.35);">
+        <i class="bi bi-funnel me-1"></i>Filter
+      </button>
       {% if search %}
-        <a href="{% url 'admin_module:recruitment_approvals' %}?status={{ status_filter }}" class="btn-pill-action"><i class="bi bi-x-lg me-1"></i>Clear</a>
+        <a href="{% url 'admin_module:recruitment_approvals' %}?status={{ status_filter }}" class="btn btn-sm btn-outline-secondary" style="border-color: rgba(167, 139, 250, 0.3); color: #C4B5FD;">
+          <i class="bi bi-x-lg me-1"></i>Clear
+        </a>
       {% endif %}
     </form>
   </div>
 
   <div class="table-responsive">
-    <table class="table-saas" id="approvalsTable">
+    <table class="table mb-0" id="approvalsTable">
       <caption class="visually-hidden">Employee approval requests</caption>
       <thead>
         <tr>
@@ -106,26 +125,28 @@
         {% for app_item in pending_approvals %}
           <tr>
             <td>
-              <div class="emp-table-profile">
-                <div class="emp-table-avatar" style="background: linear-gradient(135deg, #1a73e8, #0d47a1);">
+              <div class="d-flex align-items-center gap-2.5">
+                <div class="avatar-saas icon-badge-violet rounded-circle" style="width: 36px; height: 36px; font-weight: 700; font-size: 0.85rem;">
                   {{ app_item.employee.user.name|default:app_item.employee.user.email|slice:":1"|upper }}
                 </div>
                 <div>
-                  <div class="emp-table-name text-dark fw-semibold">{{ app_item.employee.user.name|default:app_item.employee.user.email }}</div>
-                  <div class="emp-table-dept text-muted" style="font-size: 0.72rem;">{{ app_item.employee.user.email }}</div>
+                  <div class="fw-semibold text-white">{{ app_item.employee.user.name|default:app_item.employee.user.email }}</div>
+                  <div class="small" style="font-size: 0.72rem; color: #8B81A8;">{{ app_item.employee.user.email }}</div>
                 </div>
               </div>
             </td>
-            <td><span class="text-dark fw-medium">{{ app_item.employee.designation|default:"—" }}</span></td>
+            <td><span class="text-white fw-medium">{{ app_item.employee.designation|default:"—" }}</span></td>
             <td>
-              <span class="btn-pill-action"><i class="bi bi-building me-1"></i>{{ app_item.employee.department.name|default:"Unassigned" }}</span>
+              <span class="badge bg-light rounded-pill px-2.5 py-1">
+                <i class="bi bi-building me-1 text-primary"></i>{{ app_item.employee.department.name|default:"Unassigned" }}
+              </span>
               {% if app_item.employee.department.department_leader %}
-                <div class="text-muted" style="font-size: 0.7rem;">Head: {{ app_item.employee.department.department_leader.name|default:app_item.employee.department.department_leader.email }}</div>
+                <div class="small mt-0.5" style="font-size: 0.7rem; color: #8B81A8;">Head: {{ app_item.employee.department.department_leader.name|default:app_item.employee.department.department_leader.email }}</div>
               {% endif %}
             </td>
-            <td><span class="text-dark small">{{ app_item.employee.team.team_name|default:"General" }}</span></td>
+            <td><span class="small text-white">{{ app_item.employee.team.team_name|default:"General" }}</span></td>
             <td>
-              <span class="text-secondary small">
+              <span class="small" style="color: #C4B5FD;">
                 {% if app_item.employee.team_lead %}
                   {{ app_item.employee.team_lead.name|default:app_item.employee.team_lead.email }}
                 {% else %}
@@ -133,9 +154,9 @@
                 {% endif %}
               </span>
             </td>
-            <td><span class="text-dark small fw-semibold">{{ app_item.employee.joining_date|date:"M d, Y"|default:"—" }}</span></td>
+            <td><span class="small fw-semibold text-white">{{ app_item.employee.joining_date|date:"M d, Y"|default:"—" }}</span></td>
             <td>
-              <span class="text-secondary small">
+              <span class="small" style="color: #C4B5FD;">
                 <i class="bi bi-person-badge text-primary me-1"></i>
                 {% if app_item.requested_by %}
                   {{ app_item.requested_by.name|default:app_item.requested_by.email }}
@@ -145,19 +166,19 @@
                   HR Lead
                 {% endif %}
               </span>
-              <div class="text-muted" style="font-size: 0.7rem;">{{ app_item.employee.created_at|date:"M d, Y" }}</div>
+              <div class="small" style="font-size: 0.7rem; color: #8B81A8;">{{ app_item.employee.created_at|date:"M d, Y" }}</div>
             </td>
             <td>
               {% if app_item.status == 'PENDING' %}
-                <span class="badge-status badge-status-pending"><i class="bi bi-hourglass-split me-1"></i>Pending</span>
+                <span class="badge bg-warning-subtle rounded-pill px-2.5 py-1"><i class="bi bi-hourglass-split me-1"></i>Pending</span>
               {% elif app_item.status == 'APPROVED' %}
-                <span class="badge-status badge-status-active"><i class="bi bi-check-circle-fill me-1"></i>Approved</span>
+                <span class="badge bg-success-subtle rounded-pill px-2.5 py-1"><i class="bi bi-check-circle-fill me-1"></i>Approved</span>
               {% else %}
-                <span class="badge-status badge-status-inactive"><i class="bi bi-x-circle-fill me-1"></i>Rejected</span>
+                <span class="badge bg-danger-subtle rounded-pill px-2.5 py-1"><i class="bi bi-x-circle-fill me-1"></i>Rejected</span>
               {% endif %}
             </td>
             <td style="text-align: right;">
-              <a href="{% url 'admin_module:recruitment_approval_review' app_item.employee.pk %}" class="btn btn-sm btn-outline-primary fw-semibold px-2 py-1" title="Review Full Details" style="font-size: 0.78rem;">
+              <a href="{% url 'admin_module:recruitment_approval_review' app_item.employee.pk %}" class="btn btn-sm fw-semibold px-2.5 py-1 rounded-2" title="Review Full Details" style="font-size: 0.78rem; background: #1A1236; border: 1px solid rgba(167, 139, 250, 0.25); color: #C084FC;">
                 <i class="bi bi-eye me-1"></i>View Details
               </a>
             </td>
@@ -165,17 +186,17 @@
         {% empty %}
           <tr>
             <td colspan="9" class="text-center py-5">
-              <div class="empty-state-box">
-                <i class="bi bi-clipboard-check empty-state-icon"></i>
-                <h5 class="empty-state-title">No Requests Found</h5>
-                <p class="empty-state-desc">
-                  {% if search %}
-                    No employee approval requests match your search criteria.
-                  {% else %}
-                    There are no employee approval requests in this status view.
-                  {% endif %}
-                </p>
+              <div class="avatar-saas rounded-circle mx-auto mb-3" style="width: 64px; height: 64px; background: rgba(139, 92, 246, 0.15); border: 1px solid rgba(192, 132, 252, 0.35); color: #C084FC; font-size: 1.8rem; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 20px rgba(139, 92, 246, 0.25);">
+                <i class="bi bi-clipboard-check"></i>
               </div>
+              <h5 class="text-white fw-bold mb-1">No Requests Found</h5>
+              <p class="small mb-0" style="color: #C4B5FD;">
+                {% if search %}
+                  No employee approval requests match your search criteria.
+                {% else %}
+                  There are no employee approval requests in this status view.
+                {% endif %}
+              </p>
             </td>
           </tr>
         {% endfor %}
@@ -186,58 +207,63 @@
 
 <!-- Recently Processed Employees -->
 <div class="saas-card">
-  <div class="card-header">
+  <div class="p-3 border-bottom d-flex align-items-center justify-content-between" style="background-color: var(--bg-card-header); border-color: rgba(167, 139, 250, 0.18) !important;">
     <div class="d-flex align-items-center gap-2">
-      <h2 class="card-title">
-        <i class="bi bi-people-fill text-primary"></i> Recently Added Active Employees
-      </h2>
-      <span class="btn-pill-action">{{ recently_processed|length }}</span>
+      <i class="bi bi-clock-history text-secondary"></i>
+      <h3 class="h6 mb-0 fw-bold text-white">Recently Processed Approvals</h3>
     </div>
-    <a href="{% url 'admin_module:employees_list' %}" class="btn-pill-action">Full Workforce</a>
+    <span class="badge bg-light rounded-pill px-2.5 py-1" style="color: #C4B5FD;">Latest actions</span>
   </div>
 
-  <div class="table-responsive">
-    <table class="table-saas">
-      <caption class="visually-hidden">Recently processed employee records</caption>
-      <thead>
-        <tr>
-          <th scope="col">Employee</th>
-          <th scope="col">Department</th>
-          <th scope="col">Designation</th>
-          <th scope="col">Joining Date</th>
-          <th scope="col" style="text-align: right;">Action</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for employee in recently_processed %}
+  {% if recent_processed %}
+    <div class="table-responsive">
+      <table class="table mb-0">
+        <caption class="visually-hidden">Recently processed employee approvals</caption>
+        <thead>
           <tr>
-            <td>
-              <div class="emp-table-profile">
-                <div class="emp-table-avatar">{{ employee.user.name|default:employee.user.email|slice:":1"|upper }}</div>
-                <div>
-                  <div class="emp-table-name text-dark fw-semibold">{{ employee.user.name|default:employee.user.email }}</div>
-                  <div class="emp-table-dept text-muted">{{ employee.user.email }}</div>
+            <th scope="col" style="width: 25%;">Employee</th>
+            <th scope="col" style="width: 20%;">Department</th>
+            <th scope="col" style="width: 15%;">Processed Date</th>
+            <th scope="col" style="width: 15%;">Outcome</th>
+            <th scope="col" style="width: 25%;">Notes / Reason</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for proc in recent_processed %}
+            <tr>
+              <td>
+                <div class="d-flex align-items-center gap-2.5">
+                  <div class="avatar-saas icon-badge-violet rounded-circle" style="width: 32px; height: 32px; font-weight: 700; font-size: 0.8rem;">
+                    {{ proc.employee.user.name|default:proc.employee.user.email|slice:":1"|upper }}
+                  </div>
+                  <div>
+                    <div class="fw-semibold text-white small">{{ proc.employee.user.name|default:proc.employee.user.email }}</div>
+                    <div class="small" style="font-size: 0.7rem; color: #8B81A8;">{{ proc.employee.designation|default:"—" }}</div>
+                  </div>
                 </div>
-              </div>
-            </td>
-            <td><span class="btn-pill-action"><i class="bi bi-building me-1"></i>{{ employee.department.name|default:"Unassigned" }}</span></td>
-            <td><span class="text-dark fw-medium">{{ employee.designation|default:"—" }}</span></td>
-            <td><span class="text-secondary small">{{ employee.joining_date|date:"M d, Y"|default:"—" }}</span></td>
-            <td style="text-align: right;">
-              <a href="{% url 'admin_module:employee_detail' employee.pk %}" class="table-action-btn btn-action-view" title="View Employee Profile">
-                <i class="bi bi-eye"></i>
-              </a>
-            </td>
-          </tr>
-        {% empty %}
-          <tr>
-            <td colspan="5" class="text-center py-4">
-              <p class="text-secondary small mb-0">No active employee records on file yet.</p>
-            </td>
-          </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+              </td>
+              <td><span class="small text-white">{{ proc.employee.department.name|default:"General" }}</span></td>
+              <td><span class="small" style="color: #C4B5FD;">{{ proc.reviewed_at|date:"M d, Y"|default:"—" }}</span></td>
+              <td>
+                {% if proc.status == 'APPROVED' %}
+                  <span class="badge bg-success-subtle rounded-pill px-2.5 py-1"><i class="bi bi-check-circle-fill me-1"></i>Approved</span>
+                {% elif proc.status == 'REJECTED' %}
+                  <span class="badge bg-danger-subtle rounded-pill px-2.5 py-1"><i class="bi bi-x-circle-fill me-1"></i>Rejected</span>
+                {% else %}
+                  <span class="badge bg-secondary-subtle rounded-pill px-2.5 py-1">{{ proc.status }}</span>
+                {% endif %}
+              </td>
+              <td><span class="small text-truncate d-inline-block" style="max-width: 250px; color: #8B81A8;">{{ proc.notes|default:"No notes entered." }}</span></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  {% else %}
+    <div class="text-center py-4">
+      <i class="bi bi-clock-history fs-3 d-block mb-2" style="color: #A78BFA;"></i>
+      <p class="small mb-0" style="color: #C4B5FD;">No recently processed approval records yet.</p>
+    </div>
+  {% endif %}
 </div>
 {% endblock content %}

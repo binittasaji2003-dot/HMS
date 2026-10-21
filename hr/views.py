@@ -1,5 +1,6 @@
+import json
 
-from admin_module.models import Department, EmployeeApproval
+from admin_module.models import Department, EmployeeApproval, Holiday
 from admin_module.models import AdminNotification, Department, EmployeeApproval
 from candidates.models import JobApplication, JobVacancy, ResumeScreening, send_candidate_notification
 from candidates.screening_service import screen_job_application, run_resume_screening
@@ -65,7 +66,26 @@ from .question_bank import seed_default_questions
 User = get_user_model()
 
 
-class HRDashboardView(LoginRequiredMixin, TemplateView):
+class HRRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
+    """Enforces access control strictly for HR Managers, Staff, or Superusers."""
+
+    def test_func(self):
+        user = self.request.user
+        return (
+            user.is_superuser
+            or user.is_staff
+            or getattr(user, "role", "") == "HR"
+            or hasattr(user, "hr_profile")
+        )
+
+    def handle_no_permission(self):
+        if not self.request.user.is_authenticated:
+            return super().handle_no_permission()
+        messages.error(self.request, "Access restricted to HR Personnel.")
+        return redirect("users:redirect")
+
+
+class HRDashboardView(HRRequiredMixin, TemplateView):
     template_name = "hr/dashboard.html"
 
     def get_context_data(self, **kwargs):
@@ -109,6 +129,20 @@ class HRDashboardView(LoginRequiredMixin, TemplateView):
         context["recent_reviews"] = EmployeePerformance.objects.select_related("employee__user").order_by("-review_date")[:5]
 
         # 4. Performance Warnings / Escalation Pipeline
+        holidays = Holiday.objects.filter(is_active=True).order_by("date")
+        holidays_data = [
+            {
+                "id": f"holiday-{h.holiday_id}",
+                "title": h.name,
+                "date": h.date.strftime("%Y-%m-%d"),
+                "category": h.holiday_type,
+                "description": h.description or "Public Holiday",
+                "is_public": (h.holiday_type == "PUBLIC"),
+            }
+            for h in holidays
+        ]
+        context["holidays_json"] = json.dumps(holidays_data)
+
         context["critical_warnings"] = PerformanceWarning.objects.select_related("employee__user").filter(
             Q(status="OPEN") | Q(status="SENT_TO_ADMIN")
         ).order_by("-warning_date")[:5]
@@ -116,7 +150,7 @@ class HRDashboardView(LoginRequiredMixin, TemplateView):
         return context
 
 
-# Login Page Related Stuff
+# HR Views and Management
 
 class HRRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
     """Enforces access control strictly for HR Managers, Staff, or Superusers."""
@@ -134,7 +168,7 @@ class HRRequiredMixin(LoginRequiredMixin, UserPassesTestMixin):
         if not self.request.user.is_authenticated:
             return super().handle_no_permission()
         messages.error(self.request, "Access restricted to HR Personnel.")
-        return redirect("home")
+        return redirect("users:redirect")
 
 
 class HRProfileView(HRRequiredMixin, View):
@@ -722,19 +756,43 @@ class ApplicationListView(HRRequiredMixin, ListView):
         queryset = (
             JobApplication.objects.select_related(
                 "candidate__user", "candidate", "vacancy", "vacancy__department", "screening_result"
-            ).order_by("-applied_at")
+            ).prefetch_related("interviews").order_by("-applied_at")
         )
 
-        status_filter = self.request.GET.get("status")
+        status_filter = self.request.GET.get("status", "").strip()
         search_query = self.request.GET.get("q", "").strip()
 
-        if status_filter == "SHORTLISTED":
+        if status_filter == "APPLIED":
+            queryset = queryset.filter(
+                status__in=["APPLIED", "RESUME_REVIEW"]
+            )
+        elif status_filter in ["RESUME_REVIEW", "UNDER_REVIEW"]:
+            queryset = queryset.filter(
+                Q(status__in=["RESUME_REVIEW", "APPLIED"])
+                | Q(screening_result__status__in=["MANUAL_REVIEW", "EXTRACTION_FAILED"])
+            )
+        elif status_filter == "SHORTLISTED":
             queryset = queryset.filter(
                 Q(status="SHORTLISTED") | Q(screening_result__status="SHORTLISTED")
             )
-        elif status_filter == "APTITUDE":
+        elif status_filter in ["APTITUDE", "APTITUDE_TEST_SCHEDULED", "APTITUDE_REVIEW"]:
             queryset = queryset.filter(
-                status__in=["APTITUDE_TEST_SCHEDULED", "APTITUDE", "APTITUDE_REVIEW"]
+                Q(status__in=["APTITUDE_TEST_SCHEDULED", "APTITUDE", "APTITUDE_REVIEW"])
+                | Q(aptitude_date__isnull=False)
+                | Q(aptitude_test__isnull=False)
+            )
+        elif status_filter in ["INTERVIEW", "INTERVIEW_SCHEDULED", "INTERVIEW_SCHEDULING", "INTERVIEW_REVIEW"]:
+            queryset = queryset.filter(
+                Q(status__in=["INTERVIEW", "INTERVIEW_SCHEDULED", "INTERVIEW_SCHEDULING", "INTERVIEW_REVIEW"])
+                | Q(interviews__isnull=False)
+            ).distinct()
+        elif status_filter in ["SELECTED", "HIRED"]:
+            queryset = queryset.filter(
+                status__in=["SELECTED", "FORWARDED_TO_ADMIN", "HIRED"]
+            )
+        elif status_filter == "REJECTED":
+            queryset = queryset.filter(
+                Q(status="REJECTED") | Q(screening_result__status="NOT_SHORTLISTED")
             )
         elif status_filter:
             queryset = queryset.filter(status=status_filter)
@@ -753,8 +811,33 @@ class ApplicationListView(HRRequiredMixin, ListView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["selected_status"] = self.request.GET.get("status", "")
+        context["selected_status"] = self.request.GET.get("status", "").strip()
         context["search_query"] = self.request.GET.get("q", "").strip()
+
+        base_qs = JobApplication.objects.all()
+        context["count_all"] = base_qs.count()
+        context["count_applied"] = base_qs.filter(status__in=["APPLIED", "RESUME_REVIEW"]).count()
+        context["count_under_review"] = base_qs.filter(
+            Q(status="RESUME_REVIEW") | Q(screening_result__status__in=["MANUAL_REVIEW", "EXTRACTION_FAILED"])
+        ).distinct().count()
+        context["count_shortlisted"] = base_qs.filter(
+            Q(status="SHORTLISTED") | Q(screening_result__status="SHORTLISTED")
+        ).distinct().count()
+        context["count_aptitude"] = base_qs.filter(
+            Q(status__in=["APTITUDE_TEST_SCHEDULED", "APTITUDE", "APTITUDE_REVIEW"])
+            | Q(aptitude_date__isnull=False)
+            | Q(aptitude_test__isnull=False)
+        ).distinct().count()
+        context["count_interview"] = base_qs.filter(
+            Q(status__in=["INTERVIEW", "INTERVIEW_SCHEDULED", "INTERVIEW_SCHEDULING", "INTERVIEW_REVIEW"])
+            | Q(interviews__isnull=False)
+        ).distinct().count()
+        context["count_selected"] = base_qs.filter(
+            status__in=["SELECTED", "FORWARDED_TO_ADMIN", "HIRED"]
+        ).count()
+        context["count_rejected"] = base_qs.filter(
+            Q(status="REJECTED") | Q(screening_result__status="NOT_SHORTLISTED")
+        ).distinct().count()
         return context
 
 
@@ -1040,10 +1123,14 @@ class AptitudeScheduleView(HRRequiredMixin, View):
         combined_naive = datetime.datetime.combine(apt_date, apt_time)
         start_datetime = timezone.make_aware(combined_naive) if timezone.is_naive(combined_naive) else combined_naive
 
-        now = timezone.now()
-        if start_datetime <= now:
-            messages.error(request, "Assessment date and start time must be in the future.")
+        today = timezone.localdate()
+        if apt_date < today:
+            messages.error(request, "Assessment date cannot be in the past.")
             return redirect("hr:application_detail", pk=pk)
+
+        now = timezone.now()
+        if start_datetime < now:
+            start_datetime = now
 
         end_datetime = start_datetime + datetime.timedelta(minutes=duration)
 

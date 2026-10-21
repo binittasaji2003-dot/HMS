@@ -23,7 +23,8 @@
       }
     }
   </script>
-</head>
+    <link rel="stylesheet" href="{% static 'css/employee_theme.css' %}" />
+  </head>
 <body class="bg-slate-50 font-sans antialiased text-slate-800 min-h-screen flex flex-col md:flex-row">
   <!-- Left Sidebar -->
   <aside class="w-64 bg-slate-900 text-white flex flex-col justify-between hidden md:flex shrink-0 min-h-screen border-r border-slate-800 shadow-xl">
@@ -98,6 +99,7 @@
               <i class="bi bi-star-fill"></i>
             </div>
           </div>
+          {% if avg_score is not None %}
           <div class="flex items-baseline gap-2">
             <span class="text-3xl font-black text-slate-900">{{ avg_score }}</span>
             <span class="text-xs font-bold text-slate-400">/ 5.0</span>
@@ -105,6 +107,14 @@
           <div class="text-[11px] font-semibold text-emerald-600 flex items-center gap-1">
             <i class="bi bi-arrow-up-right"></i> {{ avg_percentage }}% Score Index
           </div>
+          {% else %}
+          <div class="flex items-baseline gap-2">
+            <span class="text-3xl font-black text-slate-900">Not Rated</span>
+          </div>
+          <div class="text-[11px] font-semibold text-purple-300/70 flex items-center gap-1">
+            <i class="bi bi-clock-history"></i> Pending weekly review
+          </div>
+          {% endif %}
         </div>
 
         <!-- Performance Grade -->
@@ -164,7 +174,7 @@
               <tr class="border-b border-slate-200 text-slate-400 font-bold uppercase tracking-wider">
                 <th class="pb-3">Report Week</th>
                 <th class="pb-3">Title</th>
-                <th class="pb-3 text-center">Score (out of 40)</th>
+                <th class="pb-3 text-center">Score (out of 5)</th>
                 <th class="pb-3 text-center">Rating</th>
                 <th class="pb-3 text-center">Percentage</th>
                 <th class="pb-3 text-right">Evaluation Dossier</th>
@@ -182,18 +192,34 @@
                     </td>
                     <td class="py-3.5 text-center">
                       {% if rep.performance_review %}
-                        <span class="font-black text-slate-900 text-sm">{{ rep.performance_review.total_score }}/40</span>
+                        <span class="font-extrabold text-sm" style="color: #FCD34D;">
+                          ★ {{ rep.performance_review.average_score }} <span class="text-xs text-purple-300/70 font-semibold">/ 5.0</span>
+                        </span>
                       {% else %}
-                        <span class="text-slate-400 italic">--</span>
+                        <span class="text-purple-300/50 italic">--</span>
                       {% endif %}
                     </td>
                     <td class="py-3.5 text-center">
                       {% if rep.performance_review %}
-                        <span class="px-2.5 py-1 bg-blue-50 text-blue-700 font-bold rounded-full">
-                          ★ {{ rep.performance_review.average_score }} / 5.0
-                        </span>
+                        {% if rep.performance_review.average_score >= 4.5 %}
+                          <span class="px-2.5 py-1 text-xs font-bold rounded-full" style="background: rgba(16, 185, 129, 0.2); color: #34D399; border: 1px solid rgba(16, 185, 129, 0.35);">
+                            Excellent
+                          </span>
+                        {% elif rep.performance_review.average_score >= 3.5 %}
+                          <span class="px-2.5 py-1 text-xs font-bold rounded-full" style="background: rgba(139, 92, 246, 0.2); color: #C4B5FD; border: 1px solid rgba(139, 92, 246, 0.35);">
+                            Good Performer
+                          </span>
+                        {% elif rep.performance_review.average_score >= 2.5 %}
+                          <span class="px-2.5 py-1 text-xs font-bold rounded-full" style="background: rgba(245, 158, 11, 0.2); color: #FCD34D; border: 1px solid rgba(245, 158, 11, 0.35);">
+                            Average
+                          </span>
+                        {% else %}
+                          <span class="px-2.5 py-1 text-xs font-bold rounded-full" style="background: rgba(239, 68, 68, 0.2); color: #F87171; border: 1px solid rgba(239, 68, 68, 0.35);">
+                            Needs Improvement
+                          </span>
+                        {% endif %}
                       {% else %}
-                        <span class="px-2.5 py-1 bg-slate-100 text-slate-600 font-medium rounded-full">
+                        <span class="px-2.5 py-1 text-xs font-semibold rounded-full" style="background: rgba(139, 92, 246, 0.15); color: #C4B5FD; border: 1px solid rgba(139, 92, 246, 0.25);">
                           {{ rep.get_status_display }}
                         </span>
                       {% endif %}
@@ -240,13 +266,9 @@
                             <div class="text-[11px] text-slate-400 mt-0.5">Reviewed on {{ rep.performance_review.reviewed_at|date:"M d, Y" }}</div>
                           </div>
                           <div class="flex items-center gap-3">
-                            <div class="text-center px-3.5 py-1.5 bg-white/10 rounded-xl">
-                              <div class="text-[10px] text-slate-400 uppercase font-bold">Total Score</div>
-                              <div class="text-lg font-black text-white">{{ rep.performance_review.total_score }}/40</div>
-                            </div>
-                            <div class="text-center px-3.5 py-1.5 bg-blue-600 rounded-xl">
-                              <div class="text-[10px] text-blue-200 uppercase font-bold">Average</div>
-                              <div class="text-lg font-black text-white">{{ rep.performance_review.average_score }}/5.0</div>
+                            <div class="text-center px-4 py-1.5 rounded-xl border" style="background: rgba(245, 158, 11, 0.18); border-color: rgba(245, 158, 11, 0.35);">
+                              <div class="text-[10px] uppercase font-bold" style="color: #FCD34D;">Rating (Out of 5)</div>
+                              <div class="text-lg font-black text-white">★ {{ rep.performance_review.average_score }} <span class="text-xs font-semibold text-purple-300/70">/ 5.0</span></div>
                             </div>
                             <div class="text-center px-3.5 py-1.5 bg-emerald-600 rounded-xl">
                               <div class="text-[10px] text-emerald-200 uppercase font-bold">Grade</div>

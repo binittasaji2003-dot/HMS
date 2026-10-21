@@ -21,39 +21,55 @@
   </div>
 </div>
 
-<!-- Summary KPI Cards -->
-<div class="kpi-grid-5 mb-4">
-  <div class="kpi-card kpi-card-compact">
-    <div class="kpi-header">
-      <span class="kpi-title">Selected</span>
-      <div class="kpi-icon-circle icon-circle-emerald"><i class="bi bi-patch-check-fill"></i></div>
+<!-- Summary KPI Cards (Vibrant & Colorful) -->
+<div class="row g-3 mb-4">
+  <div class="col-12 col-sm-6 col-lg-3">
+    <div class="kpi-stat-card kpi-emerald p-3 h-100">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <span class="small text-uppercase fw-bold" style="font-size: 0.72rem; color: #6EE7B7; letter-spacing: 0.05em;">Selected</span>
+        <div class="avatar-saas icon-badge-emerald rounded-3" style="width: 36px; height: 36px; font-size: 1.05rem;">
+          <i class="bi bi-patch-check-fill"></i>
+        </div>
+      </div>
+      <div class="h3 fw-bold mb-1" style="color: #34D399;">{{ selected_count|default:"0" }}</div>
+      <div class="small fw-semibold" style="font-size: 0.75rem; color: #34D399;"><i class="bi bi-person-check-fill me-1"></i>Offers extended</div>
     </div>
-    <div class="kpi-value">{{ selected_count|default:"0" }}</div>
-    <div class="kpi-trend trend-positive"><i class="bi bi-person-check-fill"></i><span>Offers extended</span></div>
   </div>
-  <div class="kpi-card kpi-card-compact">
-    <div class="kpi-header">
-      <span class="kpi-title">Hired</span>
-      <div class="kpi-icon-circle icon-circle-blue"><i class="bi bi-briefcase-fill"></i></div>
+  <div class="col-12 col-sm-6 col-lg-3">
+    <div class="kpi-stat-card kpi-cyan p-3 h-100">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <span class="small text-uppercase fw-bold" style="font-size: 0.72rem; color: #67E8F9; letter-spacing: 0.05em;">Hired</span>
+        <div class="avatar-saas icon-badge-cyan rounded-3" style="width: 36px; height: 36px; font-size: 1.05rem;">
+          <i class="bi bi-briefcase-fill"></i>
+        </div>
+      </div>
+      <div class="h3 fw-bold mb-1" style="color: #22D3EE;">{{ hired_count|default:"0" }}</div>
+      <div class="small" style="font-size: 0.75rem; color: #8B81A8;"><i class="bi bi-person-check me-1"></i>Onboarding started</div>
     </div>
-    <div class="kpi-value">{{ hired_count|default:"0" }}</div>
-    <div class="kpi-trend trend-positive"><i class="bi bi-person-check"></i><span>Onboarding started</span></div>
   </div>
-  <div class="kpi-card kpi-card-compact">
-    <div class="kpi-header">
-      <span class="kpi-title">Total Selections</span>
-      <div class="kpi-icon-circle icon-circle-purple"><i class="bi bi-person-lines-fill"></i></div>
+  <div class="col-12 col-sm-6 col-lg-3">
+    <div class="kpi-stat-card kpi-violet p-3 h-100">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <span class="small text-uppercase fw-bold" style="font-size: 0.72rem; color: #C4B5FD; letter-spacing: 0.05em;">Total Selections</span>
+        <div class="avatar-saas icon-badge-violet rounded-3" style="width: 36px; height: 36px; font-size: 1.05rem;">
+          <i class="bi bi-person-lines-fill"></i>
+        </div>
+      </div>
+      <div class="h3 fw-bold text-white mb-1">{{ selected_count|add:hired_count|default:"0" }}</div>
+      <div class="small" style="font-size: 0.75rem; color: #8B81A8;">Selected + hired</div>
     </div>
-    <div class="kpi-value">{{ selected_count|add:hired_count|default:"0" }}</div>
-    <div class="kpi-trend trend-subtext"><span>Selected + hired</span></div>
   </div>
-  <div class="kpi-card kpi-card-compact">
-    <div class="kpi-header">
-      <span class="kpi-title">Pending Approvals</span>
-      <div class="kpi-icon-circle icon-circle-amber"><i class="bi bi-clipboard-check-fill"></i></div>
+  <div class="col-12 col-sm-6 col-lg-3">
+    <div class="kpi-stat-card kpi-amber p-3 h-100">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <span class="small text-uppercase fw-bold" style="font-size: 0.72rem; color: #FCD34D; letter-spacing: 0.05em;">Pending Approvals</span>
+        <div class="avatar-saas icon-badge-amber rounded-3" style="width: 36px; height: 36px; font-size: 1.05rem;">
+          <i class="bi bi-clipboard-check-fill"></i>
+        </div>
+      </div>
+      <div class="h3 fw-bold mb-1" style="color: #FBBF24;">{{ approvals_pending_count|default:"0" }}</div>
+      <div class="small" style="font-size: 0.75rem; color: #8B81A8;">New employee records</div>
     </div>
-    <div class="kpi-value">{{ approvals_pending_count|default:"0" }}</div>
-    <div class="kpi-trend trend-subtext"><span>New employee records</span></div>
   </div>
 </div>
 

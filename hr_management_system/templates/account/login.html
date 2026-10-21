@@ -50,9 +50,9 @@
     <div class="absolute -bottom-24 -left-24 w-96 h-96 bg-indigo-300/40 rounded-full blur-3xl pointer-events-none"></div>
 
     <!-- Main Card Container -->
-    <div class="w-full max-w-[1140px] min-h-[660px] bg-white/95 backdrop-blur-xl rounded-3xl shadow-2xl shadow-purple-900/10 overflow-hidden grid grid-cols-1 lg:grid-cols-12 border border-purple-200/80 relative z-10">
+    <div class="w-full max-w-[1140px] min-h-[660px] bg-white rounded-3xl shadow-xl shadow-purple-900/5 overflow-hidden grid grid-cols-1 lg:grid-cols-12 border border-purple-100 relative z-10">
       <!-- Left Side: Branding & Illustration (7 columns on desktop) -->
-      <div class="lg:col-span-7 bg-gradient-to-br from-[#faf8ff] via-[#f3eeff] to-[#ebe4ff] p-8 lg:p-12 flex flex-col justify-between relative border-b lg:border-b-0 lg:border-r border-purple-100">
+      <div class="lg:col-span-7 bg-gradient-to-br from-[#faf8ff] via-[#f5f0ff] to-[#ebe4ff] p-8 lg:p-12 flex flex-col justify-between relative border-b lg:border-b-0 lg:border-r border-purple-100">
         <div>
           <!-- Top Brand Nav -->
           <div class="flex items-center justify-between">
@@ -66,13 +66,14 @@
               </div>
             </a>
             <div class="hidden sm:block text-xs font-bold text-violet-700/80 tracking-wide uppercase px-3 py-1 bg-violet-100/60 rounded-full border border-violet-200">
-              People • Process • Progress
+              PEOPLE • PROCESS • PROGRESS
             </div>
           </div>
+
           <!-- Hero Section -->
           <div class="mt-8">
             <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-violet-100 text-violet-800 text-[11px] font-bold uppercase tracking-wider mb-3 border border-violet-200">
-              <i class="bi bi-shield-lock-fill"></i> Enterprise Portal Authentication
+              <i class="bi bi-shield-fill"></i> ENTERPRISE PORTAL AUTHENTICATION
             </div>
             <h2 class="text-3xl lg:text-4xl font-extrabold text-slate-900 leading-[1.18] tracking-tight">
               Empowering
@@ -81,30 +82,33 @@
               <br />
               <span class="text-transparent bg-clip-text bg-gradient-to-r from-violet-700 to-indigo-600">A Better Workplace</span>
             </h2>
-            <p class="text-sm font-medium text-slate-600 mt-3 max-w-md">
+            <p class="text-sm font-medium text-slate-500 mt-3 max-w-md">
               A smarter way to manage talent recruitment, employee operations, and career advancement.
             </p>
           </div>
+
           <!-- Feature Badges -->
-          <div class="mt-7 flex flex-col gap-3.5">
+          <div class="mt-7 flex flex-col gap-4">
             <div class="flex items-center gap-3.5">
               <div class="w-10 h-10 rounded-full bg-white text-violet-600 flex items-center justify-center text-lg shadow-sm border border-purple-100 shrink-0">
                 <i class="bi bi-graph-up-arrow"></i>
               </div>
               <div class="text-xs text-slate-600">
                 <strong class="text-slate-900 font-bold block text-sm">Grow</strong>
-                Your Career & Opportunities
+                Your Career &amp; Opportunities
               </div>
             </div>
+
             <div class="flex items-center gap-3.5">
               <div class="w-10 h-10 rounded-full bg-white text-violet-600 flex items-center justify-center text-lg shadow-sm border border-purple-100 shrink-0">
                 <i class="bi bi-shield-check"></i>
               </div>
               <div class="text-xs text-slate-600">
                 <strong class="text-slate-900 font-bold block text-sm">Stay</strong>
-                Productive & Agile
+                Productive &amp; Agile
               </div>
             </div>
+
             <div class="flex items-center gap-3.5">
               <div class="w-10 h-10 rounded-full bg-white text-violet-600 flex items-center justify-center text-lg shadow-sm border border-purple-100 shrink-0">
                 <i class="bi bi-people"></i>
@@ -116,6 +120,7 @@
             </div>
           </div>
         </div>
+
         <!-- Vector Illustration & Bottom Tagline -->
         <div class="mt-8 pt-4 flex items-end justify-between">
           <div class="text-[10px] font-extrabold text-purple-900/40 tracking-[0.18em] uppercase leading-tight">
@@ -125,51 +130,28 @@
           </div>
           <img src="{% static 'images/login_hero.png' %}"
                alt="HRMS Office Team"
-               class="w-full max-w-[360px] h-auto object-contain drop-shadow-md" />
+               class="w-full max-w-[280px] h-auto object-contain drop-shadow-md" />
         </div>
       </div>
 
       <!-- Right Side: Login Form (5 columns on desktop) -->
       <div class="lg:col-span-5 p-8 lg:p-12 flex flex-col justify-center bg-white">
-        <div class="flex items-center justify-between mb-5">
-          <a href="{% url 'role_select' %}" class="inline-flex items-center gap-1.5 text-xs font-bold text-violet-700 bg-violet-50 border border-violet-200 px-3 py-1.5 rounded-xl hover:bg-violet-100 transition-colors">
-            <i class="bi bi-grid-fill"></i>
-            <span>Switch Role</span>
+        <!-- Switch Role Button -->
+        <div class="flex items-center justify-start mb-6">
+          <a href="{% url 'role_select' %}"
+             class="inline-flex items-center gap-1.5 text-xs font-semibold text-violet-700 bg-violet-50 hover:bg-violet-100 border border-violet-200 px-3 py-1.5 rounded-xl transition-colors">
+            <i class="bi bi-grid-fill"></i> Switch Role
           </a>
-          {% if request.GET.role %}
-            <span class="text-[11px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-lg border {% if request.GET.role == 'Admin' %}bg-purple-100 text-purple-700 border-purple-200{% elif request.GET.role == 'HR' %}bg-indigo-100 text-indigo-700 border-indigo-200{% elif request.GET.role == 'Employee' %}bg-emerald-100 text-emerald-700 border-emerald-200{% else %}bg-amber-100 text-amber-700 border-amber-200{% endif %}">
-              {{ request.GET.role }} Portal
-            </span>
-          {% endif %}
         </div>
 
+        <!-- Form Title Header -->
         <div class="text-center mb-6">
           <h3 class="text-2xl lg:text-3xl font-extrabold text-slate-900 tracking-tight">Welcome Back!</h3>
-          <h4 class="text-base font-bold text-violet-700 mt-1">
-            {% if request.GET.role == 'Admin' %}
-              Administrator Sign In
-            {% elif request.GET.role == 'HR' %}
-              HR Manager Sign In
-            {% elif request.GET.role == 'Candidate' %}
-              Candidate Sign In
-            {% else %}
-              Portal Sign In
-            {% endif %}
-          </h4>
-          <p class="text-xs font-medium text-slate-500 mt-1">
-            {% if request.GET.role == 'Admin' %}
-              Sign in to access system administration and governance
-            {% elif request.GET.role == 'HR' %}
-              Sign in to manage recruitment, job vacancies, and reviews
-            {% elif request.GET.role == 'Candidate' %}
-              Sign in to manage your applications and take aptitude tests
-            {% else %}
-              Sign in to access your HRMS portal
-            {% endif %}
-          </p>
+          <h4 class="text-sm font-bold text-violet-600 mt-1">Portal Sign In</h4>
+          <p class="text-xs font-medium text-slate-400 mt-1">Sign in to access your HRMS portal</p>
         </div>
 
-        <!-- Django Alert Messages & Form Errors -->
+        <!-- Messages & Feedback Alerts -->
         {% if messages %}
           <div class="mb-5 space-y-2">
             {% for message in messages %}
@@ -206,21 +188,23 @@
                    name="{{ redirect_field_name }}"
                    value="{{ redirect_field_value }}" />
           {% endif %}
-          <!-- Email Field -->
+
+          <!-- Email Address Field -->
           <div>
             <label for="id_login" class="block text-xs font-bold text-slate-700 mb-1.5">Email Address</label>
             <div class="relative flex items-center">
               <i class="bi bi-envelope absolute left-4 text-slate-400 text-base pointer-events-none"></i>
-              <input type="email"
+              <input type="text"
                      id="id_login"
                      name="login"
                      required
                      autofocus
                      placeholder="Enter your registered email"
                      value="{{ form.login.value|default_if_none:'' }}"
-                     class="w-full h-11 pl-11 pr-4 text-sm bg-purple-50/40 border border-purple-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-violet-600 focus:ring-4 focus:ring-violet-500/15 outline-none transition-all" />
+                     class="w-full h-11 pl-11 pr-4 text-sm bg-white border border-purple-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-violet-600 focus:ring-4 focus:ring-violet-500/15 outline-none transition-all" />
             </div>
           </div>
+
           <!-- Password Field -->
           <div>
             <div class="flex items-center justify-between mb-1.5">
@@ -235,7 +219,7 @@
                      name="password"
                      required
                      placeholder="Enter your password"
-                     class="w-full h-11 pl-11 pr-11 text-sm bg-purple-50/40 border border-purple-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-violet-600 focus:ring-4 focus:ring-violet-500/15 outline-none transition-all" />
+                     class="w-full h-11 pl-11 pr-11 text-sm bg-white border border-purple-200 rounded-xl text-slate-900 placeholder:text-slate-400 focus:bg-white focus:border-violet-600 focus:ring-4 focus:ring-violet-500/15 outline-none transition-all" />
               <button type="button"
                       id="togglePasswordBtn"
                       class="absolute right-4 text-slate-400 hover:text-slate-700 text-base">
@@ -243,6 +227,7 @@
               </button>
             </div>
           </div>
+
           <!-- Remember Me Checkbox -->
           <div class="flex items-center gap-2 pt-1">
             <input type="checkbox"
@@ -252,6 +237,7 @@
             <label for="id_remember"
                    class="text-xs font-medium text-slate-600 cursor-pointer select-none">Remember this session</label>
           </div>
+
           <!-- Submit Button -->
           <button type="submit"
                   class="w-full h-11 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white text-sm font-bold rounded-xl shadow-md shadow-violet-500/25 flex items-center justify-center gap-2 transition-all active:scale-[0.99]">
@@ -259,14 +245,12 @@
             <i class="bi bi-arrow-right"></i>
           </button>
 
-          {% if request.GET.role == 'Candidate' or not request.GET.role %}
-            <div class="text-center pt-3 text-xs font-medium text-slate-600 border-t border-slate-100 mt-3">
-              Don't have a candidate account? 
-              <a href="{% url 'candidates:register' %}" class="font-bold text-violet-600 hover:underline">
-                Register as Candidate
-              </a>
-            </div>
-          {% endif %}
+          <div class="text-center pt-3 text-xs font-medium text-slate-600 mt-3">
+            Don't have a candidate account? 
+            <a href="{% url 'candidates:register' %}" class="font-bold text-violet-600 hover:underline">
+              Register as Candidate
+            </a>
+          </div>
         </form>
       </div>
     </div>

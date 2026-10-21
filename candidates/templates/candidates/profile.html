@@ -35,7 +35,7 @@
           <span>Overall Profile Completion</span>
           <span class="{% if is_profile_complete %}text-success{% else %}text-primary{% endif %} fw-bold">{{ profile_percentage }}%</span>
         </div>
-        <div class="progress rounded-pill shadow-inner" style="height: 12px; background-color: #e2e8f0;">
+        <div class="progress rounded-pill shadow-inner" style="height: 12px;">
           <div class="progress-bar progress-bar-striped progress-bar-animated {% if is_profile_complete %}bg-success{% elif profile_percentage >= 60 %}bg-primary{% else %}bg-warning{% endif %}" 
                role="progressbar" 
                style="width: {{ profile_percentage }}%;" 

@@ -5,9 +5,9 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Employee Dashboard - HRMS</title>
+    <title>Employee Dashboard - Smart HRMS</title>
     <link rel="icon" href="{% static 'images/favicons/favicon.ico' %}" />
-    <!-- Tailwind CSS CDN & Bootstrap Icons -->
+    <!-- Fonts & Icons -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
@@ -24,18 +24,19 @@
             },
             colors: {
               hrms: {
-                blue: '#1677ff',
-                hover: '#0958d9',
-                bg: '#f8fafc',
-                card: '#ffffff'
+                blue: '#8B5CF6',
+                hover: '#7C3AED',
+                bg: '#0C0818',
+                card: '#170F30'
               }
             }
           }
         }
       }
     </script>
+    <link rel="stylesheet" href="{% static 'css/employee_theme.css' %}" />
   </head>
-  <body class="bg-slate-50 font-sans antialiased text-slate-800 min-h-screen flex">
+  <body class="employee-body bg-slate-50 font-sans antialiased text-slate-800 min-h-screen flex">
     <!-- Left Sidebar -->
     <aside class="w-64 bg-white border-r border-slate-200/80 flex flex-col justify-between hidden md:flex shrink-0 min-h-screen">
       <div>
@@ -52,51 +53,51 @@
         <!-- Navigation Links -->
         <nav class="p-4 space-y-1.5">
           <a href="{% url 'employees:dashboard' %}"
-             class="flex items-center gap-3 px-4 py-3 text-sm font-bold text-white bg-hrms-blue rounded-xl shadow-md shadow-blue-500/20">
+             class="flex items-center gap-3 px-4 py-3 text-sm font-bold text-white bg-hrms-blue rounded-xl shadow-md">
             <i class="bi bi-grid-fill text-base"></i>
             <span>Dashboard</span>
           </a>
           <a href="{% url 'employees:profile' %}"
-             class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-600 hover:text-hrms-blue hover:bg-blue-50/60 rounded-xl transition-all">
+             class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-600 rounded-xl transition-all">
             <i class="bi bi-person text-base"></i>
             <span>My Profile</span>
           </a>
           <a href="{% url 'employees:reports_list' %}"
-             class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-600 hover:text-hrms-blue hover:bg-blue-50/60 rounded-xl transition-all">
+             class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-600 rounded-xl transition-all">
             <i class="bi bi-file-earmark-text text-base"></i>
             <span>Reports</span>
           </a>
           <a href="{% url 'employees:leave_management' %}"
-             class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-600 hover:text-hrms-blue hover:bg-blue-50/60 rounded-xl transition-all">
+             class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-600 rounded-xl transition-all">
             <i class="bi bi-calendar2-check text-base"></i>
             <span>Leave</span>
           </a>
           {% if is_team_lead %}
           <a href="{% url 'employees:team_lead_leave_requests' %}"
-             class="flex items-center justify-between px-4 py-3 text-sm font-semibold text-amber-700 bg-amber-50/80 hover:bg-amber-100/70 rounded-xl transition-all border border-amber-200/60">
+             class="flex items-center justify-between px-4 py-3 text-sm font-semibold text-amber-300 bg-amber-500/15 rounded-xl transition-all border border-amber-500/30">
             <div class="flex items-center gap-3">
-              <i class="bi bi-shield-check text-base text-amber-600"></i>
+              <i class="bi bi-shield-check text-base text-amber-400"></i>
               <span>Team Approvals</span>
             </div>
             {% if team_pending_leave_count > 0 %}
-            <span class="w-5 h-5 bg-amber-600 text-white text-[11px] font-bold rounded-full flex items-center justify-center">
+            <span class="w-5 h-5 bg-amber-500 text-slate-950 text-[11px] font-bold rounded-full flex items-center justify-center">
               {{ team_pending_leave_count }}
             </span>
             {% endif %}
           </a>
           {% endif %}
           <a href="{% url 'employees:performance' %}"
-             class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-600 hover:text-hrms-blue hover:bg-blue-50/60 rounded-xl transition-all">
+             class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-600 rounded-xl transition-all">
             <i class="bi bi-bar-chart-line text-base"></i>
             <span>Performance</span>
           </a>
           <a href="{% url 'employees:announcements' %}"
-             class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-600 hover:text-hrms-blue hover:bg-blue-50/60 rounded-xl transition-all">
+             class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-600 rounded-xl transition-all">
             <i class="bi bi-megaphone text-base"></i>
             <span>Announcements</span>
           </a>
           <a href="{% url 'employees:notifications' %}"
-             class="flex items-center justify-between px-4 py-3 text-sm font-semibold text-slate-600 hover:text-hrms-blue hover:bg-blue-50/60 rounded-xl transition-all">
+             class="flex items-center justify-between px-4 py-3 text-sm font-semibold text-slate-600 rounded-xl transition-all">
             <div class="flex items-center gap-3">
               <i class="bi bi-bell text-base"></i>
               <span>Notifications</span>
@@ -109,13 +110,13 @@
           </a>
           <div class="pt-4 mt-4 border-t border-slate-100 space-y-1.5">
             <a href="{% url 'employees:profile' %}"
-               class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-600 hover:text-hrms-blue hover:bg-blue-50/60 rounded-xl transition-all">
+               class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-600 rounded-xl transition-all">
               <i class="bi bi-gear text-base"></i>
               <span>Settings</span>
             </a>
             <a href="#"
                onclick="alert('HR Support: hr@company.com');"
-               class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-600 hover:text-hrms-blue hover:bg-blue-50/60 rounded-xl transition-all">
+               class="flex items-center gap-3 px-4 py-3 text-sm font-semibold text-slate-600 rounded-xl transition-all">
               <i class="bi bi-question-circle text-base"></i>
               <span>Help & Support</span>
             </a>
@@ -125,34 +126,35 @@
       <!-- Sidebar Footer -->
       <div class="p-4 border-t border-slate-100">
         <a href="{% url 'employees:logout' %}"
-           class="flex items-center gap-3 px-4 py-3 text-sm font-bold text-slate-700 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all">
+           class="flex items-center gap-3 px-4 py-3 text-sm font-bold text-slate-700 rounded-xl transition-all">
           <i class="bi bi-box-arrow-right text-base"></i>
           <span>Logout</span>
         </a>
       </div>
     </aside>
+
     <!-- Main Right Content Area -->
     <div class="flex-1 flex flex-col min-w-0 min-h-screen">
       <!-- Top Navbar -->
       <header class="h-20 bg-white border-b border-slate-200/80 px-6 lg:px-10 flex items-center justify-between gap-4 sticky top-0 z-20">
         <div class="flex items-center gap-4 flex-1 max-w-md">
-          <button class="md:hidden text-slate-600 text-xl">
+          <button class="md:hidden text-slate-400 text-xl">
             <i class="bi bi-list"></i>
           </button>
           <div class="relative w-full">
             <i class="bi bi-search absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
             <input type="text"
                    placeholder="Search anything..."
-                   class="w-full h-10 pl-10 pr-4 text-xs font-medium bg-slate-100/80 border-0 rounded-xl text-slate-800 placeholder:text-slate-400 focus:bg-white focus:ring-2 focus:ring-hrms-blue/20 outline-none transition-all" />
+                   class="w-full h-10 pl-10 pr-4 text-xs font-medium rounded-xl outline-none transition-all" />
           </div>
         </div>
         <!-- Top Right Profile -->
         <div class="flex items-center gap-5">
           <a href="{% url 'employees:notifications' %}"
-             class="relative p-2 text-slate-600 hover:text-hrms-blue transition-colors">
+             class="relative p-2 text-slate-400 hover:text-white transition-colors">
             <i class="bi bi-bell text-lg"></i>
             {% if unread_notifications_count > 0 %}
-            <span class="absolute top-1.5 right-1.5 w-4 h-4 bg-hrms-blue text-white text-[9px] font-bold rounded-full flex items-center justify-center border-2 border-white">
+            <span class="absolute top-1.5 right-1.5 w-4 h-4 bg-pink-500 text-white text-[9px] font-bold rounded-full flex items-center justify-center border-2 border-[#100A22]">
               {{ unread_notifications_count }}
             </span>
             {% endif %}
@@ -163,80 +165,87 @@
             {% if employee.profile_photo %}
               <img src="{{ employee.profile_photo.url }}"
                    alt="Profile Photo"
-                   class="w-10 h-10 rounded-full object-cover border border-slate-200" />
+                   class="w-10 h-10 rounded-full object-cover border border-purple-500/50" />
             {% else %}
-              <div class="w-10 h-10 rounded-full bg-blue-100 text-hrms-blue font-bold flex items-center justify-center text-sm border border-blue-200">
+              <div class="w-10 h-10 rounded-full bg-purple-500/20 text-purple-300 font-bold flex items-center justify-center text-sm border border-purple-500/40">
                 {{ employee.user.get_full_name|default:employee.user.email|slice:":1"|upper }}
               </div>
             {% endif %}
             <div class="hidden sm:block">
-              <div class="text-sm font-bold text-slate-900 group-hover:text-hrms-blue transition-colors leading-tight">
+              <div class="text-sm font-bold text-white group-hover:text-purple-300 transition-colors leading-tight">
                 {{ employee.user.get_full_name|default:employee.user.email }}
               </div>
-              <div class="text-xs font-medium text-slate-500">Employee</div>
+              <div class="text-xs font-medium text-purple-300/70">Employee</div>
             </div>
-            <i class="bi bi-chevron-down text-xs text-slate-400"></i>
+            <i class="bi bi-chevron-down text-xs text-purple-300/50"></i>
           </a>
         </div>
       </header>
+
       <!-- Main Body -->
       <main class="flex-1 p-6 lg:p-10 space-y-8 max-w-[1400px] w-full mx-auto">
         <!-- Django Alert Messages -->
         {% if messages %}
           <div class="space-y-2">
             {% for message in messages %}
-              <div class="flex items-center gap-2 p-4 text-xs font-semibold rounded-xl bg-blue-50 text-blue-800 border border-blue-200">
-                <i class="bi bi-info-circle-fill text-base text-hrms-blue shrink-0"></i>
+              <div class="flex items-center gap-2 p-4 text-xs font-semibold rounded-xl" style="background: rgba(139, 92, 246, 0.15); border: 1px solid rgba(139, 92, 246, 0.35); color: #F5F3FF;">
+                <i class="bi bi-info-circle-fill text-base text-purple-400 shrink-0"></i>
                 <span>{{ message }}</span>
               </div>
             {% endfor %}
           </div>
         {% endif %}
-        <!-- Hero Banner Greeting -->
-        <div class="bg-gradient-to-r from-[#edf4ff] via-[#e2edff] to-[#f0f6ff] rounded-3xl p-8 lg:p-10 flex flex-col md:flex-row items-center justify-between gap-8 border border-blue-100 shadow-sm relative overflow-hidden">
+
+        <!-- Hero Banner Greeting (Dark Violet Gradient) -->
+        <div class="rounded-3xl p-8 lg:p-10 flex flex-col md:flex-row items-center justify-between gap-8 border shadow-lg relative overflow-hidden"
+             style="background: linear-gradient(135deg, #1C0F38 0%, #2A1254 50%, #170933 100%); border-color: rgba(167, 139, 250, 0.35); box-shadow: 0 10px 30px rgba(12, 8, 24, 0.6);">
           <div class="z-10 space-y-4 max-w-xl">
             <div>
-              <h1 class="text-3xl lg:text-4xl font-extrabold text-slate-900 tracking-tight">
+              <h1 class="text-3xl lg:text-4xl font-extrabold text-white tracking-tight">
                 Hi, {{ employee.user.name|default:employee.user.email }}! 👋
               </h1>
-              <p class="text-sm font-medium text-slate-500 mt-1">Welcome back to your employee portal.</p>
+              <p class="text-sm font-medium text-purple-200/80 mt-1">Welcome back to your employee portal.</p>
             </div>
             <!-- Details Grid -->
             <div class="grid grid-cols-2 gap-4 pt-2">
-              <div class="flex items-start gap-3">
-                <div class="w-8 h-8 rounded-lg bg-white/80 text-hrms-blue flex items-center justify-center text-sm shrink-0 border border-blue-100">
+              <div class="flex items-start gap-3 p-2.5 rounded-xl" style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(139, 92, 246, 0.2);">
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center text-sm shrink-0"
+                     style="background: rgba(245, 158, 11, 0.15); color: #F59E0B; border: 1px solid rgba(245, 158, 11, 0.3);">
                   <i class="bi bi-building"></i>
                 </div>
                 <div>
-                  <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">Department</div>
-                  <div class="text-xs font-bold text-slate-800">{{ employee.department.name|default:"Information Technology" }}</div>
+                  <div class="text-[11px] font-semibold text-purple-300/70 uppercase tracking-wide">Department</div>
+                  <div class="text-xs font-bold text-white">{{ employee.department.name|default:"Information Technology" }}</div>
                 </div>
               </div>
-              <div class="flex items-start gap-3">
-                <div class="w-8 h-8 rounded-lg bg-white/80 text-hrms-blue flex items-center justify-center text-sm shrink-0 border border-blue-100">
+              <div class="flex items-start gap-3 p-2.5 rounded-xl" style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(139, 92, 246, 0.2);">
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center text-sm shrink-0"
+                     style="background: rgba(6, 182, 212, 0.15); color: #06B6D4; border: 1px solid rgba(6, 182, 212, 0.3);">
                   <i class="bi bi-person-badge"></i>
                 </div>
                 <div>
-                  <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">Designation</div>
-                  <div class="text-xs font-bold text-slate-800">{{ employee.designation|default:"Software Developer" }}</div>
+                  <div class="text-[11px] font-semibold text-purple-300/70 uppercase tracking-wide">Designation</div>
+                  <div class="text-xs font-bold text-white">{{ employee.designation|default:"Software Developer" }}</div>
                 </div>
               </div>
-              <div class="flex items-start gap-3">
-                <div class="w-8 h-8 rounded-lg bg-white/80 text-hrms-blue flex items-center justify-center text-sm shrink-0 border border-blue-100">
+              <div class="flex items-start gap-3 p-2.5 rounded-xl" style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(139, 92, 246, 0.2);">
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center text-sm shrink-0"
+                     style="background: rgba(168, 85, 247, 0.15); color: #C084FC; border: 1px solid rgba(168, 85, 247, 0.3);">
                   <i class="bi bi-card-text"></i>
                 </div>
                 <div>
-                  <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">Employee ID</div>
-                  <div class="text-xs font-bold text-slate-800">{{ employee.employee_code|default:"EMP1024" }}</div>
+                  <div class="text-[11px] font-semibold text-purple-300/70 uppercase tracking-wide">Employee ID</div>
+                  <div class="text-xs font-bold text-white">{{ employee.employee_code|default:"EMP1024" }}</div>
                 </div>
               </div>
-              <div class="flex items-start gap-3">
-                <div class="w-8 h-8 rounded-lg bg-white/80 text-hrms-blue flex items-center justify-center text-sm shrink-0 border border-blue-100">
+              <div class="flex items-start gap-3 p-2.5 rounded-xl" style="background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(139, 92, 246, 0.2);">
+                <div class="w-8 h-8 rounded-lg flex items-center justify-center text-sm shrink-0"
+                     style="background: rgba(16, 185, 129, 0.15); color: #10B981; border: 1px solid rgba(16, 185, 129, 0.3);">
                   <i class="bi bi-envelope"></i>
                 </div>
                 <div>
-                  <div class="text-[11px] font-semibold text-slate-400 uppercase tracking-wide">Email</div>
-                  <div class="text-xs font-bold text-slate-800 truncate max-w-[150px]">{{ employee.user.email }}</div>
+                  <div class="text-[11px] font-semibold text-purple-300/70 uppercase tracking-wide">Email</div>
+                  <div class="text-xs font-bold text-white truncate max-w-[150px]">{{ employee.user.email }}</div>
                 </div>
               </div>
             </div>
@@ -245,88 +254,109 @@
           <div class="z-10 shrink-0">
             <img src="{% static 'images/login_hero.png' %}"
                  alt="HRMS Portal"
-                 class="w-full max-w-[340px] h-auto object-contain drop-shadow-md" />
+                 class="w-full max-w-[340px] h-auto object-contain drop-shadow-2xl" />
           </div>
         </div>
-        <!-- 4 Stat Metric Cards Row -->
+
+        <!-- 4 Stat Metric Cards Row (Radiant Colorful Borders & Accents) -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <!-- Stat 1: Leave Balance -->
-          <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex items-center justify-between">
+          <!-- Stat 1: Leave Balance (Emerald Accent) -->
+          <div class="rounded-2xl p-5 border shadow-sm flex items-center justify-between transition-all hover:scale-[1.02]"
+               style="background: #170F30; border-color: rgba(16, 185, 129, 0.25); border-left: 4px solid #10B981; box-shadow: 0 4px 20px rgba(16, 185, 129, 0.08);">
             <div class="flex items-center gap-4">
-              <div class="w-12 h-12 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center text-xl shrink-0">
-                <i class="bi bi-calendar2-check"></i>
+              <div class="w-12 h-12 rounded-xl flex items-center justify-center text-xl shrink-0"
+                   style="background: rgba(16, 185, 129, 0.15); color: #34D399; border: 1px solid rgba(16, 185, 129, 0.3);">
+                <i class="bi bi-calendar2-check-fill"></i>
               </div>
               <div>
-                <div class="text-xs font-bold text-slate-400 uppercase tracking-wide">Leave Remaining</div>
-                <div class="text-base font-extrabold text-indigo-600 mt-0.5">{{ leave_balance.remaining_days }} / 15 <span class="text-xs font-semibold text-slate-400">Days</span></div>
-                <a href="{% url 'employees:leave_management' %}" class="text-[11px] font-semibold text-hrms-blue hover:underline mt-0.5 block">Apply & Manage</a>
+                <div class="text-xs font-bold uppercase tracking-wide" style="color: #34D399;">Leave Remaining</div>
+                <div class="text-xl font-extrabold text-white mt-0.5">{{ leave_balance.remaining_days }} / 15 <span class="text-xs font-semibold" style="color: #8B81A8;">Days</span></div>
+                <a href="{% url 'employees:leave_management' %}" class="text-[11px] font-semibold hover:underline mt-0.5 block" style="color: #6EE7B7;">Apply & Manage →</a>
               </div>
             </div>
           </div>
-          <!-- Stat 2: Monthly Report -->
-          <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex items-center gap-4">
-            <div class="w-12 h-12 rounded-xl bg-blue-50 text-hrms-blue flex items-center justify-center text-xl shrink-0">
-              <i class="bi bi-file-earmark-text"></i>
+
+          <!-- Stat 2: Monthly Report (Cyan Accent) -->
+          <div class="rounded-2xl p-5 border shadow-sm flex items-center gap-4 transition-all hover:scale-[1.02]"
+               style="background: #170F30; border-color: rgba(6, 182, 212, 0.25); border-left: 4px solid #06B6D4; box-shadow: 0 4px 20px rgba(6, 182, 212, 0.08);">
+            <div class="w-12 h-12 rounded-xl flex items-center justify-center text-xl shrink-0"
+                 style="background: rgba(6, 182, 212, 0.15); color: #22D3EE; border: 1px solid rgba(6, 182, 212, 0.3);">
+              <i class="bi bi-file-earmark-text-fill"></i>
             </div>
             <div>
-              <div class="text-xs font-bold text-slate-400 uppercase tracking-wide">Monthly Report</div>
-              <div class="text-base font-extrabold text-emerald-600 mt-0.5">{{ monthly_report_status }}</div>
-              <div class="text-[11px] font-medium text-slate-400 mt-0.5">April 2025</div>
+              <div class="text-xs font-bold uppercase tracking-wide" style="color: #22D3EE;">Monthly Report</div>
+              <div class="text-xl font-extrabold text-white mt-0.5">{{ monthly_report_status }}</div>
+              <div class="text-[11px] font-medium mt-0.5" style="color: #8B81A8;">April 2025</div>
             </div>
           </div>
-          <!-- Stat 3: Performance Rating -->
-          <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex items-center gap-4">
-            <div class="w-12 h-12 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center text-xl shrink-0">
+
+          <!-- Stat 3: Performance Rating (Amber Accent) -->
+          <div class="rounded-2xl p-5 border shadow-sm flex items-center gap-4 transition-all hover:scale-[1.02]"
+               style="background: #170F30; border-color: rgba(245, 158, 11, 0.25); border-left: 4px solid #F59E0B; box-shadow: 0 4px 20px rgba(245, 158, 11, 0.08);">
+            <div class="w-12 h-12 rounded-xl flex items-center justify-center text-xl shrink-0"
+                 style="background: rgba(245, 158, 11, 0.15); color: #FBBF24; border: 1px solid rgba(245, 158, 11, 0.3);">
               <i class="bi bi-star-fill"></i>
             </div>
             <div>
-              <div class="text-xs font-bold text-slate-400 uppercase tracking-wide">Performance Rating</div>
-              <div class="text-base font-extrabold text-slate-900 mt-0.5">{{ perf_score }} <span class="text-xs font-semibold text-slate-400">/ 5</span></div>
-              <div class="text-[11px] font-medium text-slate-400 mt-0.5">{{ perf_rating }}</div>
+              <div class="text-xs font-bold uppercase tracking-wide" style="color: #FBBF24;">Performance Rating</div>
+              {% if has_perf_review and perf_score %}
+                <div class="text-xl font-extrabold text-white mt-0.5">{{ perf_score }} <span class="text-xs font-semibold" style="color: #8B81A8;">/ 5</span></div>
+                <div class="text-[11px] font-medium mt-0.5" style="color: #FDE68A;">{{ perf_rating }}</div>
+              {% else %}
+                <div class="text-xl font-extrabold text-white mt-0.5">Not Rated</div>
+                <div class="text-[11px] font-medium mt-0.5" style="color: #C4B5FD;">Pending Evaluation</div>
+              {% endif %}
             </div>
           </div>
-          <!-- Stat 4: Unread Notifications / Tasks -->
-          <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex items-center gap-4">
-            <div class="w-12 h-12 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center text-xl shrink-0">
-              <i class="bi bi-bell"></i>
+
+          <!-- Stat 4: Unread Notifications / Tasks (Rose Accent) -->
+          <div class="rounded-2xl p-5 border shadow-sm flex items-center gap-4 transition-all hover:scale-[1.02]"
+               style="background: #170F30; border-color: rgba(236, 72, 153, 0.25); border-left: 4px solid #EC4899; box-shadow: 0 4px 20px rgba(236, 72, 153, 0.08);">
+            <div class="w-12 h-12 rounded-xl flex items-center justify-center text-xl shrink-0"
+                 style="background: rgba(236, 72, 153, 0.15); color: #F472B6; border: 1px solid rgba(236, 72, 153, 0.3);">
+              <i class="bi bi-bell-fill"></i>
             </div>
             <div>
-              <div class="text-xs font-bold text-slate-400 uppercase tracking-wide">Pending Tasks</div>
-              <div class="text-base font-extrabold text-slate-900 mt-0.5">{{ pending_tasks }}</div>
-              <a href="{% url 'employees:notifications' %}"
-                 class="text-[11px] font-semibold text-hrms-blue hover:underline mt-0.5 block">{{ unread_notifications_count }} Unread Notifs</a>
+              <div class="text-xs font-bold uppercase tracking-wide" style="color: #F472B6;">Pending Tasks</div>
+              <div class="text-xl font-extrabold text-white mt-0.5">{{ pending_tasks }}</div>
+              <a href="{% url 'employees:notifications' %}" class="text-[11px] font-semibold hover:underline mt-0.5 block" style="color: #FBCFE8;">{{ unread_notifications_count }} Unread Notifs →</a>
             </div>
           </div>
         </div>
 
         {% if is_team_lead and team_pending_leave_count > 0 %}
         <!-- Team Lead Notification Alert Banner -->
-        <div class="bg-amber-50 border border-amber-200 p-4 rounded-2xl flex items-center justify-between shadow-sm">
+        <div class="p-4 rounded-2xl flex items-center justify-between shadow-sm"
+             style="background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35);">
           <div class="flex items-center gap-3">
-            <div class="w-10 h-10 rounded-xl bg-amber-500 text-white flex items-center justify-center text-lg font-bold">
+            <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg font-bold" style="background: #F59E0B; color: #170F30;">
               <i class="bi bi-shield-check"></i>
             </div>
             <div>
-              <h4 class="text-xs font-extrabold text-amber-900 uppercase tracking-wide">Team Lead Action Required</h4>
-              <p class="text-xs text-amber-800 font-medium mt-0.5">You have <span class="font-bold">{{ team_pending_leave_count }}</span> pending subordinate leave request(s) awaiting your decision.</p>
+              <h4 class="text-xs font-extrabold uppercase tracking-wide" style="color: #FCD34D;">Team Lead Action Required</h4>
+              <p class="text-xs text-white/90 font-medium mt-0.5">You have <span class="font-bold text-amber-300">{{ team_pending_leave_count }}</span> pending subordinate leave request(s) awaiting your decision.</p>
             </div>
           </div>
-          <a href="{% url 'employees:team_lead_leave_requests' %}" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-xl shadow-sm transition-all flex items-center gap-1.5">
+          <a href="{% url 'employees:team_lead_leave_requests' %}" class="px-4 py-2 bg-amber-500 hover:bg-amber-600 text-slate-950 text-xs font-bold rounded-xl shadow-sm transition-all flex items-center gap-1.5">
             <span>Review Requests</span>
             <i class="bi bi-arrow-right"></i>
           </a>
         </div>
         {% endif %}
+
         <!-- Main Content Split Grid -->
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
           <!-- Left Column (8 Columns) -->
           <div class="lg:col-span-8 space-y-8">
             <!-- My Reports Card -->
-            <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm space-y-5">
+            <div class="rounded-2xl p-6 border shadow-sm space-y-5"
+                 style="background: #170F30; border-color: rgba(139, 92, 246, 0.22);">
               <div class="flex items-center justify-between">
-                <h3 class="text-base font-bold text-slate-900">My Reports</h3>
+                <h3 class="text-base font-bold text-white flex items-center gap-2">
+                  <i class="bi bi-file-earmark-bar-graph text-purple-400"></i> My Reports
+                </h3>
                 <a href="{% url 'employees:reports_list' %}"
-                   class="text-xs font-bold text-hrms-blue hover:underline flex items-center gap-1">
+                   class="text-xs font-bold text-purple-300 hover:underline flex items-center gap-1">
                   View All <i class="bi bi-chevron-right text-[10px]"></i>
                 </a>
               </div>
@@ -334,72 +364,44 @@
               <div class="overflow-x-auto">
                 <table class="w-full text-left text-xs">
                   <thead>
-                    <tr class="border-b border-slate-100 text-slate-400 font-bold uppercase tracking-wider">
+                    <tr class="border-b text-purple-300/70 font-bold uppercase tracking-wider" style="border-color: rgba(139, 92, 246, 0.2);">
                       <th class="pb-3">Report Title</th>
                       <th class="pb-3">Submitted On</th>
                       <th class="pb-3">Status</th>
                       <th class="pb-3 text-right">Action</th>
                     </tr>
                   </thead>
-                  <tbody class="divide-y divide-slate-100 text-slate-700">
+                  <tbody class="divide-y divide-purple-900/30 text-slate-200">
                     {% if reports %}
                       {% for report in reports %}
-                        <tr class="hover:bg-slate-50/60 transition-colors">
-                          <td class="py-3.5 font-bold text-slate-900">{{ report.title }}</td>
-                          <td class="py-3.5 text-slate-500">{{ report.submitted_at|date:"d M Y" }}</td>
+                        <tr class="hover:bg-purple-950/20 transition-colors">
+                          <td class="py-3.5 font-bold text-white">{{ report.title }}</td>
+                          <td class="py-3.5 text-purple-300/70">{{ report.submitted_at|date:"d M Y" }}</td>
                           <td class="py-3.5">
                             {% if report.status == 'SUBMITTED' %}
-                              <span class="px-2.5 py-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 rounded-full">Submitted</span>
+                              <span class="px-2.5 py-1 text-[11px] font-bold rounded-full" style="background: rgba(16, 185, 129, 0.2); color: #34D399; border: 1px solid rgba(16, 185, 129, 0.35);">Submitted</span>
                             {% elif report.status == 'REVIEWED' %}
-                              <span class="px-2.5 py-1 text-[11px] font-bold text-blue-700 bg-blue-50 rounded-full">Reviewed</span>
+                              <span class="px-2.5 py-1 text-[11px] font-bold rounded-full" style="background: rgba(139, 92, 246, 0.2); color: #C4B5FD; border: 1px solid rgba(139, 92, 246, 0.35);">Reviewed</span>
                             {% else %}
-                              <span class="px-2.5 py-1 text-[11px] font-bold text-amber-700 bg-amber-50 rounded-full">{{ report.get_status_display }}</span>
+                              <span class="px-2.5 py-1 text-[11px] font-bold rounded-full" style="background: rgba(245, 158, 11, 0.2); color: #FCD34D; border: 1px solid rgba(245, 158, 11, 0.35);">{{ report.get_status_display }}</span>
                             {% endif %}
                           </td>
                           <td class="py-3.5 text-right">
                             <a href="{% url 'employees:edit_report' report.report_id %}"
-                               class="w-7 h-7 inline-flex items-center justify-center rounded-lg text-hrms-blue bg-blue-50 hover:bg-blue-100 transition-colors">
+                               class="w-8 h-8 inline-flex items-center justify-center rounded-lg transition-colors"
+                               style="background: rgba(139, 92, 246, 0.15); color: #C084FC; border: 1px solid rgba(139, 92, 246, 0.3);">
                               <i class="bi bi-eye"></i>
                             </a>
                           </td>
                         </tr>
                       {% endfor %}
                     {% else %}
-                      <!-- Sample Mockup Rows matching screenshot -->
-                      <tr class="hover:bg-slate-50/60 transition-colors">
-                        <td class="py-3.5 font-bold text-slate-900">Weekly Report - Week 4</td>
-                        <td class="py-3.5 text-slate-500">30 Apr 2025</td>
-                        <td class="py-3.5"><span class="px-2.5 py-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 rounded-full">Submitted</span></td>
+                      <tr class="hover:bg-purple-950/20 transition-colors">
+                        <td class="py-3.5 font-bold text-white">Weekly Work Report</td>
+                        <td class="py-3.5 text-purple-300/70">21 Sep 2026</td>
+                        <td class="py-3.5"><span class="px-2.5 py-1 text-[11px] font-bold rounded-full" style="background: rgba(139, 92, 246, 0.2); color: #C4B5FD; border: 1px solid rgba(139, 92, 246, 0.35);">Reviewed</span></td>
                         <td class="py-3.5 text-right">
-                          <a href="#"
-                             class="w-7 h-7 inline-flex items-center justify-center rounded-lg text-hrms-blue bg-blue-50"><i class="bi bi-eye"></i></a>
-                        </td>
-                      </tr>
-                      <tr class="hover:bg-slate-50/60 transition-colors">
-                        <td class="py-3.5 font-bold text-slate-900">Weekly Report - Week 3</td>
-                        <td class="py-3.5 text-slate-500">23 Apr 2025</td>
-                        <td class="py-3.5"><span class="px-2.5 py-1 text-[11px] font-bold text-blue-700 bg-blue-50 rounded-full">Reviewed</span></td>
-                        <td class="py-3.5 text-right">
-                          <a href="#"
-                             class="w-7 h-7 inline-flex items-center justify-center rounded-lg text-hrms-blue bg-blue-50"><i class="bi bi-eye"></i></a>
-                        </td>
-                      </tr>
-                      <tr class="hover:bg-slate-50/60 transition-colors">
-                        <td class="py-3.5 font-bold text-slate-900">Weekly Report - Week 2</td>
-                        <td class="py-3.5 text-slate-500">16 Apr 2025</td>
-                        <td class="py-3.5"><span class="px-2.5 py-1 text-[11px] font-bold text-blue-700 bg-blue-50 rounded-full">Reviewed</span></td>
-                        <td class="py-3.5 text-right">
-                          <a href="#"
-                             class="w-7 h-7 inline-flex items-center justify-center rounded-lg text-hrms-blue bg-blue-50"><i class="bi bi-eye"></i></a>
-                        </td>
-                      </tr>
-                      <tr class="hover:bg-slate-50/60 transition-colors">
-                        <td class="py-3.5 font-bold text-slate-900">Weekly Report - Week 1</td>
-                        <td class="py-3.5 text-slate-500">09 Apr 2025</td>
-                        <td class="py-3.5"><span class="px-2.5 py-1 text-[11px] font-bold text-blue-700 bg-blue-50 rounded-full">Reviewed</span></td>
-                        <td class="py-3.5 text-right">
-                          <a href="#"
-                             class="w-7 h-7 inline-flex items-center justify-center rounded-lg text-hrms-blue bg-blue-50"><i class="bi bi-eye"></i></a>
+                          <a href="#" class="w-8 h-8 inline-flex items-center justify-center rounded-lg" style="background: rgba(139, 92, 246, 0.15); color: #C084FC; border: 1px solid rgba(139, 92, 246, 0.3);"><i class="bi bi-eye"></i></a>
                         </td>
                       </tr>
                     {% endif %}
@@ -409,202 +411,359 @@
               <!-- Button -->
               <div class="pt-2">
                 <a href="{% url 'employees:submit_report' %}"
-                   class="inline-flex items-center gap-2 px-5 py-2.5 bg-hrms-blue hover:bg-hrms-hover text-white text-xs font-bold rounded-xl shadow-md shadow-blue-500/20 transition-all">
+                   class="inline-flex items-center gap-2 px-5 py-2.5 text-white text-xs font-bold rounded-xl shadow-md transition-all"
+                   style="background: linear-gradient(135deg, #7C3AED 0%, #9333EA 100%); box-shadow: 0 4px 14px rgba(124, 58, 237, 0.35);">
                   <i class="bi bi-plus-lg"></i> Submit New Report
                 </a>
               </div>
             </div>
+
             <!-- Performance Overview Card -->
-            <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm space-y-5">
+            <div class="rounded-2xl p-6 border shadow-sm space-y-5"
+                 style="background: #170F30; border-color: rgba(139, 92, 246, 0.22);">
               <div class="flex items-center justify-between">
-                <h3 class="text-base font-bold text-slate-900">Performance Overview</h3>
+                <h3 class="text-base font-bold text-white flex items-center gap-2">
+                  <i class="bi bi-graph-up-arrow text-purple-400"></i> Performance Overview
+                </h3>
                 <a href="{% url 'employees:performance' %}"
-                   class="text-xs font-bold text-hrms-blue hover:underline flex items-center gap-1">
+                   class="text-xs font-bold text-purple-300 hover:underline flex items-center gap-1">
                   View All <i class="bi bi-chevron-right text-[10px]"></i>
                 </a>
               </div>
               <div class="flex flex-col sm:flex-row items-center gap-8 pt-2">
-                <!-- Circular Rating Gauge -->
-                <div class="relative w-36 h-36 flex items-center justify-center shrink-0">
-                  <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
-                    <path class="text-slate-100" stroke-width="3" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                    <path class="text-hrms-blue" stroke-width="3.5" stroke-dasharray="86, 100" stroke-linecap="round" stroke="currentColor" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
-                  </svg>
-                  <div class="absolute text-center">
-                    <div class="text-2xl font-extrabold text-slate-900 leading-none">{{ perf_score }}</div>
-                    <div class="text-[11px] font-semibold text-slate-400 mt-1">/ 5</div>
+                {% if has_perf_review and perf_score %}
+                  <!-- Circular Rating Gauge (Evaluated) -->
+                  <div class="relative w-36 h-36 flex items-center justify-center shrink-0">
+                    <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                      <path stroke-width="3" stroke="rgba(139, 92, 246, 0.15)" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                      <path stroke-width="3.5" stroke="#8B5CF6" stroke-dasharray="86, 100" stroke-linecap="round" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" style="filter: drop-shadow(0 0 6px rgba(139, 92, 246, 0.6));" />
+                    </svg>
+                    <div class="absolute text-center">
+                      <div class="text-2xl font-extrabold text-white leading-none">{{ perf_score }}</div>
+                      <div class="text-[11px] font-semibold text-purple-300/70 mt-1">/ 5</div>
+                    </div>
                   </div>
-                </div>
-                <!-- Comment & Details -->
-                <div class="space-y-3 text-center sm:text-left flex-1">
-                  <div>
-                    <div class="text-xs font-semibold text-slate-400">Rating</div>
-                    <div class="text-lg font-bold text-slate-900">{{ perf_score }} <span class="text-xs font-medium text-slate-400">/ 5</span></div>
-                    <div class="text-xs font-bold text-slate-700">{{ perf_rating }}</div>
+                  <!-- Comment & Details -->
+                  <div class="space-y-3 text-center sm:text-left flex-1">
+                    <div>
+                      <div class="text-xs font-semibold text-purple-300/70">Rating</div>
+                      <div class="text-lg font-bold text-white">{{ perf_score }} <span class="text-xs font-medium text-purple-300/60">/ 5</span></div>
+                      <div class="text-xs font-bold text-emerald-400">{{ perf_rating }}</div>
+                    </div>
+                    <div class="p-3.5 rounded-xl border" style="background: rgba(255, 255, 255, 0.03); border-color: rgba(139, 92, 246, 0.15);">
+                      <div class="text-[11px] font-bold text-purple-300/70 uppercase tracking-wide mb-0.5">HR Comment</div>
+                      <div class="text-xs text-white/90 font-medium">"{{ perf_comments }}"</div>
+                    </div>
+                    <div class="pt-1">
+                      <a href="{% url 'employees:performance' %}"
+                         class="inline-flex items-center gap-2 px-4 py-2 text-xs font-bold rounded-xl transition-colors border"
+                         style="background: rgba(139, 92, 246, 0.15); color: #C4B5FD; border-color: rgba(139, 92, 246, 0.3);">
+                        View Performance Details →
+                      </a>
+                    </div>
                   </div>
-                  <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-100">
-                    <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wide mb-0.5">HR Comment</div>
-                    <div class="text-xs text-slate-600 font-medium">"{{ perf_comments }}"</div>
+                {% else %}
+                  <!-- Circular Gauge (Pending Evaluation) -->
+                  <div class="relative w-36 h-36 flex items-center justify-center shrink-0">
+                    <svg class="w-full h-full transform -rotate-90" viewBox="0 0 36 36">
+                      <path stroke-width="3" stroke="rgba(139, 92, 246, 0.2)" stroke-dasharray="4, 4" fill="none" d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831" />
+                    </svg>
+                    <div class="absolute text-center">
+                      <div class="text-2xl font-extrabold text-purple-300/60 leading-none">—</div>
+                      <div class="text-[10px] font-bold text-purple-300/50 mt-1 uppercase tracking-wider">Unrated</div>
+                    </div>
                   </div>
-                  <div class="pt-1">
-                    <a href="{% url 'employees:performance' %}"
-                       class="inline-flex items-center gap-2 px-4 py-2 bg-blue-50 text-hrms-blue text-xs font-bold rounded-xl hover:bg-blue-100 transition-colors border border-blue-100">
-                      View Performance Details
-                    </a>
+                  <!-- Pending Details -->
+                  <div class="space-y-3 text-center sm:text-left flex-1">
+                    <div>
+                      <div class="text-xs font-semibold text-purple-300/70">Evaluation Status</div>
+                      <div class="text-lg font-bold text-white">Pending Evaluation</div>
+                      <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-bold mt-1"
+                           style="background: rgba(245, 158, 11, 0.15); color: #FCD34D; border: 1px solid rgba(245, 158, 11, 0.3);">
+                        <i class="bi bi-clock-history"></i> Newly Added / No Reviews Yet
+                      </div>
+                    </div>
+                    <div class="p-3.5 rounded-xl border" style="background: rgba(255, 255, 255, 0.03); border-color: rgba(139, 92, 246, 0.15);">
+                      <div class="text-[11px] font-bold text-purple-300/70 uppercase tracking-wide mb-0.5">Evaluation Process</div>
+                      <div class="text-xs text-purple-200/80 font-medium">Weekly performance ratings are evaluated and scored by HR after reviewing your submitted weekly work reports.</div>
+                    </div>
+                    <div class="pt-1 flex flex-wrap gap-2.5">
+                      <a href="{% url 'employees:submit_report' %}"
+                         class="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-xl text-white shadow-sm transition-all"
+                         style="background: linear-gradient(135deg, #7C3AED 0%, #9333EA 100%); box-shadow: 0 4px 12px rgba(124, 58, 237, 0.3);">
+                        <i class="bi bi-file-earmark-plus"></i> Submit Weekly Report
+                      </a>
+                      <a href="{% url 'employees:performance' %}"
+                         class="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold rounded-xl transition-colors border"
+                         style="background: rgba(139, 92, 246, 0.15); color: #C4B5FD; border-color: rgba(139, 92, 246, 0.3);">
+                        Performance Dossier →
+                      </a>
+                    </div>
                   </div>
-                </div>
+                {% endif %}
               </div>
             </div>
-            <!-- Quick Actions Card -->
-            <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm space-y-4">
-              <h3 class="text-base font-bold text-slate-900">Quick Actions</h3>
+
+            <!-- Quick Actions Card (Multi-colored Tiles) -->
+            <div class="rounded-2xl p-6 border shadow-sm space-y-4"
+                 style="background: #170F30; border-color: rgba(139, 92, 246, 0.22);">
+              <h3 class="text-base font-bold text-white flex items-center gap-2">
+                <i class="bi bi-lightning-charge-fill text-amber-400"></i> Quick Actions
+              </h3>
               <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
                 <a href="{% url 'employees:profile' %}"
-                   class="p-4 rounded-2xl bg-blue-50/60 hover:bg-blue-100/80 border border-blue-100 flex flex-col items-center justify-center text-center transition-all group">
-                  <div class="w-10 h-10 rounded-xl bg-white text-hrms-blue flex items-center justify-center text-lg shadow-sm mb-2 group-hover:scale-110 transition-transform">
+                   class="p-4 rounded-2xl flex flex-col items-center justify-center text-center transition-all group hover:scale-105 border"
+                   style="background: rgba(6, 182, 212, 0.08); border-color: rgba(6, 182, 212, 0.25);">
+                  <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg shadow-sm mb-2 group-hover:scale-110 transition-transform"
+                       style="background: rgba(6, 182, 212, 0.2); color: #22D3EE;">
                     <i class="bi bi-person"></i>
                   </div>
-                  <span class="text-xs font-bold text-slate-700">My Profile</span>
+                  <span class="text-xs font-bold text-white">My Profile</span>
                 </a>
                 <a href="{% url 'employees:submit_report' %}"
-                   class="p-4 rounded-2xl bg-blue-50/60 hover:bg-blue-100/80 border border-blue-100 flex flex-col items-center justify-center text-center transition-all group">
-                  <div class="w-10 h-10 rounded-xl bg-white text-hrms-blue flex items-center justify-center text-lg shadow-sm mb-2 group-hover:scale-110 transition-transform">
+                   class="p-4 rounded-2xl flex flex-col items-center justify-center text-center transition-all group hover:scale-105 border"
+                   style="background: rgba(139, 92, 246, 0.08); border-color: rgba(139, 92, 246, 0.25);">
+                  <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg shadow-sm mb-2 group-hover:scale-110 transition-transform"
+                       style="background: rgba(139, 92, 246, 0.2); color: #C4B5FD;">
                     <i class="bi bi-file-earmark-plus"></i>
                   </div>
-                  <span class="text-xs font-bold text-slate-700">Submit Report</span>
+                  <span class="text-xs font-bold text-white">Submit Report</span>
                 </a>
                 <a href="{% url 'employees:reports_list' %}"
-                   class="p-4 rounded-2xl bg-blue-50/60 hover:bg-blue-100/80 border border-blue-100 flex flex-col items-center justify-center text-center transition-all group">
-                  <div class="w-10 h-10 rounded-xl bg-white text-hrms-blue flex items-center justify-center text-lg shadow-sm mb-2 group-hover:scale-110 transition-transform">
+                   class="p-4 rounded-2xl flex flex-col items-center justify-center text-center transition-all group hover:scale-105 border"
+                   style="background: rgba(99, 102, 241, 0.08); border-color: rgba(99, 102, 241, 0.25);">
+                  <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg shadow-sm mb-2 group-hover:scale-110 transition-transform"
+                       style="background: rgba(99, 102, 241, 0.2); color: #818CF8;">
                     <i class="bi bi-file-earmark-text"></i>
                   </div>
-                  <span class="text-xs font-bold text-slate-700">View Reports</span>
+                  <span class="text-xs font-bold text-white">View Reports</span>
                 </a>
                 <a href="{% url 'employees:leave_management' %}"
-                   class="p-4 rounded-2xl bg-indigo-50/60 hover:bg-indigo-100/80 border border-indigo-100 flex flex-col items-center justify-center text-center transition-all group">
-                  <div class="w-10 h-10 rounded-xl bg-white text-indigo-600 flex items-center justify-center text-lg shadow-sm mb-2 group-hover:scale-110 transition-transform">
+                   class="p-4 rounded-2xl flex flex-col items-center justify-center text-center transition-all group hover:scale-105 border"
+                   style="background: rgba(16, 185, 129, 0.08); border-color: rgba(16, 185, 129, 0.25);">
+                  <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg shadow-sm mb-2 group-hover:scale-110 transition-transform"
+                       style="background: rgba(16, 185, 129, 0.2); color: #34D399;">
                     <i class="bi bi-calendar2-check"></i>
                   </div>
-                  <span class="text-xs font-bold text-slate-700">Apply Leave</span>
+                  <span class="text-xs font-bold text-white">Apply Leave</span>
                 </a>
                 <a href="{% url 'employees:performance' %}"
-                   class="p-4 rounded-2xl bg-blue-50/60 hover:bg-blue-100/80 border border-blue-100 flex flex-col items-center justify-center text-center transition-all group">
-                  <div class="w-10 h-10 rounded-xl bg-white text-hrms-blue flex items-center justify-center text-lg shadow-sm mb-2 group-hover:scale-110 transition-transform">
+                   class="p-4 rounded-2xl flex flex-col items-center justify-center text-center transition-all group hover:scale-105 border"
+                   style="background: rgba(245, 158, 11, 0.08); border-color: rgba(245, 158, 11, 0.25);">
+                  <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg shadow-sm mb-2 group-hover:scale-110 transition-transform"
+                       style="background: rgba(245, 158, 11, 0.2); color: #FBBF24;">
                     <i class="bi bi-star"></i>
                   </div>
-                  <span class="text-xs font-bold text-slate-700">Performance</span>
+                  <span class="text-xs font-bold text-white">Performance</span>
                 </a>
                 <a href="{% url 'employees:announcements' %}"
-                   class="p-4 rounded-2xl bg-blue-50/60 hover:bg-blue-100/80 border border-blue-100 flex flex-col items-center justify-center text-center transition-all group">
-                  <div class="w-10 h-10 rounded-xl bg-white text-hrms-blue flex items-center justify-center text-lg shadow-sm mb-2 group-hover:scale-110 transition-transform">
+                   class="p-4 rounded-2xl flex flex-col items-center justify-center text-center transition-all group hover:scale-105 border"
+                   style="background: rgba(236, 72, 153, 0.08); border-color: rgba(236, 72, 153, 0.25);">
+                  <div class="w-10 h-10 rounded-xl flex items-center justify-center text-lg shadow-sm mb-2 group-hover:scale-110 transition-transform"
+                       style="background: rgba(236, 72, 153, 0.2); color: #F472B6;">
                     <i class="bi bi-megaphone"></i>
                   </div>
-                  <span class="text-xs font-bold text-slate-700">Announcements</span>
-                </a>
-                <a href="{% url 'employees:notifications' %}"
-                   class="p-4 rounded-2xl bg-blue-50/60 hover:bg-blue-100/80 border border-blue-100 flex flex-col items-center justify-center text-center transition-all group">
-                  <div class="w-10 h-10 rounded-xl bg-white text-hrms-blue flex items-center justify-center text-lg shadow-sm mb-2 group-hover:scale-110 transition-transform">
-                    <i class="bi bi-bell"></i>
-                  </div>
-                  <span class="text-xs font-bold text-slate-700">Notifications</span>
+                  <span class="text-xs font-bold text-white">Announcements</span>
                 </a>
               </div>
             </div>
           </div>
-          <!-- Right Column (4 Columns) -->
+
+          <!-- Right Column (4 Columns - Dedicated Calendar Widget) -->
           <div class="lg:col-span-4 space-y-8">
-            <!-- Company Announcements Widget -->
-            <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm space-y-5">
+            <!-- Interactive Calendar & Public Holidays Widget (Dark Violet) -->
+            <div class="rounded-2xl p-6 border shadow-sm space-y-5" id="employeeDashboardCalendar"
+                 style="background: #170F30; border-color: rgba(139, 92, 246, 0.22);">
+              <!-- Calendar Header -->
               <div class="flex items-center justify-between">
-                <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
-                  <i class="bi bi-megaphone text-hrms-blue"></i> Company Announcements
-                </h3>
-                <a href="{% url 'employees:announcements' %}"
-                   class="text-xs font-bold text-hrms-blue hover:underline">View All</a>
-              </div>
-              <div class="space-y-4">
-                {% if announcements %}
-                  {% for anc in announcements %}
-                    <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
-                      <div class="flex items-center justify-between text-xs font-bold text-slate-900">
-                        <span>• {{ anc.title }}</span>
-                        <span class="text-[10px] text-slate-400 font-normal">{{ anc.created_at|date:"d M Y" }}</span>
-                      </div>
-                      <p class="text-xs text-slate-500 line-clamp-2">{{ anc.content }}</p>
-                    </div>
-                  {% endfor %}
-                {% else %}
-                  <!-- Mockup Samples -->
-                  <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
-                    <div class="flex items-center justify-between text-xs font-bold text-slate-900">
-                      <span>• Annual Day Celebration</span>
-                      <span class="text-[10px] text-slate-400 font-normal">01 May 2025</span>
-                    </div>
-                    <p class="text-xs text-slate-500">All employees are invited to the Annual Day Celebration.</p>
+                <div class="flex items-center gap-2.5">
+                  <div class="w-9 h-9 rounded-xl flex items-center justify-center text-base shrink-0 border shadow-sm"
+                       style="background: rgba(139, 92, 246, 0.15); color: #C084FC; border-color: rgba(139, 92, 246, 0.3);">
+                    <i class="bi bi-calendar-event"></i>
                   </div>
-                  <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
-                    <div class="flex items-center justify-between text-xs font-bold text-slate-900">
-                      <span>• New Leave Policy Updates</span>
-                      <span class="text-[10px] text-slate-400 font-normal">28 Apr 2025</span>
-                    </div>
-                    <p class="text-xs text-slate-500">Please review the updated leave policy guidelines.</p>
+                  <div>
+                    <h3 class="text-sm font-bold text-white leading-tight">Calendar & Holidays</h3>
+                    <span class="text-[11px] font-medium text-purple-300/70">Public & Company Holidays</span>
                   </div>
-                  <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-100 space-y-1">
-                    <div class="flex items-center justify-between text-xs font-bold text-slate-900">
-                      <span>• Office Holiday - May Day</span>
-                      <span class="text-[10px] text-slate-400 font-normal">26 Apr 2025</span>
-                    </div>
-                    <p class="text-xs text-slate-500">The office will be closed on 1st May 2025.</p>
-                  </div>
-                {% endif %}
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <button type="button" class="hrms-cal-today-btn px-2.5 py-1 text-[11px] font-bold rounded-lg transition-colors border">
+                    Today
+                  </button>
+                  <button type="button" class="hrms-cal-prev-btn w-7 h-7 flex items-center justify-center rounded-lg text-xs transition-colors border" title="Previous Month">
+                    <i class="bi bi-chevron-left"></i>
+                  </button>
+                  <button type="button" class="hrms-cal-next-btn w-7 h-7 flex items-center justify-center rounded-lg text-xs transition-colors border" title="Next Month">
+                    <i class="bi bi-chevron-right"></i>
+                  </button>
+                </div>
               </div>
-            </div>
-            <!-- Recent Notifications Widget -->
-            <div class="bg-white rounded-2xl p-6 border border-slate-200/80 shadow-sm space-y-5">
-              <div class="flex items-center justify-between">
-                <h3 class="text-base font-bold text-slate-900">Recent Notifications</h3>
-                <a href="{% url 'employees:notifications' %}"
-                   class="text-xs font-bold text-hrms-blue hover:underline">View All</a>
+
+              <!-- Month Subheader & Legend -->
+              <div class="flex items-center justify-between pt-1">
+                <span class="hrms-cal-month-label text-sm font-extrabold text-white">Loading...</span>
+                <div class="flex items-center gap-3 text-[11px] font-semibold text-purple-300/70">
+                  <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full inline-block" style="background: #F43F5E; box-shadow: 0 0 6px #F43F5E;"></span> Public Holiday</span>
+                  <span class="flex items-center gap-1.5"><span class="w-2.5 h-2.5 rounded-full inline-block" style="background: #8B5CF6; box-shadow: 0 0 6px #8B5CF6;"></span> Today</span>
+                </div>
               </div>
-              <div class="space-y-3">
-                {% if notifications %}
-                  {% for n in notifications %}
-                    <div class="flex items-start gap-3 p-2.5 rounded-xl {% if not n.is_read %}bg-blue-50/50 border border-blue-100{% else %}hover:bg-slate-50 border border-transparent{% endif %} transition-colors">
-                      <div class="w-8 h-8 rounded-lg {% if not n.is_read %}bg-blue-100 text-hrms-blue{% else %}bg-slate-100 text-slate-500{% endif %} flex items-center justify-center text-sm shrink-0">
-                        <i class="bi bi-bell"></i>
-                      </div>
-                      <div class="flex-1 min-w-0">
-                        <div class="flex items-center justify-between gap-1">
-                          <span class="text-xs font-bold text-slate-900 truncate">{{ n.title }}</span>
-                          {% if not n.is_read %}
-                            <span class="w-2 h-2 rounded-full bg-hrms-blue shrink-0"></span>
-                          {% endif %}
-                        </div>
-                        <div class="text-[11px] text-slate-500 line-clamp-1">{{ n.message }}</div>
-                      </div>
-                      <span class="text-[10px] font-semibold text-slate-400 whitespace-nowrap">{{ n.created_at|timesince }} ago</span>
-                    </div>
-                  {% endfor %}
-                {% else %}
-                  <div class="text-xs text-slate-400 py-4 text-center">No notifications yet.</div>
-                {% endif %}
+
+              <!-- Weekdays 7-col row -->
+              <div class="grid grid-cols-7 text-center text-[11px] font-bold text-purple-300/70 tracking-wider">
+                <div>Su</div>
+                <div>Mo</div>
+                <div>Tu</div>
+                <div>We</div>
+                <div>Th</div>
+                <div>Fr</div>
+                <div>Sa</div>
+              </div>
+
+              <!-- 7-col Days Grid -->
+              <div class="hrms-cal-grid grid grid-cols-7 gap-1">
+                <!-- Populated dynamically by hrms_calendar.js -->
+              </div>
+
+              <!-- Monthly Public Holidays List -->
+              <div class="pt-3 border-t space-y-2.5" style="border-color: rgba(139, 92, 246, 0.18);">
+                <div class="flex items-center justify-between">
+                  <span class="text-xs font-bold text-white flex items-center gap-1.5">
+                    <i class="bi bi-flag-fill text-rose-400 text-[11px]"></i> Public Holidays
+                  </span>
+                  <span class="hrms-cal-holiday-count px-2.5 py-0.5 text-[10px] font-bold rounded-full"
+                        style="background: rgba(244, 63, 94, 0.22); color: #FDA4AF; border: 1px solid rgba(244, 63, 94, 0.5); box-shadow: 0 0 6px rgba(244, 63, 94, 0.2);">
+                    0 Holidays
+                  </span>
+                </div>
+                <div class="hrms-cal-holidays-list space-y-2 max-h-56 overflow-y-auto pr-0.5">
+                  <!-- Populated dynamically by hrms_calendar.js -->
+                </div>
               </div>
             </div>
           </div>
         </div>
+
+        <!-- Announcements & Notifications Row (Balanced 2-Column Grid) -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          <!-- Company Announcements Widget -->
+          <div class="rounded-2xl p-6 border shadow-sm space-y-5 flex flex-col justify-between"
+               style="background: #170F30; border-color: rgba(139, 92, 246, 0.22);">
+            <div>
+              <div class="flex items-center justify-between pb-4 border-b" style="border-color: rgba(139, 92, 246, 0.18);">
+                <h3 class="text-base font-bold text-white flex items-center gap-2">
+                  <i class="bi bi-megaphone-fill text-purple-400"></i> Company Announcements
+                </h3>
+                <a href="{% url 'employees:announcements' %}"
+                   class="text-xs font-bold text-purple-300 hover:underline flex items-center gap-1">
+                  View All <i class="bi bi-chevron-right text-[10px]"></i>
+                </a>
+              </div>
+              <div class="space-y-3 pt-4">
+                {% if announcements %}
+                  {% for anc in announcements %}
+                    <div class="p-4 rounded-xl border space-y-1.5 transition-all hover:bg-white/[0.04]"
+                         style="background: rgba(255, 255, 255, 0.03); border-color: rgba(139, 92, 246, 0.18);">
+                      <div class="flex items-center justify-between text-xs font-bold text-white">
+                        <span class="flex items-center gap-2">
+                          <i class="bi bi-megaphone text-purple-400 text-xs"></i>
+                          <span>{{ anc.title }}</span>
+                        </span>
+                        <span class="text-[10px] text-purple-300/80 font-semibold px-2 py-0.5 rounded-full"
+                              style="background: rgba(139, 92, 246, 0.15); border: 1px solid rgba(139, 92, 246, 0.25);">
+                          {{ anc.created_at|date:"d M Y" }}
+                        </span>
+                      </div>
+                      <p class="text-xs text-purple-200/80 line-clamp-2 leading-relaxed">{{ anc.content }}</p>
+                    </div>
+                  {% endfor %}
+                {% else %}
+                  <div class="p-4 rounded-xl border space-y-1" style="background: rgba(255, 255, 255, 0.03); border-color: rgba(139, 92, 246, 0.18);">
+                    <div class="flex items-center justify-between text-xs font-bold text-white">
+                      <span>• Welcome to Smart HRMS</span>
+                      <span class="text-[10px] text-purple-300/60 font-normal">Active</span>
+                    </div>
+                    <p class="text-xs text-purple-200/80">Stay tuned for company announcements, holiday notices, and official workplace updates.</p>
+                  </div>
+                {% endif %}
+              </div>
+            </div>
+            <div class="pt-4 border-t flex justify-end" style="border-color: rgba(139, 92, 246, 0.18);">
+              <a href="{% url 'employees:announcements' %}" class="text-xs font-bold text-purple-300 hover:text-white transition-colors flex items-center gap-1.5">
+                <span>All Company Bulletins</span>
+                <i class="bi bi-arrow-right"></i>
+              </a>
+            </div>
+          </div>
+
+          <!-- Recent Notifications Widget -->
+          <div class="rounded-2xl p-6 border shadow-sm space-y-5 flex flex-col justify-between"
+               style="background: #170F30; border-color: rgba(139, 92, 246, 0.22);">
+            <div>
+              <div class="flex items-center justify-between pb-4 border-b" style="border-color: rgba(139, 92, 246, 0.18);">
+                <div class="flex items-center gap-2">
+                  <h3 class="text-base font-bold text-white flex items-center gap-2">
+                    <i class="bi bi-bell-fill text-purple-400"></i> Recent Notifications
+                  </h3>
+                  {% if unread_notifications_count > 0 %}
+                    <span class="px-2 py-0.5 text-[10px] font-bold rounded-full bg-pink-500/20 text-pink-300 border border-pink-500/40">
+                      {{ unread_notifications_count }} Unread
+                    </span>
+                  {% endif %}
+                </div>
+                <a href="{% url 'employees:notifications' %}"
+                   class="text-xs font-bold text-purple-300 hover:underline flex items-center gap-1">
+                  View All <i class="bi bi-chevron-right text-[10px]"></i>
+                </a>
+              </div>
+              <div class="space-y-3 pt-4">
+                {% if notifications %}
+                  {% for n in notifications %}
+                    <div class="flex items-start gap-3.5 p-3.5 rounded-xl border transition-all hover:bg-white/[0.04]"
+                         style="background: rgba(255, 255, 255, 0.03); border-color: {% if not n.is_read %}rgba(236, 72, 153, 0.35){% else %}rgba(139, 92, 246, 0.15){% endif %};">
+                      <div class="w-9 h-9 rounded-xl flex items-center justify-center text-sm shrink-0"
+                           style="background: {% if not n.is_read %}rgba(236, 72, 153, 0.2){% else %}rgba(139, 92, 246, 0.15){% endif %}; color: {% if not n.is_read %}#F472B6{% else %}#C084FC{% endif %};">
+                        <i class="bi bi-bell{% if not n.is_read %}-fill{% endif %}"></i>
+                      </div>
+                      <div class="flex-1 min-w-0">
+                        <div class="flex items-center justify-between gap-2">
+                          <span class="text-xs font-bold text-white truncate">{{ n.title }}</span>
+                          <span class="text-[10px] font-semibold text-purple-300/60 whitespace-nowrap">{{ n.created_at|timesince }} ago</span>
+                        </div>
+                        <div class="text-[11px] text-purple-200/80 mt-0.5 line-clamp-2 leading-relaxed">{{ n.message }}</div>
+                      </div>
+                      {% if not n.is_read %}
+                        <span class="w-2 h-2 rounded-full bg-pink-500 shrink-0 mt-1 shadow-sm shadow-pink-500/50"></span>
+                      {% endif %}
+                    </div>
+                  {% endfor %}
+                {% else %}
+                  <div class="text-xs text-purple-300/70 py-6 text-center">No notifications yet.</div>
+                {% endif %}
+              </div>
+            </div>
+            <div class="pt-4 border-t flex justify-end" style="border-color: rgba(139, 92, 246, 0.18);">
+              <a href="{% url 'employees:notifications' %}" class="text-xs font-bold text-purple-300 hover:text-white transition-colors flex items-center gap-1.5">
+                <span>Notification Center</span>
+                <i class="bi bi-arrow-right"></i>
+              </a>
+            </div>
+          </div>
+        </div>
+
         <!-- Footer -->
-        <footer class="pt-8 border-t border-slate-200/80 text-center text-xs font-medium text-slate-400">
-          © 2025 HRMS. All rights reserved.
+        <footer class="pt-8 border-t border-purple-900/30 text-center text-xs font-medium text-purple-300/60">
+          © 2026 Smart HRMS. All rights reserved.
         </footer>
       </main>
     </div>
 
     <!-- HR Report Review Popup Modal -->
     {% if show_report_popup and latest_reviewed_report %}
-    <div id="hrReviewPopupModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm transition-opacity duration-300">
-      <div class="bg-white rounded-3xl shadow-2xl border border-slate-100 max-w-lg w-full overflow-hidden transform transition-all scale-100 animate-in fade-in zoom-in duration-200">
+    <div id="hrReviewPopupModal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md transition-opacity duration-300">
+      <div class="rounded-3xl shadow-2xl border max-w-lg w-full overflow-hidden transform transition-all scale-100"
+           style="background: #170F30; border-color: rgba(139, 92, 246, 0.35); box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8);">
         <!-- Modal Top Header Bar -->
-        <div class="{% if latest_reviewed_report.status == 'REVIEWED' %}bg-gradient-to-r from-blue-600 to-indigo-600{% elif latest_reviewed_report.status == 'NEEDS_CORRECTION' %}bg-gradient-to-r from-amber-500 to-orange-600{% else %}bg-gradient-to-r from-blue-600 to-sky-600{% endif %} p-6 text-white text-center relative">
+        <div class="{% if latest_reviewed_report.status == 'REVIEWED' %}bg-gradient-to-r from-purple-800 to-indigo-800{% elif latest_reviewed_report.status == 'NEEDS_CORRECTION' %}bg-gradient-to-r from-amber-700 to-orange-800{% else %}bg-gradient-to-r from-purple-800 to-violet-800{% endif %} p-6 text-white text-center relative">
           <button type="button" onclick="closeHrReviewModal()" class="absolute top-4 right-4 text-white/80 hover:text-white bg-white/10 hover:bg-white/20 rounded-full w-8 h-8 flex items-center justify-center transition-colors">
             <i class="bi bi-x-lg text-sm"></i>
           </button>
@@ -632,24 +791,27 @@
         <!-- Modal Content Body -->
         <div class="p-6 space-y-4">
           <!-- Report Info Card -->
-          <div class="bg-slate-50 border border-slate-200/80 rounded-2xl p-4 space-y-2">
+          <div class="border rounded-2xl p-4 space-y-2" style="background: rgba(255, 255, 255, 0.03); border-color: rgba(139, 92, 246, 0.2);">
             <div class="flex items-center justify-between text-xs">
-              <span class="font-bold text-slate-500 uppercase tracking-wider">Report Week</span>
-              <span class="font-semibold text-slate-800">{{ latest_reviewed_report.week_start_date|date:"d M Y" }} - {{ latest_reviewed_report.week_end_date|date:"d M Y" }}</span>
+              <span class="font-bold text-purple-300/70 uppercase tracking-wider">Report Week</span>
+              <span class="font-semibold text-white">{{ latest_reviewed_report.week_start_date|date:"d M Y" }} - {{ latest_reviewed_report.week_end_date|date:"d M Y" }}</span>
             </div>
             <div class="flex items-center justify-between text-xs">
-              <span class="font-bold text-slate-500 uppercase tracking-wider">Review Status</span>
+              <span class="font-bold text-purple-300/70 uppercase tracking-wider">Review Status</span>
               <span>
                 {% if latest_reviewed_report.status == 'REVIEWED' %}
-                  <span class="px-2.5 py-1 bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold rounded-full text-[11px] inline-flex items-center gap-1">
+                  <span class="px-2.5 py-1 font-bold rounded-full text-[11px] inline-flex items-center gap-1"
+                        style="background: rgba(16, 185, 129, 0.2); color: #34D399; border: 1px solid rgba(16, 185, 129, 0.4);">
                     <i class="bi bi-check-circle-fill"></i> Reviewed & Approved
                   </span>
                 {% elif latest_reviewed_report.status == 'NEEDS_CORRECTION' %}
-                  <span class="px-2.5 py-1 bg-amber-50 text-amber-700 border border-amber-200 font-bold rounded-full text-[11px] inline-flex items-center gap-1">
+                  <span class="px-2.5 py-1 font-bold rounded-full text-[11px] inline-flex items-center gap-1"
+                        style="background: rgba(245, 158, 11, 0.2); color: #FCD34D; border: 1px solid rgba(245, 158, 11, 0.4);">
                     <i class="bi bi-exclamation-circle-fill"></i> Needs Revision
                   </span>
                 {% else %}
-                  <span class="px-2.5 py-1 bg-blue-50 text-hrms-blue border border-blue-200 font-bold rounded-full text-[11px]">
+                  <span class="px-2.5 py-1 font-bold rounded-full text-[11px]"
+                        style="background: rgba(139, 92, 246, 0.2); color: #C4B5FD; border: 1px solid rgba(139, 92, 246, 0.4);">
                     {{ latest_reviewed_report.get_status_display }}
                   </span>
                 {% endif %}
@@ -657,28 +819,31 @@
             </div>
             {% if latest_reviewed_report.reviewed_by %}
             <div class="flex items-center justify-between text-xs">
-              <span class="font-bold text-slate-500 uppercase tracking-wider">Reviewed By</span>
-              <span class="font-semibold text-slate-700">{{ latest_reviewed_report.reviewed_by.user.name|default:latest_reviewed_report.reviewed_by.user.email }}</span>
+              <span class="font-bold text-purple-300/70 uppercase tracking-wider">Reviewed By</span>
+              <span class="font-semibold text-purple-200">{{ latest_reviewed_report.reviewed_by.user.name|default:latest_reviewed_report.reviewed_by.user.email }}</span>
             </div>
             {% endif %}
           </div>
 
           <!-- HR Feedback Section -->
           <div>
-            <label class="block text-xs font-bold uppercase tracking-wider text-slate-600 mb-1.5 flex items-center gap-1.5">
-              <i class="bi bi-chat-left-text text-hrms-blue"></i> HR Comments & Feedback
+            <label class="block text-xs font-bold uppercase tracking-wider text-purple-300/80 mb-1.5 flex items-center gap-1.5">
+              <i class="bi bi-chat-left-text text-purple-400"></i> HR Comments & Feedback
             </label>
-            <div class="bg-blue-50/50 border border-blue-100 text-slate-800 rounded-2xl p-4 text-sm leading-relaxed whitespace-pre-line font-medium">
+            <div class="border rounded-2xl p-4 text-sm leading-relaxed whitespace-pre-line font-medium"
+                 style="background: rgba(255, 255, 255, 0.03); border-color: rgba(139, 92, 246, 0.2); color: #F5F3FF;">
               {{ latest_reviewed_report.hr_comments|default:"Good progress made this week. Keep up the consistent work!" }}
             </div>
           </div>
 
           <!-- Action Buttons -->
           <div class="flex items-center gap-3 pt-2">
-            <a href="{% url 'employees:reports_list' %}" class="flex-1 text-center py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-colors">
+            <a href="{% url 'employees:reports_list' %}" class="flex-1 text-center py-2.5 px-4 font-bold text-xs rounded-xl transition-colors border"
+               style="background: rgba(255, 255, 255, 0.05); color: #F5F3FF; border-color: rgba(139, 92, 246, 0.25);">
               View All Reports
             </a>
-            <button type="button" onclick="closeHrReviewModal()" class="flex-1 py-2.5 px-4 bg-hrms-blue hover:bg-hrms-hover text-white font-bold text-xs rounded-xl shadow-md shadow-blue-500/20 transition-all flex items-center justify-center gap-1.5">
+            <button type="button" onclick="closeHrReviewModal()" class="flex-1 py-2.5 px-4 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-1.5"
+                    style="background: linear-gradient(135deg, #7C3AED 0%, #9333EA 100%);">
               <i class="bi bi-check2"></i> Acknowledge
             </button>
           </div>
@@ -703,5 +868,21 @@
       }
     </script>
     {% endif %}
+    <script src="{% static 'js/hrms_calendar.js' %}"></script>
+    <script>
+      document.addEventListener('DOMContentLoaded', function () {
+        try {
+          const holidaysData = {{ holidays_json|safe|default:"[]" }};
+          initHRMSDashboardCalendar({
+            containerId: 'employeeDashboardCalendar',
+            theme: 'tailwind',
+            initialHolidays: holidaysData
+          });
+        } catch (e) {
+          console.error("Employee HRMS Calendar init error:", e);
+        }
+      });
+    </script>
+    {% include "components/birthday_popup.html" %}
   </body>
 </html>

@@ -7,193 +7,202 @@
     <!-- Header Section -->
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
         <div>
-            <h3 class="fw-bold text-dark mb-1">HR Weekly Performance Reports</h3>
-            <p class="text-muted small mb-0">Review submitted weekly reports, evaluate HR managers with the Performance Analysis Matrix, and record feedback.</p>
+            <h1 class="page-title-saas mb-1">HR Weekly Performance Reports</h1>
+            <p class="page-subtitle-saas mb-0">Review submitted weekly reports, evaluate HR managers with the Performance Analysis Matrix, and record feedback.</p>
         </div>
         <div class="d-flex gap-2">
-            <a href="{% url 'admin_module:hr_performance_analysis' %}" class="btn btn-primary rounded-3 px-3 py-2 fw-semibold shadow-sm">
+            <a href="{% url 'admin_module:hr_performance_analysis' %}" class="btn btn-primary rounded-3 px-3 py-2 fw-semibold shadow-sm" style="background: linear-gradient(135deg, #7C3AED 0%, #9333EA 100%); border: none; box-shadow: 0 4px 14px rgba(124, 58, 237, 0.4);">
                 <i class="bi bi-graph-up-arrow me-1"></i> Performance Analysis Dashboard
             </a>
         </div>
     </div>
 
-    <!-- Summary KPI Cards -->
+    <!-- Summary KPI Cards (Colorful & Vibrant) -->
     <div class="row g-3 mb-4">
         <div class="col-6 col-lg-3">
-            <div class="card card-custom border-0 p-3 h-100 shadow-sm">
+            <div class="kpi-stat-card kpi-violet p-3 h-100">
                 <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="text-muted small fw-medium">Total Reports</span>
-                    <span class="badge bg-primary-subtle text-primary rounded-pill px-2 py-1"><i class="bi bi-file-earmark-text"></i></span>
+                    <span class="text-uppercase fw-bold" style="font-size: 0.72rem; color: #C4B5FD; letter-spacing: 0.05em;">Total Reports</span>
+                    <span class="icon-circle-glow icon-badge-violet rounded-pill px-2.5 py-1">
+                        <i class="bi bi-file-earmark-text-fill"></i>
+                    </span>
                 </div>
-                <h4 class="fw-bold text-dark mb-0">{{ total_reports }}</h4>
-                <div class="text-muted small mt-1">Submitted across all HRs</div>
+                <h3 class="fw-extrabold text-white mb-0 fs-3">{{ total_reports }}</h3>
+                <div class="small mt-1" style="color: #8B81A8; font-size: 0.75rem;">Submitted across all HRs</div>
             </div>
         </div>
         <div class="col-6 col-lg-3">
-            <div class="card card-custom border-0 p-3 h-100 shadow-sm">
+            <div class="kpi-stat-card kpi-amber p-3 h-100">
                 <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="text-muted small fw-medium">Pending Review</span>
-                    <span class="badge bg-warning-subtle text-warning-emphasis rounded-pill px-2 py-1"><i class="bi bi-hourglass-split"></i></span>
+                    <span class="text-uppercase fw-bold" style="font-size: 0.72rem; color: #FCD34D; letter-spacing: 0.05em;">Pending Review</span>
+                    <span class="icon-circle-glow icon-badge-amber rounded-pill px-2.5 py-1">
+                        <i class="bi bi-hourglass-split"></i>
+                    </span>
                 </div>
-                <h4 class="fw-bold text-warning-emphasis mb-0">{{ pending_review_count }}</h4>
-                <div class="text-muted small mt-1">Requires admin evaluation</div>
+                <h3 class="fw-extrabold mb-0 fs-3" style="color: #FBBF24;">{{ pending_review_count }}</h3>
+                <div class="small mt-1" style="color: #8B81A8; font-size: 0.75rem;">Requires admin evaluation</div>
             </div>
         </div>
         <div class="col-6 col-lg-3">
-            <div class="card card-custom border-0 p-3 h-100 shadow-sm">
+            <div class="kpi-stat-card kpi-emerald p-3 h-100">
                 <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="text-muted small fw-medium">Reviewed & Scored</span>
-                    <span class="badge bg-success-subtle text-success rounded-pill px-2 py-1"><i class="bi bi-check2-circle"></i></span>
+                    <span class="text-uppercase fw-bold" style="font-size: 0.72rem; color: #6EE7B7; letter-spacing: 0.05em;">Reviewed & Scored</span>
+                    <span class="icon-circle-glow icon-badge-emerald rounded-pill px-2.5 py-1">
+                        <i class="bi bi-check2-circle"></i>
+                    </span>
                 </div>
-                <h4 class="fw-bold text-success mb-0">{{ reviewed_count }}</h4>
-                <div class="text-muted small mt-1">Evaluations completed</div>
+                <h3 class="fw-extrabold mb-0 fs-3" style="color: #34D399;">{{ reviewed_count }}</h3>
+                <div class="small mt-1" style="color: #8B81A8; font-size: 0.75rem;">Evaluations completed</div>
             </div>
         </div>
         <div class="col-6 col-lg-3">
-            <div class="card card-custom border-0 p-3 h-100 shadow-sm">
+            <div class="kpi-stat-card kpi-cyan p-3 h-100">
                 <div class="d-flex align-items-center justify-content-between mb-2">
-                    <span class="text-muted small fw-medium">Average Performance</span>
-                    <span class="badge bg-info-subtle text-info rounded-pill px-2 py-1"><i class="bi bi-award"></i></span>
+                    <span class="text-uppercase fw-bold" style="font-size: 0.72rem; color: #67E8F9; letter-spacing: 0.05em;">Average Performance</span>
+                    <span class="icon-circle-glow icon-badge-cyan rounded-pill px-2.5 py-1">
+                        <i class="bi bi-award-fill"></i>
+                    </span>
                 </div>
-                <h4 class="fw-bold text-primary mb-0">{% if avg_performance %}{{ avg_performance }}%{% else %}N/A{% endif %}</h4>
-                <div class="text-muted small mt-1">Across all reviewed weeks</div>
+                <h3 class="fw-extrabold mb-0 fs-3" style="color: #22D3EE;">{% if avg_performance %}{{ avg_performance }}%{% else %}N/A{% endif %}</h3>
+                <div class="small mt-1" style="color: #8B81A8; font-size: 0.75rem;">Across all reviewed weeks</div>
             </div>
         </div>
     </div>
 
     <!-- Filter & Search Bar -->
-    <div class="card card-custom border-0 mb-4 shadow-sm">
-        <div class="card-body p-3">
-            <form method="get" class="row g-2 align-items-center">
-                <div class="col-md-4">
-                    <div class="input-group">
-                        <span class="input-group-text bg-white border-end-0"><i class="bi bi-search text-muted"></i></span>
-                        <input type="text" name="q" class="form-control border-start-0" placeholder="Search HR name, code, summary..." value="{{ search_query }}">
-                    </div>
+    <div class="saas-card mb-4 p-3">
+        <form method="get" class="row g-2 align-items-center">
+            <div class="col-md-4">
+                <div class="input-group">
+                    <span class="input-group-text"><i class="bi bi-search" style="color: #C4B5FD;"></i></span>
+                    <input type="text" name="q" class="form-control" placeholder="Search HR name, code, summary..." value="{{ search_query }}">
                 </div>
-                <div class="col-md-3">
-                    <select name="hr_id" class="form-select">
-                        <option value="">All HR Managers</option>
-                        {% for hr in hr_managers %}
-                            <option value="{{ hr.pk }}" {% if selected_hr == hr.pk|stringformat:"i" %}selected{% endif %}>
-                                {{ hr.full_name }} ({{ hr.employee_code }})
-                            </option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <select name="status" class="form-select">
-                        <option value="">All Statuses</option>
-                        <option value="SUBMITTED" {% if selected_status == 'SUBMITTED' %}selected{% endif %}>Submitted / Pending Review</option>
-                        <option value="REVIEWED" {% if selected_status == 'REVIEWED' %}selected{% endif %}>Reviewed</option>
-                        <option value="NEEDS_IMPROVEMENT" {% if selected_status == 'NEEDS_IMPROVEMENT' %}selected{% endif %}>Needs Improvement</option>
-                        <option value="DRAFT" {% if selected_status == 'DRAFT' %}selected{% endif %}>Draft</option>
-                    </select>
-                </div>
-                <div class="col-md-2 d-flex gap-2">
-                    <button type="submit" class="btn btn-primary w-100 fw-semibold">Filter</button>
-                    {% if selected_hr or selected_status or search_query %}
-                        <a href="{% url 'admin_module:hr_reports_list' %}" class="btn btn-outline-secondary" title="Reset Filters"><i class="bi bi-arrow-counterclockwise"></i></a>
-                    {% endif %}
-                </div>
-            </form>
-        </div>
+            </div>
+            <div class="col-md-3">
+                <select name="hr_id" class="form-select">
+                    <option value="">All HR Managers</option>
+                    {% for hr in hr_managers %}
+                        <option value="{{ hr.pk }}" {% if selected_hr == hr.pk|stringformat:"i" %}selected{% endif %}>
+                            {{ hr.full_name }} ({{ hr.employee_code }})
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select name="status" class="form-select">
+                    <option value="">All Statuses</option>
+                    <option value="SUBMITTED" {% if selected_status == 'SUBMITTED' %}selected{% endif %}>Submitted / Pending Review</option>
+                    <option value="REVIEWED" {% if selected_status == 'REVIEWED' %}selected{% endif %}>Reviewed</option>
+                    <option value="NEEDS_IMPROVEMENT" {% if selected_status == 'NEEDS_IMPROVEMENT' %}selected{% endif %}>Needs Improvement</option>
+                    <option value="DRAFT" {% if selected_status == 'DRAFT' %}selected{% endif %}>Draft</option>
+                </select>
+            </div>
+            <div class="col-md-2 d-flex gap-2">
+                <button type="submit" class="btn btn-primary w-100 fw-semibold" style="background: linear-gradient(135deg, #7C3AED 0%, #9333EA 100%); border: none; box-shadow: 0 2px 10px rgba(124, 58, 237, 0.35);">
+                    Filter
+                </button>
+                {% if selected_hr or selected_status or search_query %}
+                    <a href="{% url 'admin_module:hr_reports_list' %}" class="btn btn-outline-secondary" title="Reset Filters" style="border-color: rgba(167, 139, 250, 0.3); color: #C4B5FD;">
+                        <i class="bi bi-arrow-counterclockwise"></i>
+                    </a>
+                {% endif %}
+            </div>
+        </form>
     </div>
 
     <!-- Reports Table Card -->
-    <div class="card card-custom border-0 shadow-sm">
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="bg-light">
-                        <tr>
-                            <th class="ps-4 py-3 text-muted text-uppercase" style="font-size: 0.75rem; font-weight: 700;">HR Manager</th>
-                            <th class="py-3 text-muted text-uppercase" style="font-size: 0.75rem; font-weight: 700;">Department</th>
-                            <th class="py-3 text-muted text-uppercase" style="font-size: 0.75rem; font-weight: 700;">Report Week</th>
-                            <th class="py-3 text-muted text-uppercase" style="font-size: 0.75rem; font-weight: 700;">Submitted Date</th>
-                            <th class="py-3 text-muted text-uppercase" style="font-size: 0.75rem; font-weight: 700;">Status</th>
-                            <th class="py-3 text-muted text-uppercase" style="font-size: 0.75rem; font-weight: 700;">Performance Score</th>
-                            <th class="pe-4 py-3 text-end text-muted text-uppercase" style="font-size: 0.75rem; font-weight: 700;">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% if reports %}
-                            {% for report in reports %}
-                                <tr>
-                                    <td class="ps-4">
-                                        <div class="d-flex align-items-center gap-2">
-                                            <div class="rounded-circle bg-primary-subtle text-primary fw-bold d-flex align-items-center justify-content-center" style="width: 36px; height: 36px;">
-                                                {{ report.hr_manager.full_name|slice:":1"|upper }}
-                                            </div>
-                                            <div>
-                                                <div class="fw-bold text-dark">{{ report.hr_manager.full_name }}</div>
-                                                <div class="text-muted small">{{ report.hr_manager.employee_code }} • {{ report.hr_manager.designation|default:"HR Manager" }}</div>
-                                            </div>
-                                        </div>
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-light text-dark border">
-                                            {{ report.hr_manager.department.name|default:"General HR" }}
-                                        </span>
-                                    </td>
-                                    <td>
-                                        <div class="fw-semibold text-dark">{{ report.week_display }}</div>
-                                        <div class="text-muted small">Report #{{ report.report_id }}</div>
-                                    </td>
-                                    <td>
-                                        {% if report.submitted_at %}
-                                            <span class="text-dark fw-medium">{{ report.submitted_at|date:"M d, Y" }}</span>
-                                            <div class="text-muted small">{{ report.submitted_at|time:"h:i A" }}</div>
-                                        {% else %}
-                                            <span class="text-muted fst-italic">Draft</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if report.status == 'DRAFT' %}
-                                            <span class="badge bg-secondary-subtle text-secondary px-2 py-1 rounded-pill">Draft</span>
-                                        {% elif report.status == 'SUBMITTED' %}
-                                            <span class="badge bg-primary-subtle text-primary px-2 py-1 rounded-pill">Submitted</span>
-                                        {% elif report.status == 'UNDER_REVIEW' %}
-                                            <span class="badge bg-warning-subtle text-warning-emphasis px-2 py-1 rounded-pill">Under Review</span>
-                                        {% elif report.status == 'REVIEWED' %}
-                                            <span class="badge bg-success-subtle text-success px-2 py-1 rounded-pill"><i class="bi bi-check-circle me-1"></i>Reviewed</span>
-                                        {% elif report.status == 'NEEDS_IMPROVEMENT' %}
-                                            <span class="badge bg-danger-subtle text-danger px-2 py-1 rounded-pill">Needs Improvement</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if report.performance_review %}
-                                            <div class="fw-bold text-dark">{{ report.performance_review.performance_percentage }}%</div>
-                                            <div class="text-muted small">{{ report.performance_review.average_score }}/5 ({{ report.performance_review.get_performance_status_display }})</div>
-                                        {% else %}
-                                            <span class="badge bg-light text-muted border">Pending Review</span>
-                                        {% endif %}
-                                    </td>
-                                    <td class="pe-4 text-end">
-                                        <a href="{% url 'admin_module:hr_report_detail' report.pk %}" class="btn btn-sm {% if report.status == 'SUBMITTED' or report.status == 'UNDER_REVIEW' %}btn-primary{% else %}btn-outline-primary{% endif %} rounded-2 px-3 fw-semibold">
-                                            {% if report.status == 'REVIEWED' %}
-                                                <i class="bi bi-eye me-1"></i> View Review
-                                            {% else %}
-                                                <i class="bi bi-clipboard2-check me-1"></i> Review Report
-                                            {% endif %}
-                                        </a>
-                                    </td>
-                                </tr>
-                            {% endfor %}
-                        {% else %}
+    <div class="saas-card overflow-hidden">
+        <div class="table-responsive">
+            <table class="table mb-0">
+                <thead>
+                    <tr>
+                        <th class="ps-4 py-3" style="font-size: 0.75rem; font-weight: 700;">HR Manager</th>
+                        <th class="py-3" style="font-size: 0.75rem; font-weight: 700;">Department</th>
+                        <th class="py-3" style="font-size: 0.75rem; font-weight: 700;">Report Week</th>
+                        <th class="py-3" style="font-size: 0.75rem; font-weight: 700;">Submitted Date</th>
+                        <th class="py-3" style="font-size: 0.75rem; font-weight: 700;">Status</th>
+                        <th class="py-3" style="font-size: 0.75rem; font-weight: 700;">Performance Score</th>
+                        <th class="pe-4 py-3 text-end" style="font-size: 0.75rem; font-weight: 700;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if reports %}
+                        {% for report in reports %}
                             <tr>
-                                <td colspan="7" class="text-center py-5 text-muted">
-                                    <i class="bi bi-file-earmark-x fs-1 d-block mb-2 text-secondary"></i>
-                                    <h5>No Weekly Reports Found</h5>
-                                    <p class="small mb-0">No HR Weekly Performance Reports match your active filter criteria.</p>
+                                <td class="ps-4">
+                                    <div class="d-flex align-items-center gap-2.5">
+                                        <div class="avatar-saas rounded-circle icon-badge-violet" style="width: 38px; height: 38px; font-weight: 700; font-size: 0.9rem;">
+                                            {{ report.hr_manager.full_name|slice:":1"|upper }}
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold text-white">{{ report.hr_manager.full_name }}</div>
+                                            <div class="small" style="color: #8B81A8;">{{ report.hr_manager.employee_code }} • {{ report.hr_manager.designation|default:"HR Manager" }}</div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-light rounded-pill px-2.5 py-1">
+                                        <i class="bi bi-diagram-3 me-1 text-primary"></i>{{ report.hr_manager.department.name|default:"General HR" }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="fw-semibold text-white">{{ report.week_display }}</div>
+                                    <div class="small" style="color: #8B81A8;">Report #{{ report.report_id }}</div>
+                                </td>
+                                <td>
+                                    {% if report.submitted_at %}
+                                        <span class="text-white fw-medium">{{ report.submitted_at|date:"M d, Y" }}</span>
+                                        <div class="small" style="color: #8B81A8;">{{ report.submitted_at|time:"h:i A" }}</div>
+                                    {% else %}
+                                        <span class="fst-italic" style="color: #8B81A8;">Draft</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if report.status == 'DRAFT' %}
+                                        <span class="badge bg-secondary-subtle px-2.5 py-1 rounded-pill">Draft</span>
+                                    {% elif report.status == 'SUBMITTED' %}
+                                        <span class="badge bg-warning-subtle px-2.5 py-1 rounded-pill"><i class="bi bi-hourglass-split me-1"></i>Submitted</span>
+                                    {% elif report.status == 'UNDER_REVIEW' %}
+                                        <span class="badge bg-warning-subtle px-2.5 py-1 rounded-pill"><i class="bi bi-search me-1"></i>Under Review</span>
+                                    {% elif report.status == 'REVIEWED' %}
+                                        <span class="badge bg-success-subtle px-2.5 py-1 rounded-pill"><i class="bi bi-check-circle-fill me-1"></i>Reviewed</span>
+                                    {% elif report.status == 'NEEDS_IMPROVEMENT' %}
+                                        <span class="badge bg-danger-subtle px-2.5 py-1 rounded-pill"><i class="bi bi-exclamation-triangle-fill me-1"></i>Needs Improvement</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if report.performance_review %}
+                                        <div class="fw-bold fs-6" style="color: #34D399;">{{ report.performance_review.performance_percentage }}%</div>
+                                        <div class="small" style="color: #8B81A8;">{{ report.performance_review.average_score }}/5 ({{ report.performance_review.get_performance_status_display }})</div>
+                                    {% else %}
+                                        <span class="badge bg-light rounded-pill px-2.5 py-1" style="color: #8B81A8;">Pending Review</span>
+                                    {% endif %}
+                                </td>
+                                <td class="pe-4 text-end">
+                                    <a href="{% url 'admin_module:hr_report_detail' report.pk %}" class="btn btn-sm rounded-2 px-3 fw-semibold" style="background: linear-gradient(135deg, #7C3AED 0%, #9333EA 100%); border: none; color: #FFFFFF; box-shadow: 0 2px 8px rgba(124, 58, 237, 0.35);">
+                                        {% if report.status == 'REVIEWED' %}
+                                            <i class="bi bi-eye me-1"></i> View Review
+                                        {% else %}
+                                            <i class="bi bi-clipboard2-check me-1"></i> Review Report
+                                        {% endif %}
+                                    </a>
                                 </td>
                             </tr>
-                        {% endif %}
-                    </tbody>
-                </table>
-            </div>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="7" class="text-center py-5">
+                                <div class="avatar-saas rounded-circle mx-auto mb-3" style="width: 64px; height: 64px; background: rgba(139, 92, 246, 0.15); border: 1px solid rgba(192, 132, 252, 0.35); color: #C084FC; font-size: 1.8rem; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 20px rgba(139, 92, 246, 0.25);">
+                                    <i class="bi bi-file-earmark-x"></i>
+                                </div>
+                                <h5 class="fw-bold text-white mb-1">No Weekly Reports Found</h5>
+                                <p class="small mb-0" style="color: #C4B5FD;">No HR Weekly Performance Reports match your active filter criteria.</p>
+                            </td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
         </div>
     </div>
 </div>
 {% endblock %}
-

@@ -21,66 +21,66 @@
   </div>
 </div>
 
-<!-- Summary KPI Cards -->
+<!-- Summary KPI Cards (Vibrant & Colorful) -->
 <div class="row g-3 mb-4">
   <div class="col-12 col-sm-6 col-lg">
-    <div class="saas-card p-3 h-100">
+    <div class="kpi-stat-card kpi-cyan p-3 h-100">
       <div class="d-flex align-items-center justify-content-between mb-2">
-        <span class="text-secondary small text-uppercase fw-semibold" style="font-size: 0.72rem;">Departments</span>
-        <div class="avatar-saas rounded-circle" style="background: rgba(6, 182, 212, 0.12); color: #06b6d4; width: 34px; height: 34px; font-size: 1rem; display: flex; align-items: center; justify-content: center;">
+        <span class="small text-uppercase fw-bold" style="font-size: 0.72rem; color: #67E8F9; letter-spacing: 0.05em;">Departments</span>
+        <div class="avatar-saas icon-badge-cyan rounded-3" style="width: 36px; height: 36px; font-size: 1.05rem;">
           <i class="bi bi-diagram-3-fill"></i>
         </div>
       </div>
-      <div class="h3 fw-bold text-dark mb-1">{{ total_departments|default:"0" }}</div>
-      <div class="text-secondary small" style="font-size: 0.75rem;">Org units</div>
+      <div class="h3 fw-bold mb-1" style="color: #22D3EE;">{{ total_departments|default:"0" }}</div>
+      <div class="small" style="font-size: 0.75rem; color: #8B81A8;">Org units</div>
     </div>
   </div>
   <div class="col-12 col-sm-6 col-lg">
-    <div class="saas-card p-3 h-100">
+    <div class="kpi-stat-card kpi-violet p-3 h-100">
       <div class="d-flex align-items-center justify-content-between mb-2">
-        <span class="text-secondary small text-uppercase fw-semibold" style="font-size: 0.72rem;">Total Employees</span>
-        <div class="avatar-saas rounded-circle" style="background: rgba(59, 130, 246, 0.12); color: #3b82f6; width: 34px; height: 34px; font-size: 1rem; display: flex; align-items: center; justify-content: center;">
+        <span class="small text-uppercase fw-bold" style="font-size: 0.72rem; color: #C4B5FD; letter-spacing: 0.05em;">Total Employees</span>
+        <div class="avatar-saas icon-badge-violet rounded-3" style="width: 36px; height: 36px; font-size: 1.05rem;">
           <i class="bi bi-people-fill"></i>
         </div>
       </div>
-      <div class="h3 fw-bold text-dark mb-1">{{ total_employees|default:"0" }}</div>
-      <div class="text-secondary small" style="font-size: 0.75rem;">Across departments</div>
+      <div class="h3 fw-bold text-white mb-1">{{ total_employees|default:"0" }}</div>
+      <div class="small" style="font-size: 0.75rem; color: #8B81A8;">Across departments</div>
     </div>
   </div>
   <div class="col-12 col-sm-6 col-lg">
-    <div class="saas-card p-3 h-100">
+    <div class="kpi-stat-card kpi-emerald p-3 h-100">
       <div class="d-flex align-items-center justify-content-between mb-2">
-        <span class="text-secondary small text-uppercase fw-semibold" style="font-size: 0.72rem;">Active Employees</span>
-        <div class="avatar-saas rounded-circle" style="background: rgba(16, 185, 129, 0.12); color: #10b981; width: 34px; height: 34px; font-size: 1rem; display: flex; align-items: center; justify-content: center;">
+        <span class="small text-uppercase fw-bold" style="font-size: 0.72rem; color: #6EE7B7; letter-spacing: 0.05em;">Active Employees</span>
+        <div class="avatar-saas icon-badge-emerald rounded-3" style="width: 36px; height: 36px; font-size: 1.05rem;">
           <i class="bi bi-person-check-fill"></i>
         </div>
       </div>
-      <div class="h3 fw-bold text-dark mb-1">{{ active_employees|default:"0" }}</div>
-      <div class="text-success small fw-semibold" style="font-size: 0.75rem;"><i class="bi bi-person-check me-1"></i>In workforce</div>
+      <div class="h3 fw-bold mb-1" style="color: #34D399;">{{ active_employees|default:"0" }}</div>
+      <div class="small fw-semibold" style="font-size: 0.75rem; color: #34D399;"><i class="bi bi-person-check me-1"></i>In workforce</div>
     </div>
   </div>
   <div class="col-12 col-sm-6 col-lg">
-    <div class="saas-card p-3 h-100">
+    <div class="kpi-stat-card kpi-pink p-3 h-100">
       <div class="d-flex align-items-center justify-content-between mb-2">
-        <span class="text-secondary small text-uppercase fw-semibold" style="font-size: 0.72rem;">Avg Headcount</span>
-        <div class="avatar-saas rounded-circle" style="background: rgba(139, 92, 246, 0.12); color: #8b5cf6; width: 34px; height: 34px; font-size: 1rem; display: flex; align-items: center; justify-content: center;">
+        <span class="small text-uppercase fw-bold" style="font-size: 0.72rem; color: #F472B6; letter-spacing: 0.05em;">Avg Headcount</span>
+        <div class="avatar-saas icon-badge-pink rounded-3" style="width: 36px; height: 36px; font-size: 1.05rem;">
           <i class="bi bi-bar-chart-fill"></i>
         </div>
       </div>
-      <div class="h3 fw-bold text-dark mb-1">{{ avg_headcount|default:"0" }}</div>
-      <div class="text-secondary small" style="font-size: 0.75rem;">Per department</div>
+      <div class="h3 fw-bold mb-1" style="color: #EC4899;">{{ avg_headcount|default:"0" }}</div>
+      <div class="small" style="font-size: 0.75rem; color: #8B81A8;">Per department</div>
     </div>
   </div>
   <div class="col-12 col-sm-6 col-lg">
-    <div class="saas-card p-3 h-100">
+    <div class="kpi-stat-card kpi-amber p-3 h-100">
       <div class="d-flex align-items-center justify-content-between mb-2">
-        <span class="text-secondary small text-uppercase fw-semibold" style="font-size: 0.72rem;">Headcount Units</span>
-        <div class="avatar-saas rounded-circle" style="background: rgba(245, 158, 11, 0.12); color: #f59e0b; width: 34px; height: 34px; font-size: 1rem; display: flex; align-items: center; justify-content: center;">
+        <span class="small text-uppercase fw-bold" style="font-size: 0.72rem; color: #FCD34D; letter-spacing: 0.05em;">Headcount Units</span>
+        <div class="avatar-saas icon-badge-amber rounded-3" style="width: 36px; height: 36px; font-size: 1.05rem;">
           <i class="bi bi-bar-chart-line-fill"></i>
         </div>
       </div>
-      <div class="h3 fw-bold text-dark mb-1">{{ rows|length }}</div>
-      <div class="text-secondary small" style="font-size: 0.75rem;">Visible below</div>
+      <div class="h3 fw-bold mb-1" style="color: #FBBF24;">{{ rows|length }}</div>
+      <div class="small" style="font-size: 0.75rem; color: #8B81A8;">Visible below</div>
     </div>
   </div>
 </div>
@@ -88,15 +88,17 @@
 <!-- Headcount Chart -->
 <div class="saas-card p-4 mb-4">
   <div class="d-flex align-items-center justify-content-between mb-3">
-    <h2 class="h5 mb-0 fw-bold text-dark"><i class="bi bi-bar-chart-fill text-primary me-2"></i>Department Headcount Distribution</h2>
-    <span class="badge bg-light text-secondary border border-light-subtle">{{ total_employees|default:"0" }} Employees</span>
+    <h2 class="h5 mb-0 fw-bold text-white"><i class="bi bi-bar-chart-fill text-primary me-2"></i>Department Headcount Distribution</h2>
+    <span class="badge bg-light rounded-pill px-3 py-1.5" style="color: #C4B5FD;">{{ total_employees|default:"0" }} Employees</span>
   </div>
   {% if chart_labels %}
-    <div style="position: relative; height: 250px; width: 100%;"><canvas id="deptHeadcountChart"></canvas></div>
+    <div style="position: relative; height: 260px; width: 100%;"><canvas id="deptHeadcountChart"></canvas></div>
   {% else %}
     <div class="text-center py-5">
-      <i class="bi bi-bar-chart text-muted fs-3 d-block mb-2"></i>
-      <p class="text-secondary small mb-0">No department headcount data to chart.</p>
+      <div class="avatar-saas rounded-circle mx-auto mb-3" style="width: 58px; height: 58px; background: rgba(139, 92, 246, 0.15); border: 1px solid rgba(192, 132, 252, 0.35); color: #C084FC; font-size: 1.6rem; display: flex; align-items: center; justify-content: center;">
+        <i class="bi bi-bar-chart"></i>
+      </div>
+      <p class="small mb-0" style="color: #C4B5FD;">No department headcount data to chart.</p>
     </div>
   {% endif %}
 </div>
@@ -105,23 +107,23 @@
 <div class="d-flex flex-column gap-4">
   {% for row in rows %}
     <div class="saas-card overflow-hidden">
-      <div class="p-3 border-bottom border-light-subtle d-flex align-items-center justify-content-between flex-wrap gap-3">
-        <div class="d-flex align-items-center gap-2">
-          <div class="avatar-saas rounded-3" style="background: rgba(6, 182, 212, 0.12); color: #0891b2; width: 36px; height: 36px; font-size: 1rem; display: flex; align-items: center; justify-content: center;">
+      <div class="p-3 border-bottom d-flex align-items-center justify-content-between flex-wrap gap-3" style="background-color: var(--bg-card-header); border-color: rgba(167, 139, 250, 0.18) !important;">
+        <div class="d-flex align-items-center gap-2.5">
+          <div class="avatar-saas icon-badge-cyan rounded-3" style="width: 38px; height: 38px; font-size: 1.05rem;">
             <i class="bi bi-diagram-3"></i>
           </div>
           <div>
-            <h2 class="h6 mb-0 fw-bold text-dark">{{ row.department.name }}</h2>
-            <span class="text-secondary small" style="font-size: 0.75rem;">{{ row.employee_count }} employee{{ row.employee_count|pluralize }}</span>
+            <h2 class="h6 mb-0 fw-bold text-white">{{ row.department.name }}</h2>
+            <span class="small" style="font-size: 0.75rem; color: #C4B5FD;">{{ row.employee_count }} employee{{ row.employee_count|pluralize }}</span>
           </div>
         </div>
         <div class="d-flex align-items-center gap-2">
           {% if row.department.status == "Active" %}
-            <span class="badge-status-saas badge-success-saas">{{ row.department.status }}</span>
+            <span class="badge bg-success-subtle rounded-pill px-2.5 py-1">{{ row.department.status }}</span>
           {% else %}
-            <span class="badge-status-saas badge-neutral-saas">{{ row.department.status }}</span>
+            <span class="badge bg-secondary-subtle rounded-pill px-2.5 py-1">{{ row.department.status }}</span>
           {% endif %}
-          <a href="{% url 'admin_module:department_detail' row.department.pk %}" class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1">
+          <a href="{% url 'admin_module:department_detail' row.department.pk %}" class="btn btn-sm d-inline-flex align-items-center gap-1" style="background: #1A1236; border: 1px solid rgba(167, 139, 250, 0.25); color: #C4B5FD;">
             <i class="bi bi-box-arrow-up-right"></i> Open
           </a>
         </div>
@@ -129,7 +131,7 @@
 
       {% if row.employees %}
         <div class="table-responsive">
-          <table class="table-saas mb-0">
+          <table class="table mb-0">
             <caption class="visually-hidden">Employees in {{ row.department.name }}</caption>
             <thead>
               <tr>
@@ -144,30 +146,30 @@
               {% for employee in row.employees %}
                 <tr>
                   <td>
-                    <div class="d-flex align-items-center gap-2">
-                      <div class="avatar-saas rounded-circle" style="background: rgba(59, 130, 246, 0.12); color: #2563eb; font-weight: 700; width: 34px; height: 34px; display: flex; align-items: center; justify-content: center; font-size: 0.85rem;">
+                    <div class="d-flex align-items-center gap-2.5">
+                      <div class="avatar-saas icon-badge-violet rounded-circle" style="width: 36px; height: 36px; font-weight: 700; font-size: 0.85rem;">
                         {{ employee.user.name|default:employee.user.email|slice:":1"|upper }}
                       </div>
                       <div>
-                        <div class="fw-semibold text-dark">{{ employee.user.name|default:employee.user.email }}</div>
-                        <div class="text-secondary small" style="font-size: 0.75rem;">{{ employee.user.email }}</div>
+                        <div class="fw-semibold text-white">{{ employee.user.name|default:employee.user.email }}</div>
+                        <div class="small" style="font-size: 0.75rem; color: #8B81A8;">{{ employee.user.email }}</div>
                       </div>
                     </div>
                   </td>
-                  <td><span class="text-dark fw-medium">{{ employee.designation|default:"—" }}</span></td>
-                  <td><span class="text-secondary small">{{ employee.joining_date|date:"M d, Y"|default:"—" }}</span></td>
+                  <td><span class="text-white fw-medium">{{ employee.designation|default:"—" }}</span></td>
+                  <td><span class="small" style="color: #C4B5FD;">{{ employee.joining_date|date:"M d, Y"|default:"—" }}</span></td>
                   <td>
                     {% if employee.employment_status == "Active" %}
-                      <span class="badge-status-saas badge-success-saas"><i class="bi bi-check-circle me-1"></i>Active</span>
+                      <span class="badge bg-success-subtle rounded-pill px-2.5 py-1"><i class="bi bi-check-circle me-1"></i>Active</span>
                     {% elif employee.employment_status == "Pending Approval" %}
-                      <span class="badge-status-saas badge-warning-saas"><i class="bi bi-hourglass-split me-1"></i>Pending</span>
+                      <span class="badge bg-warning-subtle rounded-pill px-2.5 py-1"><i class="bi bi-hourglass-split me-1"></i>Pending</span>
                     {% else %}
-                      <span class="badge-status-saas badge-neutral-saas"><i class="bi bi-pause-circle me-1"></i>{{ employee.employment_status }}</span>
+                      <span class="badge bg-secondary-subtle rounded-pill px-2.5 py-1"><i class="bi bi-pause-circle me-1"></i>{{ employee.employment_status }}</span>
                     {% endif %}
                   </td>
                   <td style="text-align: right;">
-                    <a href="{% url 'admin_module:employee_detail' employee.pk %}" class="btn btn-sm btn-light border p-1 px-2" title="View Employee">
-                      <i class="bi bi-eye text-primary"></i>
+                    <a href="{% url 'admin_module:employee_detail' employee.pk %}" class="btn btn-sm p-1 px-2.5 rounded-2" style="background: #1A1236; border: 1px solid rgba(167, 139, 250, 0.25); color: #C084FC;" title="View Employee">
+                      <i class="bi bi-eye"></i>
                     </a>
                   </td>
                 </tr>
@@ -177,18 +179,18 @@
         </div>
       {% else %}
         <div class="text-center py-4">
-          <i class="bi bi-people text-muted fs-3 d-block mb-2"></i>
-          <p class="text-secondary small mb-0">No employees assigned to this department{% if emp_status %} with the selected status{% endif %}.</p>
+          <i class="bi bi-people fs-3 d-block mb-2" style="color: #A78BFA;"></i>
+          <p class="small mb-0" style="color: #C4B5FD;">No employees assigned to this department{% if emp_status %} with the selected status{% endif %}.</p>
         </div>
       {% endif %}
     </div>
   {% empty %}
     <div class="saas-card text-center py-5">
-      <div class="avatar-saas-lg rounded-circle mx-auto mb-3" style="background: #f1f5f9; color: #94a3b8; width: 64px; height: 64px; display: flex; align-items: center; justify-content: center; font-size: 1.8rem;">
+      <div class="avatar-saas rounded-circle mx-auto mb-3" style="width: 64px; height: 64px; background: rgba(139, 92, 246, 0.15); border: 1px solid rgba(192, 132, 252, 0.35); color: #C084FC; font-size: 1.8rem; display: flex; align-items: center; justify-content: center;">
         <i class="bi bi-diagram-3"></i>
       </div>
-      <h5 class="text-dark fw-bold mb-1">No Departments Found</h5>
-      <p class="text-secondary small mb-0">Departments created in department management will appear here.</p>
+      <h5 class="text-white fw-bold mb-1">No Departments Found</h5>
+      <p class="small mb-0" style="color: #C4B5FD;">Departments created in department management will appear here.</p>
     </div>
   {% endfor %}
 </div>
@@ -207,7 +209,7 @@
           datasets: [{
             label: 'Headcount',
             data: {{ chart_values|safe }},
-            backgroundColor: ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#06b6d4', '#ef4444', '#6366f1', '#14b8a6', '#84cc16', '#eab308'],
+            backgroundColor: ['#8B5CF6', '#EC4899', '#06B6D4', '#10B981', '#F59E0B', '#6366F1', '#14B8A6', '#A855F7', '#3B82F6', '#F43F5E'],
             borderRadius: 6,
             borderSkipped: false,
             barPercentage: 0.6,
@@ -220,25 +222,25 @@
           plugins: {
             legend: { display: false },
             tooltip: {
-              backgroundColor: '#1e293b',
-              titleColor: '#ffffff',
-              bodyColor: '#cbd5e1',
-              borderColor: '#334155',
+              backgroundColor: '#0C0818',
+              titleColor: '#FFFFFF',
+              bodyColor: '#C4B5FD',
+              borderColor: 'rgba(167, 139, 250, 0.35)',
               borderWidth: 1,
               padding: 10,
-              displayColors: false,
-              callbacks: { label: ctx => ctx.parsed.y + ' employees' }
+              displayColors: true,
+              callbacks: { label: ctx => ' ' + ctx.parsed.y + ' employees' }
             }
           },
           scales: {
             x: {
               grid: { display: false },
-              ticks: { color: '#1e293b', font: { family: 'Inter', size: 11, weight: '500' } }
+              ticks: { color: '#C4B5FD', font: { family: 'Inter', size: 11, weight: '600' } }
             },
             y: {
               beginAtZero: true,
-              ticks: { stepSize: 1, color: '#64748b', font: { family: 'Inter', size: 10 }, precision: 0 },
-              grid: { color: '#e2e8f0' }
+              ticks: { stepSize: 1, color: '#8B81A8', font: { family: 'Inter', size: 11 }, precision: 0 },
+              grid: { color: 'rgba(167, 139, 250, 0.12)' }
             }
           }
         }

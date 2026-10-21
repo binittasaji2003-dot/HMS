@@ -3,6 +3,10 @@
 
 {% block title %}Smart HRMS - Admin Dashboard{% endblock title %}
 
+{% block extra_css %}
+<link href="{% static 'css/hrms_calendar.css' %}" rel="stylesheet" />
+{% endblock extra_css %}
+
 {% block content %}
 <!-- ========================================================================= -->
 <!-- 1. Dashboard Welcome Banner -->
@@ -97,7 +101,7 @@
 <div class="sec-stat-grid">
   <a href="{% url 'admin_module:job_vacancies_list' %}" class="sec-stat-card text-decoration-none">
     <div class="sec-stat-left">
-      <div class="sec-stat-icon" style="background: #eff6ff; color: #2563eb;">
+      <div class="sec-stat-icon" style="background: rgba(139, 92, 246, 0.18); color: #c084fc; border: 1px solid rgba(192, 132, 252, 0.35);">
         <i class="bi bi-briefcase-fill"></i>
       </div>
       <span class="sec-stat-title">Open Vacancies</span>
@@ -107,7 +111,7 @@
 
   <a href="{% url 'admin_module:candidates_list' %}" class="sec-stat-card text-decoration-none">
     <div class="sec-stat-left">
-      <div class="sec-stat-icon" style="background: #f0fdfa; color: #0d9488;">
+      <div class="sec-stat-icon" style="background: rgba(45, 212, 191, 0.15); color: #2dd4bf; border: 1px solid rgba(45, 212, 191, 0.35);">
         <i class="bi bi-person-lines-fill"></i>
       </div>
       <span class="sec-stat-title">Candidates</span>
@@ -117,7 +121,7 @@
 
   <a href="{% url 'admin_module:recruitment_approvals' %}" class="sec-stat-card text-decoration-none">
     <div class="sec-stat-left">
-      <div class="sec-stat-icon" style="background: #fffbeb; color: #d97706;">
+      <div class="sec-stat-icon" style="background: rgba(251, 191, 36, 0.15); color: #fbbf24; border: 1px solid rgba(251, 191, 36, 0.35);">
         <i class="bi bi-hourglass-split"></i>
       </div>
       <span class="sec-stat-title">Approvals</span>
@@ -127,7 +131,7 @@
 
   <a href="{% url 'admin_module:admin_responsibilities_warnings' %}" class="sec-stat-card text-decoration-none">
     <div class="sec-stat-left">
-      <div class="sec-stat-icon" style="background: #fef2f2; color: #dc2626;">
+      <div class="sec-stat-icon" style="background: rgba(248, 113, 113, 0.15); color: #f87171; border: 1px solid rgba(248, 113, 113, 0.35);">
         <i class="bi bi-exclamation-triangle-fill"></i>
       </div>
       <span class="sec-stat-title">Warnings</span>
@@ -326,6 +330,86 @@
 <!-- ========================================================================= -->
 <!-- 6. Footer -->
 <!-- ========================================================================= -->
+<!-- ========================================================================= -->
+<!-- 6. Company Calendar & Public Holidays -->
+<!-- ========================================================================= -->
+<div class="ref-white-card mb-4" id="adminDashboardCalendar">
+  <div class="ref-card-header d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <div class="d-flex align-items-center gap-2">
+      <div class="sec-stat-icon" style="background: rgba(139, 92, 246, 0.18); color: #c084fc; border: 1px solid rgba(192, 132, 252, 0.35);">
+        <i class="bi bi-calendar3"></i>
+      </div>
+      <div>
+        <h2 class="ref-card-title mb-0">Company Calendar & Public Holidays</h2>
+        <span class="text-muted small">Interactive monthly schedule marking all official public holidays</span>
+      </div>
+    </div>
+    <div class="d-flex align-items-center gap-2">
+      <button type="button" class="btn btn-sm btn-outline-secondary hrms-cal-today-btn px-2.5 py-1">
+        Today
+      </button>
+      <div class="btn-group">
+        <button type="button" class="btn btn-sm btn-outline-secondary hrms-cal-prev-btn" title="Previous Month">
+          <i class="bi bi-chevron-left"></i>
+        </button>
+        <button type="button" class="btn btn-sm btn-outline-secondary hrms-cal-next-btn" title="Next Month">
+          <i class="bi bi-chevron-right"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="p-3">
+    <div class="row g-4 align-items-start">
+      <!-- Left side: Normal sized monthly calendar -->
+      <div class="col-12 col-lg-6 col-xl-5">
+        <div class="border rounded-3 p-3 admin-subcard shadow-sm">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="hrms-cal-month-label fw-bold text-dark mb-0 fs-6">Loading...</h5>
+            <div class="d-flex align-items-center gap-2 small text-muted">
+              <span class="d-inline-flex align-items-center gap-1">
+                <span class="hrms-cal-legend-dot bg-danger"></span> Public Holiday
+              </span>
+              <span class="d-inline-flex align-items-center gap-1">
+                <span class="hrms-cal-legend-dot bg-primary"></span> Today
+              </span>
+            </div>
+          </div>
+
+          <div class="hrms-cal-weekdays">
+            <span>Su</span>
+            <span>Mo</span>
+            <span>Tu</span>
+            <span>We</span>
+            <span>Th</span>
+            <span>Fr</span>
+            <span>Sa</span>
+          </div>
+
+          <div class="hrms-cal-grid">
+            <!-- Dynamically populated by hrms_calendar.js -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Right side: Monthly Public Holidays list -->
+      <div class="col-12 col-lg-6 col-xl-7">
+        <div class="border rounded-3 p-3 admin-subcard shadow-sm h-100">
+          <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+            <h6 class="fw-bold text-dark mb-0">
+              <i class="bi bi-flag-fill text-danger me-1"></i> Public Holidays This Month
+            </h6>
+            <span class="badge bg-danger-subtle text-danger rounded-pill hrms-cal-holiday-count">0 Holidays</span>
+          </div>
+          <div class="hrms-cal-holidays-list pe-1">
+            <!-- Dynamically populated by hrms_calendar.js -->
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <footer class="ref-dashboard-footer">
   <div>© {% now "Y" %} Smart HR Management System. All rights reserved.</div>
   <div>People • Process • Progress</div>
@@ -333,8 +417,22 @@
 {% endblock content %}
 
 {% block extra_js %}
+<script src="{% static 'js/hrms_calendar.js' %}"></script>
 <script>
   document.addEventListener('DOMContentLoaded', function () {
+    // 1. Initialize Dashboard Calendar
+    try {
+      const holidaysData = {{ holidays_json|safe|default:"[]" }};
+      initHRMSDashboardCalendar({
+        containerId: 'adminDashboardCalendar',
+        theme: 'bootstrap',
+        initialHolidays: holidaysData
+      });
+    } catch (e) {
+      console.error("HRMS Calendar init error:", e);
+    }
+
+    // 2. Initialize Charts
     const deptLabels = {{ dept_labels|safe|default:"[]" }};
     const deptValues = {{ dept_values|safe|default:"[]" }};
     const totalEmps = {{ total_chart_emps|default:0 }};
@@ -344,7 +442,7 @@
       return;
     }
 
-    const chartColors = ['#3b82f6', '#8b5cf6', '#10b981', '#f59e0b', '#ef4444', '#94a3b8'];
+    const chartColors = ['#8b5cf6', '#a855f7', '#c084fc', '#38bdf8', '#10b981', '#f59e0b'];
 
     // =========================================================================
     // Bar Chart: Employees by Department
@@ -370,7 +468,11 @@
           plugins: {
             legend: { display: false },
             tooltip: {
-              backgroundColor: '#0f172a',
+              backgroundColor: '#0c0818',
+              borderColor: 'rgba(167, 139, 250, 0.35)',
+              borderWidth: 1,
+              titleColor: '#f5f3ff',
+              bodyColor: '#c4b5fd',
               padding: 10,
               titleFont: { size: 13, weight: 'bold' },
               bodyFont: { size: 12 },
@@ -386,19 +488,19 @@
             x: {
               grid: { display: false },
               ticks: {
-                color: '#64748b',
+                color: '#c4b5fd',
                 font: { size: 12, weight: '500' }
               }
             },
             y: {
               beginAtZero: true,
               grid: {
-                color: '#f1f5f9',
+                color: 'rgba(167, 139, 250, 0.12)',
                 drawBorder: false
               },
               ticks: {
                 stepSize: 1,
-                color: '#94a3b8',
+                color: '#8b81a8',
                 font: { size: 11 },
                 precision: 0
               }
@@ -421,7 +523,7 @@
             data: deptValues,
             backgroundColor: chartColors.slice(0, deptLabels.length),
             borderWidth: 3,
-            borderColor: '#ffffff',
+            borderColor: '#170f30',
             hoverOffset: 4
           }]
         },
@@ -432,7 +534,11 @@
           plugins: {
             legend: { display: false },
             tooltip: {
-              backgroundColor: '#0f172a',
+              backgroundColor: '#0c0818',
+              borderColor: 'rgba(167, 139, 250, 0.35)',
+              borderWidth: 1,
+              titleColor: '#f5f3ff',
+              bodyColor: '#c4b5fd',
               padding: 10,
               titleFont: { size: 13, weight: 'bold' },
               bodyFont: { size: 12 },

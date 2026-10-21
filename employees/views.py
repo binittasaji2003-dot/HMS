@@ -1,3 +1,4 @@
+import json
 import datetime
 from django.contrib import messages
 from django.contrib.auth import authenticate, get_user_model, login, logout, update_session_auth_hash
@@ -7,9 +8,10 @@ from django.db import transaction
 from django.db.models import Q, Sum
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils import timezone
 
-from admin_module.models import Announcement, Department
+from admin_module.models import Announcement, Department, Holiday
 
 from .forms import (
     EmployeeDocumentForm,
@@ -42,6 +44,16 @@ def homepage(request):
 
 
 def employee_login(request):
+    """Unified login: redirect to single system login page."""
+    if request.user.is_authenticated:
+        return redirect("users:redirect")
+    next_url = request.GET.get("next")
+    if next_url:
+        return redirect(f"{reverse('account_login')}?next={next_url}")
+    return redirect("account_login")
+
+
+def _legacy_employee_login(request):
     if request.user.is_authenticated:
         if request.user.is_superuser or request.user.is_staff:
             return redirect("admin:index")
@@ -154,12 +166,13 @@ def employee_dashboard(request):
     # Performance score
     perf_reviews = employee.performance_reviews.all().order_by("-review_date")
     latest_perf = perf_reviews.first()
-    perf_score = float(latest_perf.score) if latest_perf else 4.3
-    perf_rating = latest_perf.get_rating_display() if latest_perf else "Good Performer"
+    has_perf_review = bool(latest_perf)
+    perf_score = float(latest_perf.score) if latest_perf else None
+    perf_rating = latest_perf.get_rating_display() if latest_perf else "Pending Evaluation"
     perf_comments = (
         latest_perf.comments
         if latest_perf
-        else "You are doing a great job. Keep up the good work!"
+        else "No performance evaluations recorded yet. Evaluations will appear here after HR reviews your weekly work submissions."
     )
 
     # Unread Notifications & Announcements
@@ -215,6 +228,20 @@ def employee_dashboard(request):
         if not request.session.get(session_key):
             show_report_popup = True
 
+    holidays = Holiday.objects.filter(is_active=True).order_by("date")
+    holidays_data = [
+        {
+            "id": f"holiday-{h.holiday_id}",
+            "title": h.name,
+            "date": h.date.strftime("%Y-%m-%d"),
+            "category": h.holiday_type,
+            "description": h.description or "Public Holiday",
+            "is_public": (h.holiday_type == "PUBLIC"),
+        }
+        for h in holidays
+    ]
+    holidays_json = json.dumps(holidays_data)
+
     # Leave Balance & Team Lead Metrics
     current_year = timezone.now().year
     leave_balance = employee.get_or_create_leave_balance(current_year)
@@ -248,6 +275,7 @@ def employee_dashboard(request):
         "latest_reviewed_report": latest_reviewed_report,
         "show_report_popup": show_report_popup,
         "monthly_report_status": monthly_report_status,
+        "has_perf_review": has_perf_review,
         "perf_score": perf_score,
         "perf_rating": perf_rating,
         "perf_comments": perf_comments,
@@ -260,6 +288,7 @@ def employee_dashboard(request):
         "team_pending_leave_count": team_pending_leave_count,
         "team_approved_this_month": team_approved_this_month,
         "team_rejected_this_month": team_rejected_this_month,
+        "holidays_json": holidays_json,
         "recent_team_leave_requests": recent_team_leave_requests,
     }
 
@@ -667,24 +696,25 @@ def performance_view(request):
     total_reviewed = len(reviewed_reports)
 
     if total_reviewed > 0:
-        avg_score = sum(float(r.performance_review.average_score) for r in reviewed_reports) / total_reviewed
-        avg_percentage = sum(float(r.performance_review.performance_percentage) for r in reviewed_reports) / total_reviewed
+        avg_score = round(sum(float(r.performance_review.average_score) for r in reviewed_reports) / total_reviewed, 2)
+        avg_percentage = round(sum(float(r.performance_review.performance_percentage) for r in reviewed_reports) / total_reviewed, 1)
+        if avg_score >= 4.5:
+            performance_badge = "Excellent"
+            badge_color = "success"
+        elif avg_score >= 3.5:
+            performance_badge = "Good Performer"
+            badge_color = "primary"
+        elif avg_score >= 2.5:
+            performance_badge = "Average"
+            badge_color = "warning"
+        else:
+            performance_badge = "Needs Improvement"
+            badge_color = "danger"
     else:
-        avg_score = 4.2
-        avg_percentage = 84.0
-
-    if avg_score >= 4.5:
-        performance_badge = "Excellent"
-        badge_color = "success"
-    elif avg_score >= 3.5:
-        performance_badge = "Good Performer"
-        badge_color = "primary"
-    elif avg_score >= 2.5:
-        performance_badge = "Average"
-        badge_color = "warning"
-    else:
-        performance_badge = "Needs Improvement"
-        badge_color = "danger"
+        avg_score = None
+        avg_percentage = None
+        performance_badge = "Pending Evaluation"
+        badge_color = "secondary"
 
     legacy_reviews = employee.performance_reviews.all().order_by("-review_date")
     warnings = employee.performance_warnings.all().order_by("-warning_date")
@@ -695,8 +725,8 @@ def performance_view(request):
         "reviewed_reports": reviewed_reports,
         "total_submitted": total_submitted,
         "total_reviewed": total_reviewed,
-        "avg_score": round(avg_score, 2),
-        "avg_percentage": round(avg_percentage, 1),
+        "avg_score": round(avg_score, 2) if avg_score is not None else None,
+        "avg_percentage": round(avg_percentage, 1) if avg_percentage is not None else None,
         "performance_badge": performance_badge,
         "badge_color": badge_color,
         "legacy_reviews": legacy_reviews,

@@ -238,6 +238,28 @@ class Employee(models.Model):
                 self.save()
 
     @property
+    def completion_percentage(self):
+        score = 0
+        total_parts = 5
+        if (self.first_name or self.full_name) and self.phone and self.date_of_birth:
+            score += 1
+        if self.address or self.city:
+            score += 1
+        if self.educations.exists():
+            score += 1
+        if self.experiences.exists():
+            score += 1
+        else:
+            score += 1
+        if self.documents.exists():
+            score += 1
+        return int((score / total_parts) * 100)
+
+    @property
+    def profile_completed(self):
+        return self.completion_percentage >= 80
+
+    @property
     def is_department_head(self):
         """Check if this employee is the head of their department."""
         if not self.user or not self.department:

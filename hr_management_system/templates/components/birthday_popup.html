@@ -1,27 +1,28 @@
 <!-- Birthday Celebration Modal Component -->
-{% if request.user.is_authenticated and not request.session.birthday_greeted %}
-<div class="modal fade" id="birthdayCelebrationModal" tabindex="-1" aria-labelledby="bdayModalLabel" aria-hidden="true" data-bs-backdrop="static">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content rounded-4 border-0 shadow-lg text-center overflow-hidden position-relative">
-      <!-- Top festive banner -->
-      <div class="py-4 px-4 bg-gradient text-white position-relative" style="background: linear-gradient(135deg, #0b4f9a 0%, #2563eb 50%, #38bdf8 100%);">
-        <div style="font-size: 3.5rem; animation: bounce 1.5s infinite;">🎂</div>
-        <h3 class="fw-bold mt-2 mb-1" id="bdayModalLabel">Happy Birthday!</h3>
-        <p class="text-white-50 small mb-0">Warmest wishes on your special day</p>
+{% if show_birthday_popup or request.user.is_birthday_today and not request.session.birthday_dismissed_date %}
+<div id="birthdayCelebrationModal" class="hrms-bday-backdrop" role="dialog" aria-modal="true" aria-labelledby="bdayModalLabel" style="display: none;">
+  <div class="hrms-bday-dialog">
+    <div class="hrms-bday-card">
+      <!-- Festive celebration banner -->
+      <div class="hrms-bday-banner">
+        <div class="hrms-bday-cake">🎂</div>
+        <h3 class="hrms-bday-title" id="bdayModalLabel">Happy Birthday!</h3>
+        <p class="hrms-bday-subtitle">Warmest wishes on your special day</p>
       </div>
 
-      <div class="modal-body p-4 bg-white">
-        <h5 class="fw-bold text-dark mb-2">
-          Wishing you a wonderful year ahead, 
-          <span class="text-primary">{{ request.user.name|default:request.user.email }}</span>! 🎉
-        </h5>
-        <p class="text-muted small mb-4">
+      <!-- Festive card body -->
+      <div class="hrms-bday-body">
+        <h4 class="hrms-bday-greeting">
+          Wishing you a wonderful year ahead,
+          <span class="hrms-bday-name">{{ birthday_user_name|default:request.user.name|default:request.user.email }}</span>! 🎉
+        </h4>
+        <p class="hrms-bday-desc">
           On behalf of the entire Smart HRMS team, we celebrate your presence, dedication, and contributions. May this upcoming year bring you continued success, good health, and abundant joy!
         </p>
 
-        <div class="d-flex justify-content-center gap-2">
-          <button type="button" class="btn btn-primary px-4 py-2 rounded-pill fw-semibold shadow-sm" id="dismissBdayBtn" data-bs-dismiss="modal">
-            <i class="bi bi-heart-fill text-danger me-1"></i> Thank You!
+        <div class="hrms-bday-action">
+          <button type="button" class="hrms-bday-btn" id="dismissBdayBtn">
+            <span>❤️ Thank You!</span>
           </button>
         </div>
       </div>
@@ -30,32 +31,150 @@
 </div>
 
 <style>
-  @keyframes bounce {
+  .hrms-bday-backdrop {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(15, 23, 42, 0.75);
+    backdrop-filter: blur(5px);
+    -webkit-backdrop-filter: blur(5px);
+    z-index: 99999;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1rem;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+  }
+  .hrms-bday-backdrop.is-visible {
+    opacity: 1;
+  }
+  .hrms-bday-dialog {
+    max-width: 480px;
+    width: 100%;
+    transform: scale(0.92);
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  .hrms-bday-backdrop.is-visible .hrms-bday-dialog {
+    transform: scale(1);
+  }
+  .hrms-bday-card {
+    background: #ffffff;
+    border-radius: 24px;
+    overflow: hidden;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    text-align: center;
+  }
+  .hrms-bday-banner {
+    background: linear-gradient(135deg, #1e40af 0%, #2563eb 50%, #38bdf8 100%);
+    color: #ffffff;
+    padding: 2rem 1.5rem 1.5rem;
+    position: relative;
+  }
+  .hrms-bday-cake {
+    font-size: 3.5rem;
+    line-height: 1;
+    margin-bottom: 0.5rem;
+    display: inline-block;
+    animation: bdayBounce 1.5s infinite;
+  }
+  .hrms-bday-title {
+    font-size: 1.5rem;
+    font-weight: 800;
+    margin: 0 0 0.25rem 0;
+    color: #ffffff;
+    letter-spacing: -0.3px;
+  }
+  .hrms-bday-subtitle {
+    font-size: 0.85rem;
+    color: rgba(255, 255, 255, 0.85);
+    margin: 0;
+  }
+  .hrms-bday-body {
+    padding: 1.75rem 1.5rem 1.5rem;
+    background: #ffffff;
+  }
+  .hrms-bday-greeting {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 0.75rem 0;
+    line-height: 1.35;
+  }
+  .hrms-bday-name {
+    color: #2563eb;
+  }
+  .hrms-bday-desc {
+    font-size: 0.825rem;
+    color: #64748b;
+    line-height: 1.55;
+    margin: 0 0 1.5rem 0;
+  }
+  .hrms-bday-btn {
+    background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 0.875rem;
+    padding: 0.65rem 1.75rem;
+    border-radius: 9999px;
+    border: none;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    transition: all 0.2s ease;
+  }
+  .hrms-bday-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(37, 99, 235, 0.45);
+  }
+  @keyframes bdayBounce {
     0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
-    40% { transform: translateY(-15px); }
-    60% { transform: translateY(-7px); }
+    40% { transform: translateY(-12px); }
+    60% { transform: translateY(-6px); }
   }
 </style>
 
 <script>
-document.addEventListener("DOMContentLoaded", function() {
-  // Check if today matches user's birthday or trigger once per session
-  if (!sessionStorage.getItem("bday_greeted_session")) {
-    const bdayModalEl = document.getElementById("birthdayCelebrationModal");
-    if (bdayModalEl && typeof bootstrap !== "undefined") {
-      const bdayModal = new bootstrap.Modal(bdayModalEl);
-      // Small delay for smooth entry
-      setTimeout(() => {
-        bdayModal.show();
-      }, 800);
+  document.addEventListener("DOMContentLoaded", function () {
+    const modalEl = document.getElementById("birthdayCelebrationModal");
+    if (!modalEl) return;
 
-      document.getElementById("dismissBdayBtn")?.addEventListener("click", function() {
-        sessionStorage.setItem("bday_greeted_session", "true");
-        fetch("{% url 'dismiss_birthday_popup' %}", { method: "POST", headers: { "X-CSRFToken": "{{ csrf_token }}" } });
-      });
+    const todayStr = new Date().toISOString().slice(0, 10);
+    if (sessionStorage.getItem("hrms_bday_dismissed_" + todayStr)) {
+      return;
     }
-  }
-});
+
+    modalEl.style.display = "flex";
+    setTimeout(() => {
+      modalEl.classList.add("is-visible");
+    }, 400);
+
+    function closeModal() {
+      modalEl.classList.remove("is-visible");
+      setTimeout(() => {
+        modalEl.style.display = "none";
+      }, 300);
+      sessionStorage.setItem("hrms_bday_dismissed_" + todayStr, "true");
+      fetch("{% url 'dismiss_birthday_popup' %}", {
+        method: "POST",
+        headers: {
+          "X-CSRFToken": "{{ csrf_token }}",
+          "Content-Type": "application/json"
+        }
+      }).catch(err => console.log("Birthday dismissal recorded"));
+    }
+
+    document.getElementById("dismissBdayBtn")?.addEventListener("click", closeModal);
+    modalEl.addEventListener("click", function (e) {
+      if (e.target === modalEl) closeModal();
+    });
+  });
 </script>
 {% endif %}
-
