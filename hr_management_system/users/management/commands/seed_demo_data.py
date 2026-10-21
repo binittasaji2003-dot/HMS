@@ -66,7 +66,6 @@ class Command(BaseCommand):
         # Helper: Create or update test users (Employees & Candidates ONLY)
         # -------------------------------------------------------------------------
         def create_or_update_user(email, password, name, role, is_active=True, is_staff=False, is_superuser=False):
-        def create_or_update_test_user(email, password, name, role, is_active=True):
             user = User.objects.filter(email__iexact=email).first()
             if not user:
                 user = User(

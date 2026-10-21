@@ -1,5 +1,9 @@
+import os
 from .base import *  # noqa: F403
-from .base import env, INSTALLED_APPS
+from .base import env, INSTALLED_APPS, BASE_DIR
+
+# Read .env file automatically
+env.read_env(str(BASE_DIR / ".env"))
 
 DEBUG = env.bool("DJANGO_DEBUG", default=False)
 SECRET_KEY = env("DJANGO_SECRET_KEY", default="django-insecure-aws-hrms-deployment-secret-key-2026-binit")
@@ -13,6 +17,12 @@ CSRF_TRUSTED_ORIGINS = env.list(
         "http://127.0.0.1",
     ],
 )
+
+# Database
+if os.getenv("DATABASE_URL", default=None):
+    DATABASES = {"default": env.db("DATABASE_URL")}
+elif env.str("DATABASE_URL", default=None):
+    DATABASES = {"default": env.db("DATABASE_URL")}
 
 CACHES = {
     "default": {
