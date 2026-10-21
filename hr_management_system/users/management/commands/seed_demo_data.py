@@ -127,13 +127,17 @@ class Command(BaseCommand):
 
         # -------------------------------------------------------------------------
         # 2. ADMIN USER
-        # 2. RESOLVE EXISTING ADMIN USER (DO NOT CREATE NEW ADMIN CREDENTIALS)
+        # -------------------------------------------------------------------------
+        # 2. ADMIN USER
         # -------------------------------------------------------------------------
         self.stdout.write(self.style.HTTP_INFO("\n2. Checking Admin User..."))
-        admin_user = User.objects.filter(role=User.RoleChoices.ADMIN).first() or User.objects.filter(is_superuser=True).first()
+        admin_user = (
+            User.objects.filter(role=User.RoleChoices.ADMIN).first()
+            or User.objects.filter(is_superuser=True).first()
+        )
         if not admin_user:
             admin_user = create_or_update_user(
-                email="admin@smarthrms.com",
+                email="binittasaji2003@gmail.com",
                 password="admin@1234",
                 name="System Administrator",
                 role=User.RoleChoices.ADMIN,
@@ -141,13 +145,7 @@ class Command(BaseCommand):
                 is_staff=True,
                 is_superuser=True,
             )
-        self.stdout.write(self.style.HTTP_INFO("\n2. Referencing Existing Admin User..."))
-        admin_user = (
-            User.objects.filter(role=User.RoleChoices.ADMIN).first()
-            or User.objects.filter(is_superuser=True).first()
-        )
-        if admin_user:
-            self.stdout.write(f"  [*] Using Existing Admin: {admin_user.name or admin_user.email} <{admin_user.email}>")
+            self.stdout.write(f"  [+] Admin User: {admin_user.name} <{admin_user.email}> (Password: admin@1234)")
         else:
             admin_user.set_password("admin@1234")
             admin_user.is_staff = True
@@ -156,13 +154,15 @@ class Command(BaseCommand):
             admin_user.status = User.StatusChoices.ACTIVE
             admin_user.save()
             if EmailAddress:
-                EmailAddress.objects.get_or_create(
+                ea, _ = EmailAddress.objects.get_or_create(
                     user=admin_user,
                     email=admin_user.email,
                     defaults={"primary": True, "verified": True},
                 )
+                ea.verified = True
+                ea.primary = True
+                ea.save()
             self.stdout.write(f"  [*] Admin User: {admin_user.name} <{admin_user.email}> (Password: admin@1234)")
-            self.stdout.write(self.style.WARNING("  [!] No existing Admin found."))
 
         # -------------------------------------------------------------------------
         # 3. HR MANAGERS
@@ -206,8 +206,6 @@ class Command(BaseCommand):
                 hr_manager.save()
             hr_objs.append(hr_manager)
             stats["hr_managers"] += 1
-        primary_hr = existing_hr_managers[0] if existing_hr_managers else None
-        secondary_hr = existing_hr_managers[1] if len(existing_hr_managers) > 1 else primary_hr
 
             # Ensure linked Employee profile exists for HR managers
             Employee.objects.get_or_create(
@@ -222,8 +220,9 @@ class Command(BaseCommand):
                 },
             )
             self.stdout.write(f"  [+] HR Manager: {name} ({code}) <{email}>")
-        for hr in existing_hr_managers:
-            self.stdout.write(f"  [*] Using Existing HR Manager: {hr.user.name or hr.user.email} ({hr.employee_code}) <{hr.user.email}>")
+
+        primary_hr = hr_objs[0] if hr_objs else None
+        secondary_hr = hr_objs[1] if len(hr_objs) > 1 else primary_hr
 
         # -------------------------------------------------------------------------
         # 4. EMPLOYEES (Covering ACTIVE, ON_LEAVE, INACTIVE, TERMINATED)
@@ -305,7 +304,6 @@ class Command(BaseCommand):
         emp_objs = {}
         for e in employee_seed_list:
             u = create_or_update_user(
-            u = create_or_update_test_user(
                 email=e["email"],
                 password=e["password"],
                 name=e["name"],
@@ -351,7 +349,6 @@ class Command(BaseCommand):
         cand_objs = {}
         for fn, ln, email, pwd, phone, addr in candidates_seed_list:
             u = create_or_update_user(
-            u = create_or_update_test_user(
                 email=email,
                 password=pwd,
                 name=f"{fn} {ln}",
