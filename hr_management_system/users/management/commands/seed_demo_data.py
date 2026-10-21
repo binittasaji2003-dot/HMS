@@ -698,7 +698,6 @@ class Command(BaseCommand):
         interview_seed = [
             (
                 "siddharth@gmail.com",
-                hr_objs[0],
                 primary_hr,
                 date.today() + timedelta(days=1),
                 "14:00:00",
@@ -707,7 +706,6 @@ class Command(BaseCommand):
             ),
             (
                 "kavita@gmail.com",
-                hr_objs[1],
                 secondary_hr,
                 date.today() - timedelta(days=4),
                 "11:00:00",
@@ -716,7 +714,6 @@ class Command(BaseCommand):
             ),
             (
                 "varun@gmail.com",
-                hr_objs[0],
                 primary_hr,
                 date.today() - timedelta(days=8),
                 "16:00:00",
