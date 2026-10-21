@@ -7,7 +7,7 @@ from django.urls import path
 from django.views.generic import RedirectView
 from django.views.generic import TemplateView
 
-from .views import HomeView, LandingPageView, calendar_events_api, dismiss_birthday_popup
+from .views import HomeView, calendar_events_api, dismiss_birthday_popup
 
 urlpatterns = [
     path(
@@ -15,7 +15,6 @@ urlpatterns = [
         RedirectView.as_view(url=static_url("images/favicons/favicon.ico"), permanent=True),
     ),
     path("", HomeView.as_view(), name="home"),
-    path("landing/", LandingPageView.as_view(), name="landing"),
     path(
         "about/",
         TemplateView.as_view(template_name="pages/about.html"),
