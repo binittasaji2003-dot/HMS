@@ -1,5 +1,7 @@
 from django.http import JsonResponse
+from django.shortcuts import redirect
 from django.utils import timezone
+from django.views import View
 from django.views.generic import TemplateView
 
 from admin_module.models import Announcement, Department, Holiday
@@ -7,7 +9,21 @@ from candidates.models import Candidate, JobVacancy
 from employees.models import Employee
 
 
-class HomeView(TemplateView):
+class HomeView(View):
+    """
+    Root URL redirect:
+    When a user accesses '/', redirect them directly to the system:
+    - If authenticated, redirect to their role-specific dashboard.
+    - If unauthenticated, redirect to the unified login page.
+    """
+
+    def get(self, request, *args, **kwargs):
+        if request.user.is_authenticated:
+            return redirect("users:redirect")
+        return redirect("account_login")
+
+
+class LandingPageView(TemplateView):
     template_name = "pages/home.html"
 
     def get_context_data(self, **kwargs):
