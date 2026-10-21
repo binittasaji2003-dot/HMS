@@ -13,6 +13,8 @@ CSRF_TRUSTED_ORIGINS = env.list(
     default=[
         "http://54.234.181.205",
         "http://ec2-54-234-181-205.compute-1.amazonaws.com",
+        "http://54-234-181-205.sslip.io",
+        "https://54-234-181-205.sslip.io",
         "http://localhost",
         "http://127.0.0.1",
     ],
