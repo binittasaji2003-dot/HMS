@@ -277,3 +277,4 @@ hr_management_system/media/
 .ipython/
 .env
 .envs/*
+run_ec2.py
